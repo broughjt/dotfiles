@@ -215,6 +215,7 @@
               programs.git = {
                 enable = true;
                 userEmail = email;
+                signing.signByDefault = true;
               };
 
               programs.ssh.enable = true;
