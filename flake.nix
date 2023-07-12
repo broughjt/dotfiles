@@ -197,17 +197,20 @@
               programs.home-manager.enable = true;
 
               home.packages = with pkgs; [
-                ripgrep
+                # TODO: diffs-so-fancy
                 exa
                 killall
+                ripgrep
+
+                gopass
+                pinentry-gnome
 
                 jetbrains-mono
                 source-sans
                 source-serif
 
-                gopass
-                pinentry-gnome
-
+                # TODO: zoom
+                # TODO: slack --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer
                 spotify
               ];
 
@@ -220,7 +223,11 @@
                 userEmail = email;
                 signing.key = "1BA5F1335AB45105";
                 signing.signByDefault = true;
+                # "Are the worker threads going to unionize?"
+                extraConfig = { init.defaultBranch = "main"; };
               };
+
+              programs.gh.enable = true;
 
               programs.ssh.enable = true;
               services.ssh-agent.enable = true;
@@ -242,6 +249,17 @@
                   [recipients]
                       hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
                 '';
+              };
+
+
+              gtk = {
+                enable = true;
+                theme = { name = "WhiteSur"; package = pkgs.whitesur-gtk-theme; };
+                iconTheme = { name = "WhiteSur"; package = pkgs.whitesur-icon-theme; };
+              };
+              dconf.settings = {
+                # TODO
+                "org/gnome/desktop/background" = { picture-uri = "file:///home/jackson/cosmic-cliffs.png"; };
               };
 
               programs.alacritty = {
