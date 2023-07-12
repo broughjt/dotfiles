@@ -146,7 +146,10 @@
               # refused to tell you.
               environment.systemPackages = with pkgs; [ curl git neovim ];
 
-              programs.fish.enable = true;
+              programs.fish = {
+                enable = true;
+                interactiveShellInit = "fish_vi_key_bindings";
+              };
 
               services.openssh = {
                 enable = true;
@@ -215,6 +218,7 @@
               programs.git = {
                 enable = true;
                 userEmail = email;
+                signing.key = "1BA5F1335AB45105";
                 signing.signByDefault = true;
               };
 
