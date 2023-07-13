@@ -13,7 +13,6 @@
   outputs = { nixpkgs, home-manager, emacs-overlay, ... }:
     let
       inherit (nixpkgs) lib;
-      # TODO: Use flake-utils to make this generic? (For kenobi)
       system = "x86_64-linux";
       # TODO: I'm confused, nixpkgs doesn't look like a function in it's flake.nix
       pkgs = import nixpkgs {
@@ -23,6 +22,18 @@
       };
     in
     {
+      # TODO: kakoune
+      # TOOD: treesitter
+      # TODO: config files directly in the nix store
+      # TODO: remove default userDirs
+      # TODO: impermanence
+      # TODO: itnotify on /home/jackson
+      # TODO: bluetooth
+      # TODO: screen sharing
+      # TODO: macOS decorations
+      # TODO: racket config pkgs devShell thing
+      # TODO: battery power saving
+      # TODO: laptop lid
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       nixosConfigurations.murph = lib.nixosSystem {
         inherit system;
@@ -42,8 +53,8 @@
               # TODO: What is this needed for?
               security.polkit.enable = true;
 
-	            # TODO: Gnome didn't like pipewire
-	            /*
+              # TODO: Gnome didn't like pipewire
+              /*
               security.rtkit.enable = true;
               services.pipewire = {
                 enable = true;
@@ -64,31 +75,31 @@
                   }
                 '';
               };
-	            */
+               	            */
 
               services.xserver = {
                 enable = true;
                 displayManager.gdm.enable = true;
                 displayManager.gdm.wayland = true;
                 desktopManager.gnome.enable = true;
-		            videoDrivers = [ "nvidia" ];
+                videoDrivers = [ "nvidia" ];
               };
-	            environment.gnome.excludePackages = (with pkgs; [
-	              gnome-photos
-		            gnome-tour
-	            ]) ++ (with pkgs.gnome; [
-	              cheese
-  		          atomix
-  		          epiphany
-  		          evince
-  		          geary
-  		          gedit # @Conman
-  		          gnome-characters
-  		          gnome-music
-  		          hitori
-  		          iagno
-  		          tali
-  		          totem
+              environment.gnome.excludePackages = (with pkgs; [
+                gnome-photos
+                gnome-tour
+              ]) ++ (with pkgs.gnome; [
+                cheese
+                atomix
+                epiphany
+                evince
+                geary
+                gedit # @Conman
+                gnome-characters
+                gnome-music
+                hitori
+                iagno
+                tali
+                totem
                 gnome-calculator
                 gnome-calendar
                 gnome-clocks
@@ -102,7 +113,7 @@
                 # gnome-logs
                 # gnome-system-monitor
                 simple-scan
-	            ]) ++ (with pkgs.gnome.apps; [
+              ]) ++ (with pkgs.gnome.apps; [
                 # TODO: Figure how to remove these
                 # gnome-connections
                 # gnome-help
@@ -148,7 +159,6 @@
 
               programs.fish = {
                 enable = true;
-                interactiveShellInit = "fish_vi_key_bindings";
               };
 
               services.openssh = {
@@ -175,7 +185,6 @@
       homeConfigurations.jackson = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [
-          # TODO: hyprland.homeManagerModules.default
           ({ config, pkgs, ... }:
 
             let
@@ -188,7 +197,21 @@
                 package = pkgs.emacs-unstable-pgtk;
                 alwaysEnsure = true;
               });
-            in {
+              # https://nixos.wiki/wiki/Slack
+              # https://wiki.archlinux.org/title/wayland
+              # TODO: Screen sharing
+              slack = pkgs.slack.overrideAttrs (previous: {
+                installPhase = previous.installPhase + ''
+                  rm $out/bin/slack
+
+                  makeWrapper $out/lib/slack/slack $out/bin/slack \
+                    --prefix XDG_DATA_DIRS : $GSETTINGS_SCHEMAS_PATH \
+                    --prefix PATH : ${lib.makeBinPath [pkgs.xdg-utils]} \
+                    --add-flags "--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer"
+                '';
+              });
+            in
+            {
               home.username = userName;
               home.homeDirectory = "/home/${userName}";
 
@@ -210,13 +233,27 @@
                 source-serif
 
                 # TODO: zoom
-                # TODO: slack --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer
+                slack
                 spotify
               ];
 
+              # TODO
+              # xdg.dataHome
+              # xdg.stateHome
+              # xdg.configHome
+              # xdg.cacheHome
+              #
+              # userDirs
+
               fonts.fontconfig.enable = true;
 
-              programs.fish.enable = true;
+              programs.fish = {
+                enable = true;
+                interactiveShellInit = ''
+                  fish_vi_key_bindings
+                  alias ls='exa --group-directories-first'
+                '';
+              };
 
               programs.git = {
                 enable = true;
@@ -241,7 +278,7 @@
                 pinentryFlavor = "gnome3";
               };
 
-              xdg.configFile.gopass = { 
+              xdg.configFile.gopass = {
                 target = "gopass/config";
                 text = ''
                   [mounts]
@@ -251,9 +288,11 @@
                 '';
               };
 
+              programs.direnv.enable = true;
 
               gtk = {
                 enable = true;
+                font.name = "Source Sans";
                 theme = { name = "WhiteSur"; package = pkgs.whitesur-gtk-theme; };
                 iconTheme = { name = "WhiteSur"; package = pkgs.whitesur-icon-theme; };
               };
