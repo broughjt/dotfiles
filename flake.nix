@@ -22,8 +22,6 @@
       };
     in
     {
-      # TODO: kakoune
-      # TOOD: treesitter
       # TODO: config files directly in the nix store
       # TODO: remove default userDirs
       # TODO: impermanence
@@ -34,6 +32,7 @@
       # TODO: racket config pkgs devShell thing
       # TODO: battery power saving
       # TODO: laptop lid
+      # TODO: fingerprint
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       nixosConfigurations.murph = lib.nixosSystem {
         inherit system;
@@ -296,6 +295,10 @@
                 theme = { name = "WhiteSur"; package = pkgs.whitesur-gtk-theme; };
                 iconTheme = { name = "WhiteSur"; package = pkgs.whitesur-icon-theme; };
               };
+              # TODO: https://github.com/pop-os/shell
+              # TODO: https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
+              # TODO: https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
+              # TODO: playerctl
               dconf.settings = {
                 # TODO
                 "org/gnome/desktop/background" = { picture-uri = "file:///home/jackson/cosmic-cliffs.png"; };
