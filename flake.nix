@@ -74,7 +74,7 @@
                   }
                 '';
               };
-               	            */
+              */
 
               services.xserver = {
                 enable = true;
@@ -187,9 +187,13 @@
           ({ config, pkgs, ... }:
 
             let
-              # TODO: Other duplicated stuff goes here
               userName = "jackson";
               email = "jacksontbrough@gmail.com";
+              homeDirectory = "/home/${userName}";
+              repositoriesDirectory = "${homeDirectory}/repositories";
+              sharedDirectory = "${homeDirectory}/shared";
+              localDirectory = "${homeDirectory}/local";
+              scratchDirectory = "${localDirectory}/scratch";
               emacs = (pkgs.emacsWithPackagesFromUsePackage {
                 config = ./emacs.el;
                 defaultInitFile = true;
@@ -209,40 +213,45 @@
                     --add-flags "--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer"
                 '';
               });
-            in
-            {
+            in {
               home.username = userName;
-              home.homeDirectory = "/home/${userName}";
-
+              home.homeDirectory = homeDirectory;
               home.stateVersion = "23.05";
-
-              programs.home-manager.enable = true;
-
               home.packages = with pkgs; [
-                # TODO: diffs-so-fancy
                 exa
                 killall
                 ripgrep
-
+                
                 gopass
                 pinentry-gnome
-
+                
                 jetbrains-mono
                 source-sans
                 source-serif
-
+                
                 # TODO: zoom
+                # TODO: obsidian
                 slack
                 spotify
               ];
 
-              # TODO
-              # xdg.dataHome
-              # xdg.stateHome
-              # xdg.configHome
-              # xdg.cacheHome
-              #
-              # userDirs
+              programs.home-manager.enable = true;
+
+              xdg.enable = true;
+              xdg.cacheHome = "${homeDirectory}/.cache";
+              xdg.configHome = "${homeDirectory}/.config";
+              xdg.dataHome = "${homeDirectory}/.local/share";
+              xdg.stateHome = "${homeDirectory}/.local/state";
+              xdg.userDirs = {
+                createDirectories = true;
+                documents = scratchDirectory;
+                download = scratchDirectory;
+                music = "${sharedDirectory}/music";
+                pictures = "${sharedDirectory}/pictures";
+                publicShare = scratchDirectory;
+                templates = scratchDirectory;
+                videos = "${sharedDirectory}/videos";
+              };
 
               fonts.fontconfig.enable = true;
 
