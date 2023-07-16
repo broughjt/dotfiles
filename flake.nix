@@ -290,7 +290,7 @@
                 target = "gopass/config";
                 text = ''
                   [mounts]
-                      path = /home/jackson/repositories/passwords
+                      path = ${repositoriesDirectory}/passwords
                   [recipients]
                       hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
                 '';
@@ -310,7 +310,7 @@
               # TODO: playerctl
               dconf.settings = {
                 # TODO
-                "org/gnome/desktop/background" = { picture-uri = "file:///home/jackson/cosmic-cliffs.png"; };
+                "org/gnome/desktop/background" = { picture-uri = "file://${config.xdg.userDirs.pictures}/cosmic-cliffs.png"; };
               };
 
               programs.alacritty = {
