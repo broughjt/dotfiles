@@ -8,9 +8,11 @@
 ;; Alacritty has no scrollbar, and fish doesn't have backwards work kill with C-backspace, need a terminal in emacs
 ;;   Ideally, have a little popup window like vscode
 ;; buffer and window management in general
-;; Highlight line with a different color if you're at the center of the buffer, I press zz all the time unnessarily
+;; Highlight line with a different color if you're at the center of the buffer, I press zz all the time unnecesarilly
 ;;
 ;; debuggers
+
+;; TODO: https://hackernoon.com/learning-vim-what-i-wish-i-knew-b5dca186bef7
 
 (setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
@@ -53,6 +55,12 @@
   :config
   (evil-mode 1))
 
+;; TODO: Does it matter that this is closer to the top? I'm using the server so
+;; when does this actually run?
+(use-package standard-themes
+  :init
+  (load-theme 'standard-dark t))
+
 (use-package vertico
   :init
   (vertico-mode))
@@ -83,7 +91,9 @@
   :bind
   (:map company-active-map
 	("C-n" . company-select-next)
-	("C-p" . company-select-previous)))
+	("C-p" . company-select-previous))
+  :init
+  (global-company-mode))
 
 (use-package nix-mode
   :mode "\\.nix\\'")
@@ -120,3 +130,4 @@
   (add-hook 'text-mode-hook 'yas-minor-mode))
 
 (use-package magit)
+
