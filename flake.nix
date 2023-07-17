@@ -33,6 +33,7 @@
       # TODO: battery power saving
       # TODO: laptop lid
       # TODO: fingerprint
+      # TODO: beets
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       nixosConfigurations.murph = lib.nixosSystem {
         inherit system;
@@ -52,8 +53,6 @@
               # TODO: What is this needed for?
               security.polkit.enable = true;
 
-              # TODO: Gnome didn't like pipewire
-              /*
               security.rtkit.enable = true;
               services.pipewire = {
                 enable = true;
@@ -61,20 +60,20 @@
                 alsa.support32Bit = true;
                 pulse.enable = true;
               };
+              hardware.pulseaudio.enable = false;
               hardware.bluetooth.enable = true;
               services.blueman.enable = true;
               # TODO: Magical bluetooth incantations
-              environment.etc = {
-                "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
-                  bluez_monitor.properties = {
-                    ["bluez5.enable-sbc-xq"] = true,
-                    ["bluez5.enable-msbc"] = true,
-                    ["bluez5.enable-hw-volume"] = true,
-                    ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
-                  }
-                '';
-              };
-              */
+              # environment.etc = {
+                # "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+                  # bluez_monitor.properties = {
+                    # ["bluez5.enable-sbc-xq"] = true,
+                    # ["bluez5.enable-msbc"] = true,
+                    # ["bluez5.enable-hw-volume"] = true,
+                    # ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+                  # }
+                # '';
+              # };
 
               services.xserver = {
                 enable = true;
