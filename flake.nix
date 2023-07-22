@@ -310,14 +310,21 @@
               dconf.settings = {
                 # TODO
                 "org/gnome/desktop/background" = { picture-uri = "file://${config.xdg.userDirs.pictures}/cosmic-cliffs.png"; };
+                "org/gnome/desktop/interface" = {
+                  clock-format = "12h";
+                  color-scheme = "prefer-dark";
+                  enable-hot-corners = false;
+                  # TODO
+                  # font-antialiasing = "grayscale";
+                  # font-hinting = "slight";
+                  # gtk-theme = "Nordic";
+                  # toolkit-accessibility = true;
+                };
               };
 
-              programs.alacritty = {
+              programs.kitty = {
                 enable = true;
-                settings = {
-                  font.normal = { family = "JetBrains Mono"; style = "Regular"; };
-                  font.size = 12;
-                };
+                font = { name = "JetBrains Mono"; size = 12; };
               };
 
               programs.firefox = {
