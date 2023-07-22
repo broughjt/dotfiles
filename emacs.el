@@ -13,6 +13,7 @@
 ;; debuggers
 
 ;; TODO: https://hackernoon.com/learning-vim-what-i-wish-i-knew-b5dca186bef7
+;; TOOD: https://github.com/seagle0128/.emacs.d
 
 (setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
@@ -104,6 +105,7 @@
 
 (use-package racket-mode)
 
+;; https://robert.kra.hn/posts/rust-emacs-setup/#inline-type-hints
 (use-package rustic)
 
 (use-package lsp-mode
