@@ -150,10 +150,15 @@
 
               nixpkgs.config.allowUnfree = true;
 
-              # Prevent a world of pain where nix 2.4 has you fetching rocks for
-              # a long time until you finally discover that it wanted git but
-              # refused to tell you.
-              environment.systemPackages = with pkgs; [ curl git neovim ];
+              environment.systemPackages = with pkgs; [
+                busybox
+                curl
+                # Prevent a world of pain where nix 2.4 has you fetching rocks for
+                # a long time until you finally discover that it wanted git but
+                # refused to tell you.
+                git
+                neovim
+              ];
 
               programs.fish = {
                 enable = true;
