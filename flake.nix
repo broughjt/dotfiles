@@ -30,8 +30,6 @@
       # TODO: screen sharing
       # TODO: macOS decorations
       # TODO: racket config pkgs devShell thing
-      # TODO: battery power saving
-      # TODO: laptop lid
       # TODO: fingerprint
       # TODO: beets
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
@@ -46,9 +44,14 @@
               boot.loader.systemd-boot.enable = true;
               boot.loader.efi.canTouchEfiVariables = true;
               boot.initrd.secrets = { "/crypto_keyfile.bin" = null; };
+              # See https://download.nvidia.com/XFree86/Linux-x86_64/460.73.01/README/powermanagement.html
+              # Known Issues and Workarounds
+              boot.kernelParams = [ "mem_sleep_default=deep" ];
 
               networking.hostName = "murph";
               networking.networkmanager.enable = true;
+
+              powerManagement.enable = true;
 
               # TODO: What is this needed for?
               security.polkit.enable = true;
@@ -126,7 +129,6 @@
               hardware.nvidia = {
                 modesetting.enable = true;
                 powerManagement.enable = true;
-                open = true;
               };
 
               time.timeZone = "America/Denver";
