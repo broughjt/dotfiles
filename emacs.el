@@ -49,6 +49,8 @@
 ;; TODO: Ideally just don't have one
 (setq custom-file (concat user-emacs-directory "custom.el"))
 
+(setq-default indent-tabs-mode nil)
+
 (use-package evil
   :custom
   (evil-want-keybinding nil)
