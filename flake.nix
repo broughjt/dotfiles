@@ -44,6 +44,9 @@
       # TODO: racket config pkgs devShell thing
       # TODO: fingerprint
       # TODO: beets
+      # TODO: https://github.com/nix-community/naersk
+      # TODO: https://jmgilman.github.io/std-book/overview.html
+      # TODO: https://www.oilshell.org/cross-ref.html?tag=YSH#YSH
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       nixosConfigurations.murph = lib.nixosSystem {
         inherit system;
@@ -454,6 +457,10 @@
               };
             })
         ];
+      };
+      templates.rust = {
+        path = ./templates/rust;
+        description = "Rust template";
       };
     };
 }
