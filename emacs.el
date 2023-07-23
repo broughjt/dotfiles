@@ -105,27 +105,17 @@
   :config
   (envrc-global-mode))
 
+;; TODO: https://github.com/jeapostrophe/racket-langserver
 (use-package racket-mode)
 
 ;; https://robert.kra.hn/posts/rust-emacs-setup/#inline-type-hints
-(use-package rustic)
-
-(use-package lsp-mode
-  :commands lsp
-  :custom
-  (lsp-rust-analyzer-cargo-watch-command "clippy")
-  (lsp-eldoc-render-all t)
-  (lsp-idle-delay 0.6)
-  (lsp-rust-analyzer-server-display-inlay-hints t)
+(use-package rust-mode
+  :hook
+  ((rust-mode . eglot-ensure)
+   (rust-mode . flymake-mode))
   :config
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode))
-
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :custom
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-doc-enable nil))
+  (setq-default eglot-workspace-configuration
+                '(:rust-analyzer (:check (:command "clippy")))))
 
 (use-package yasnippet
   :config
