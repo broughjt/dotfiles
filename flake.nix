@@ -169,7 +169,6 @@
               nixpkgs.config.allowUnfree = true;
 
               environment.systemPackages = with pkgs; [
-                busybox
                 curl
                 # Prevent a world of pain where nix 2.4 has you fetching rocks for
                 # a long time until you finally discover that it wanted git but
@@ -366,6 +365,7 @@
                 "org/gnome/shell/keybindings" = {
                   toggle-message-tray = [];
                   focus-active-notification = [];
+                  toggle-overview = [];
                   switch-to-application-1 = [];
                   switch-to-application-2 = [];
                   switch-to-application-3 = [];
@@ -381,12 +381,15 @@
                 };
                 "org/gnome/settings-daemon/plugins/media-keys" = {
                   rotate-video-lock-static = [];
+                  screenreader = [];
                   custom-keybindings = [
                     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
                     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
                     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
                     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
                     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
+                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
+                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
                   ];
                 };
                 "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
@@ -400,16 +403,26 @@
                   binding = "<Super>b";
                 };
                 "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+                  name = "Emacs";
+                  command = "emacsclient -c";
+                  binding = "<Super>e";
+                };
+                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
+                  name = "Spotify";
+                  command = "spotify";
+                  binding = "<Super>s";
+                };
+                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
                   name = "Next";
                   command = "playerctl next";
                   binding = "<Super>n";
                 };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
+                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
                   name = "Previous";
                   command = "playerctl previous";
                   binding = "<Super>p";
                 };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
+                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
                   name = "Play";
                   command = "playerctl play-pause";
                   binding = "<Super>i";
@@ -430,8 +443,8 @@
                   # toolkit-accessibility = true;
                 };
                 "org/gnome/desktop/background" = {
-                  picture-uri = "file://${config.xdg.userDirs.pictures}/cosmic-cliffs.png";
-                  picture-uri-dark = "file://${config.xdg.userDirs.pictures}/cosmic-cliffs.png";
+                  picture-uri = "file://${config.xdg.userDirs.pictures}/deep-field.png";
+                  picture-uri-dark = "file://${config.xdg.userDirs.pictures}/deep-field.png";
                 };
               };
 
