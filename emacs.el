@@ -370,6 +370,9 @@
   (setq-default eglot-workspace-configuration
                 '(:rust-analyzer (:check (:command "clippy")))))
 
+;; TODO
+(add-hook 'tsx-ts-mode-hook #'eglot-ensure)
+
 (use-package yasnippet
   :config
   (yas-reload-all)
