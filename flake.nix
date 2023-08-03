@@ -219,6 +219,9 @@
                 config = ./emacs.el;
                 defaultInitFile = true;
                 package = pkgs.emacs-unstable-pgtk;
+                extraEmacsPackages = epkgs: with epkgs; [
+                  treesit-grammars.with-all-grammars
+                ];
                 alwaysEnsure = true;
               });
               # https://nixos.wiki/wiki/Slack
