@@ -245,6 +245,7 @@
                 exa
                 killall
                 ripgrep
+                lldb
                 
                 gopass
                 pinentry-gnome
@@ -259,7 +260,6 @@
                 whitesur-icon-theme
                 
                 # TODO: zoom
-                # TODO: obsidian
                 slack
                 spotify
                 playerctl
