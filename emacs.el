@@ -6,6 +6,7 @@
 ;; dired
 ;; Alacritty has no scrollbar, and fish doesn't have backwards word kill with C-backspace, need a terminal in emacs
 ;;   Ideally, have a little popup window like vscode
+;; https://coredumped.dev/2020/01/04/native-shell-completion-in-emacs/
 ;; buffer and window management in general
 ;; Highlight line with a different color if you're at the center of the buffer, I press zz all the time unnecesarilly
 ;; debuggers
@@ -359,6 +360,12 @@
   :config
   (envrc-global-mode))
 
+(use-package dap-mode
+  :commands dap-debug
+  :config
+  (require 'dap-gdb-lldb)
+  (dap-gdb-lldb-setup))
+
 ;; TODO: https://github.com/jeapostrophe/racket-langserver
 (use-package racket-mode)
 
@@ -369,6 +376,8 @@
   :config
   (setq-default eglot-workspace-configuration
                 '(:rust-analyzer (:check (:command "clippy")))))
+
+(use-package proof-general)
 
 ;; TODO
 (add-hook 'tsx-ts-mode-hook #'eglot-ensure)
