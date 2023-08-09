@@ -16,22 +16,315 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
 
+    nix-darwin.url = "github:LnL7/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     emacs-overlay.url = "github:nix-community/emacs-overlay";
+    emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, home-manager, emacs-overlay, ... }:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, emacs-overlay }:
     let
-      inherit (nixpkgs) lib;
-      system = "x86_64-linux";
-      # TODO: I'm confused, nixpkgs doesn't look like a function in it's flake.nix
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-        overlays = with emacs-overlay.overlays; [ emacs package ];
+      fullName = "Jackson Brough";
+      userName = "jackson";
+      email = "jacksontbrough@gmail.com";
+      sharedHomeConfiguration = { lib, config, pkgs, ... }:
+        let
+          emacs = (pkgs.emacsWithPackagesFromUsePackage {
+            config = ./emacs.el;
+            defaultInitFile = true;
+            package = pkgs.emacs-unstable-pgtk;
+            extraEmacsPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
+            alwaysEnsure = true;
+          });
+        in
+        {
+          # TODO: Paths?
+
+          options.repositoriesDirectory = lib.mkOption {
+            type = lib.types.str;
+            default = "${config.homeDirectory}/repositories";
+          };
+
+          options.sharedDirectory = lib.mkOption {
+            type = lib.types.str;
+            default = "${config.homeDirectory}/shared";
+          };
+
+          options.localDirectory = lib.mkOption {
+            type = lib.types.str;
+            default = "${config.homeDirectory}/local";
+          };
+
+          options.scratchDirectory = lib.mkOption {
+            type = lib.types.str;
+            default = "${config.homeDirectory}/scratch";
+          };
+
+          config = {
+            home.username = userName;
+            home.stateVersion = "23.05";
+            home.packages = with pkgs; [
+              exa
+              ripgrep
+
+              direnv
+              gopass
+
+              jetbrains-mono
+            ];
+            programs.home-manager.enable = true;
+
+            xdg.enable = true;
+            xdg.cacheHome = "${config.homeDirectory}/.cache";
+            xdg.configHome = "${config.homeDirectory}/.config";
+            xdg.dataHome = "${config.homeDirectory}/.local/share";
+            xdg.stateHome = "${config.homeDirectory}/.local/state";
+
+            programs.fish = {
+              enable = true;
+              interactiveShellInit = ''
+                fish_vi_key_bindings
+                alias ls='exa --group-directories-first'
+              '';
+            };
+
+            programs.git = {
+              enable = true;
+              userEmail = email;
+              signing.key = "1BA5F1335AB45105";
+              signing.signByDefault = true;
+              # "Are the worker threads going to unionize?"
+              extraConfig = { init.defaultBranch = "main"; };
+            };
+
+            programs.gh.enable = true;
+
+            programs.ssh.enable = true;
+            services.ssh-agent.enable = true;
+
+            programs.gpg = {
+              enable = true;
+              homedir = "${config.xdg.dataHome}/gnupg";
+            };
+            services.gpg-agent = {
+              enable = true;
+            };
+
+            xdg.configFile.gopass = {
+              target = "gopass/config";
+              text = ''
+                [mounts]
+                    path = ${config.repositoriesDirectory}/passwords
+                [recipients]
+                    hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
+              '';
+            };
+
+            programs.emacs = {
+              enable = true;
+              package = emacs;
+            };
+            services.emacs = {
+              enable = true;
+              package = emacs;
+              defaultEditor = true;
+            };
+          };
+        };
+      darwinHomeConfiguration = { config, pkgs, ... }: {
+        home.homeDirectory = "/Users/${userName}";
       };
+      linuxHomeConfiguration = { config, pkgs, ... }:
+        # https://nixos.wiki/wiki/Slack
+        # https://wiki.archlinux.org/title/wayland
+        # TODO: Screen sharing
+        let
+          slack = pkgs.slack.overrideAttrs (previous: {
+            installPhase = previous.installPhase + ''
+              rm $out/bin/slack
+
+              makeWrapper $out/lib/slack/slack $out/bin/slack \
+                --prefix XDG_DATA_DIRS : $GSETTINGS_SCHEMAS_PATH \
+                --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.xdg-utils]} \
+                --add-flags "--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer"
+            '';
+          });
+        in
+        {
+          home.homeDirectory = "/home/${userName}";
+          home.packages = with pkgs; [
+            killall
+            lldb
+
+            pinentry-gnome
+            source-sans
+            source-serif
+
+            gnome.dconf-editor
+            gnomeExtensions.pop-shell
+            whitesur-gtk-theme
+            whitesur-icon-theme
+
+            # TODO: zoom
+            slack
+            spotify
+            playerctl
+          ];
+
+          xdg.userDirs = {
+            createDirectories = true;
+            documents = config.scratchDirectory;
+            download = config.scratchDirectory;
+            music = "${config.sharedDirectory}/music";
+            pictures = "${config.sharedDirectory}/pictures";
+            publicShare = config.scratchDirectory;
+            templates = config.scratchDirectory;
+            videos = "${config.sharedDirectory}/videos";
+          };
+
+          fonts.fontconfig.enable = true;
+
+          services.gpg-agent.pinentryFlavor = "gnome3";
+
+          # https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
+          # https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
+          # TODO: playerctl
+          dconf.settings = {
+            "org/gnome/shell" = {
+              disable-user-extensions = false;
+              disabled-extensions = "disabled";
+              enabled-extensions = [
+                "pop-shell@system76.com"
+              ];
+            };
+            "org/gnome/shell/extensions/pop-shell" = {
+              tile-by-default = true;
+            };
+            "org/gnome/desktop/wm/keybindings" = {
+              close = [ "<Super>q" ];
+              minimize = [ "<Super>comma" ];
+              toggle-maximized = [ "<Super>m" ];
+              switch-to-workspace-1 = [ "<Super>1" ];
+              switch-to-workspace-2 = [ "<Super>2" ];
+              switch-to-workspace-3 = [ "<Super>3" ];
+              switch-to-workspace-4 = [ "<Super>4" ];
+              switch-to-workspace-5 = [ "<Super>5" ];
+              switch-to-workspace-6 = [ "<Super>6" ];
+              switch-to-workspace-7 = [ "<Super>7" ];
+              switch-to-workspace-8 = [ "<Super>8" ];
+              switch-to-workspace-9 = [ "<Super>9" ];
+              move-to-workspace-1 = [ "<Super><Shift>1" ];
+              move-to-workspace-2 = [ "<Super><Shift>2" ];
+              move-to-workspace-3 = [ "<Super><Shift>3" ];
+              move-to-workspace-4 = [ "<Super><Shift>4" ];
+              move-to-workspace-5 = [ "<Super><Shift>5" ];
+              move-to-workspace-6 = [ "<Super><Shift>6" ];
+              move-to-workspace-7 = [ "<Super><Shift>7" ];
+              move-to-workspace-8 = [ "<Super><Shift>8" ];
+              move-to-workspace-9 = [ "<Super><Shift>9" ];
+            };
+            "org/gnome/shell/keybindings" = {
+              toggle-message-tray = [ ];
+              focus-active-notification = [ ];
+              toggle-overview = [ ];
+              switch-to-application-1 = [ ];
+              switch-to-application-2 = [ ];
+              switch-to-application-3 = [ ];
+              switch-to-application-4 = [ ];
+              switch-to-application-5 = [ ];
+              switch-to-application-6 = [ ];
+              switch-to-application-7 = [ ];
+              switch-to-application-8 = [ ];
+              switch-to-application-9 = [ ];
+            };
+            "org/gnome/mutter/keybindings" = {
+              switch-monitor = [ ];
+            };
+            "org/gnome/settings-daemon/plugins/media-keys" = {
+              rotate-video-lock-static = [ ];
+              screenreader = [ ];
+              custom-keybindings = [
+                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
+                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
+                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
+                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
+                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
+              ];
+            };
+            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+              name = "Terminal";
+              command = "kitty";
+              binding = "<Super>t";
+            };
+            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+              name = "Browser";
+              command = "firefox";
+              binding = "<Super>b";
+            };
+            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+              name = "Emacs";
+              command = "emacsclient -c";
+              binding = "<Super>e";
+            };
+            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
+              name = "Spotify";
+              command = "spotify";
+              binding = "<Super>s";
+            };
+            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
+              name = "Next";
+              command = "playerctl next";
+              binding = "<Super>n";
+            };
+            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
+              name = "Previous";
+              command = "playerctl previous";
+              binding = "<Super>p";
+            };
+            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
+              name = "Play";
+              command = "playerctl play-pause";
+              binding = "<Super>i";
+            };
+            "org/gnome/desktop/wm/preferences" = {
+              theme = "WhiteSur";
+              num-workspaces = 9;
+            };
+            "org/gnome/desktop/interface" = {
+              clock-format = "12h";
+              color-scheme = "prefer-dark";
+              enable-hot-corners = false;
+              # TODO
+              # font-antialiasing = "grayscale";
+              # font-hinting = "slight";
+              gtk-theme = "WhiteSur";
+              icon-theme = "WhiteSur";
+              # toolkit-accessibility = true;
+            };
+            "org/gnome/desktop/background" = {
+              picture-uri = "file://${config.xdg.userDirs.pictures}/deep-field.png";
+              picture-uri-dark = "file://${config.xdg.userDirs.pictures}/deep-field.png";
+            };
+          };
+
+          programs.kitty = {
+            enable = true;
+            font = { name = "JetBrains Mono"; size = 12; };
+          };
+
+          programs.firefox = {
+            enable = true;
+            enableGnomeExtensions = false;
+          };
+
+          services.emacs.startWithUserSession = "graphical";
+        };
     in
     {
       # TODO: config files directly in the nix store
@@ -47,9 +340,10 @@
       # TODO: https://github.com/nix-community/naersk
       # TODO: https://jmgilman.github.io/std-book/overview.html
       # TODO: https://www.oilshell.org/cross-ref.html?tag=YSH#YSH
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
-      nixosConfigurations.murph = lib.nixosSystem {
-        inherit system;
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
+      formatter.x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.nixpkgs-fmt;
+      nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
         modules = [
           ({ config, pkgs, ... }:
 
@@ -83,14 +377,14 @@
               services.blueman.enable = true;
               # TODO: Magical bluetooth incantations
               # environment.etc = {
-                # "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
-                  # bluez_monitor.properties = {
-                    # ["bluez5.enable-sbc-xq"] = true,
-                    # ["bluez5.enable-msbc"] = true,
-                    # ["bluez5.enable-hw-volume"] = true,
-                    # ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
-                  # }
-                # '';
+              # "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+              # bluez_monitor.properties = {
+              # ["bluez5.enable-sbc-xq"] = true,
+              # ["bluez5.enable-msbc"] = true,
+              # ["bluez5.enable-hw-volume"] = true,
+              # ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+              # }
+              # '';
               # };
 
               services.xserver = {
@@ -202,277 +496,33 @@
             })
         ];
       };
-      homeConfigurations.jackson = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
+      darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
         modules = [
-          ({ config, pkgs, ... }:
+          ({ pkgs, ... }: {
+            nixpkgs.hostPlatform = "x86_64-darwin";
 
-            let
-              userName = "jackson";
-              email = "jacksontbrough@gmail.com";
-              homeDirectory = "/home/${userName}";
-              repositoriesDirectory = "${homeDirectory}/repositories";
-              sharedDirectory = "${homeDirectory}/shared";
-              localDirectory = "${homeDirectory}/local";
-              scratchDirectory = "${localDirectory}/scratch";
-              emacs = (pkgs.emacsWithPackagesFromUsePackage {
-                config = ./emacs.el;
-                defaultInitFile = true;
-                package = pkgs.emacs-unstable-pgtk;
-                extraEmacsPackages = epkgs: with epkgs; [
-                  treesit-grammars.with-all-grammars
-                ];
-                alwaysEnsure = true;
-              });
-              # https://nixos.wiki/wiki/Slack
-              # https://wiki.archlinux.org/title/wayland
-              # TODO: Screen sharing
-              slack = pkgs.slack.overrideAttrs (previous: {
-                installPhase = previous.installPhase + ''
-                  rm $out/bin/slack
+            services.nix-daemon.enable = true;
+            nix.settings.experimental-features = "nix-command flakes";
 
-                  makeWrapper $out/lib/slack/slack $out/bin/slack \
-                    --prefix XDG_DATA_DIRS : $GSETTINGS_SCHEMAS_PATH \
-                    --prefix PATH : ${lib.makeBinPath [pkgs.xdg-utils]} \
-                    --add-flags "--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer"
-                '';
-              });
-            in {
-              home.username = userName;
-              home.homeDirectory = homeDirectory;
-              home.stateVersion = "23.05";
-              home.packages = with pkgs; [
-                exa
-                killall
-                ripgrep
-                lldb
-                
-                gopass
-                pinentry-gnome
-                
-                jetbrains-mono
-                source-sans
-                source-serif
+            environment.systemPackages = with pkgs; [ neovim ];
 
-                gnome.dconf-editor
-                gnomeExtensions.pop-shell
-                whitesur-gtk-theme
-                whitesur-icon-theme
-                
-                # TODO: zoom
-                slack
-                spotify
-                playerctl
-              ];
+            programs.fish.enable = true;
 
-              programs.home-manager.enable = true;
+            system.configurationRevision = self.rev or self.dirtyRev or null;
+            system.stateVersion = 4;
 
-              xdg.enable = true;
-              xdg.cacheHome = "${homeDirectory}/.cache";
-              xdg.configHome = "${homeDirectory}/.config";
-              xdg.dataHome = "${homeDirectory}/.local/share";
-              xdg.stateHome = "${homeDirectory}/.local/state";
-              xdg.userDirs = {
-                createDirectories = true;
-                documents = scratchDirectory;
-                download = scratchDirectory;
-                music = "${sharedDirectory}/music";
-                pictures = "${sharedDirectory}/pictures";
-                publicShare = scratchDirectory;
-                templates = scratchDirectory;
-                videos = "${sharedDirectory}/videos";
-              };
-
-              fonts.fontconfig.enable = true;
-
-              programs.fish = {
-                enable = true;
-                interactiveShellInit = ''
-                  fish_vi_key_bindings
-                  alias ls='exa --group-directories-first'
-                '';
-              };
-
-              programs.git = {
-                enable = true;
-                userEmail = email;
-                signing.key = "1BA5F1335AB45105";
-                signing.signByDefault = true;
-                # "Are the worker threads going to unionize?"
-                extraConfig = { init.defaultBranch = "main"; };
-              };
-
-              programs.gh.enable = true;
-
-              programs.ssh.enable = true;
-              services.ssh-agent.enable = true;
-
-              programs.gpg = {
-                enable = true;
-                homedir = "${config.xdg.dataHome}/gnupg";
-              };
-              services.gpg-agent = {
-                enable = true;
-                pinentryFlavor = "gnome3";
-              };
-
-              xdg.configFile.gopass = {
-                target = "gopass/config";
-                text = ''
-                  [mounts]
-                      path = ${repositoriesDirectory}/passwords
-                  [recipients]
-                      hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
-                '';
-              };
-
-              programs.direnv.enable = true;
-
-              # https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
-              # https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
-              # TODO: playerctl
-              dconf.settings = {
-                "org/gnome/shell" = {
-                  disable-user-extensions = false;
-                  disabled-extensions = "disabled";
-                  enabled-extensions = [
-                    "pop-shell@system76.com"
-                  ];
-                };
-                "org/gnome/shell/extensions/pop-shell" = {
-                    tile-by-default = true;
-                };
-                "org/gnome/desktop/wm/keybindings" = {
-                  close = ["<Super>q"];
-                  minimize = ["<Super>comma"];
-                  toggle-maximized = ["<Super>m"];
-                  switch-to-workspace-1 = [ "<Super>1" ];
-                  switch-to-workspace-2 = [ "<Super>2" ];
-                  switch-to-workspace-3 = [ "<Super>3" ];
-                  switch-to-workspace-4 = [ "<Super>4" ];
-                  switch-to-workspace-5 = [ "<Super>5" ];
-                  switch-to-workspace-6 = [ "<Super>6" ];
-                  switch-to-workspace-7 = [ "<Super>7" ];
-                  switch-to-workspace-8 = [ "<Super>8" ];
-                  switch-to-workspace-9 = [ "<Super>9" ];
-                  move-to-workspace-1 = [ "<Super><Shift>1" ];
-                  move-to-workspace-2 = [ "<Super><Shift>2" ];
-                  move-to-workspace-3 = [ "<Super><Shift>3" ];
-                  move-to-workspace-4 = [ "<Super><Shift>4" ];
-                  move-to-workspace-5 = [ "<Super><Shift>5" ];
-                  move-to-workspace-6 = [ "<Super><Shift>6" ];
-                  move-to-workspace-7 = [ "<Super><Shift>7" ];
-                  move-to-workspace-8 = [ "<Super><Shift>8" ];
-                  move-to-workspace-9 = [ "<Super><Shift>9" ];
-                };
-                "org/gnome/shell/keybindings" = {
-                  toggle-message-tray = [];
-                  focus-active-notification = [];
-                  toggle-overview = [];
-                  switch-to-application-1 = [];
-                  switch-to-application-2 = [];
-                  switch-to-application-3 = [];
-                  switch-to-application-4 = [];
-                  switch-to-application-5 = [];
-                  switch-to-application-6 = [];
-                  switch-to-application-7 = [];
-                  switch-to-application-8 = [];
-                  switch-to-application-9 = [];
-                };
-                "org/gnome/mutter/keybindings" = {
-                  switch-monitor = [];
-                };
-                "org/gnome/settings-daemon/plugins/media-keys" = {
-                  rotate-video-lock-static = [];
-                  screenreader = [];
-                  custom-keybindings = [
-                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
-                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
-                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
-                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
-                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
-                    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
-                  ];
-                };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-                  name = "Terminal";
-                  command = "kitty";
-                  binding = "<Super>t";
-                };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-                  name = "Browser";
-                  command = "firefox";
-                  binding = "<Super>b";
-                };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
-                  name = "Emacs";
-                  command = "emacsclient -c";
-                  binding = "<Super>e";
-                };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
-                  name = "Spotify";
-                  command = "spotify";
-                  binding = "<Super>s";
-                };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
-                  name = "Next";
-                  command = "playerctl next";
-                  binding = "<Super>n";
-                };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
-                  name = "Previous";
-                  command = "playerctl previous";
-                  binding = "<Super>p";
-                };
-                "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
-                  name = "Play";
-                  command = "playerctl play-pause";
-                  binding = "<Super>i";
-                };
-                "org/gnome/desktop/wm/preferences" = {
-                  theme = "WhiteSur";
-                  num-workspaces = 9;
-                };
-                "org/gnome/desktop/interface" = {
-                  clock-format = "12h";
-                  color-scheme = "prefer-dark";
-                  enable-hot-corners = false;
-                  # TODO
-                  # font-antialiasing = "grayscale";
-                  # font-hinting = "slight";
-                  gtk-theme = "WhiteSur";
-                  icon-theme = "WhiteSur";
-                  # toolkit-accessibility = true;
-                };
-                "org/gnome/desktop/background" = {
-                  picture-uri = "file://${config.xdg.userDirs.pictures}/deep-field.png";
-                  picture-uri-dark = "file://${config.xdg.userDirs.pictures}/deep-field.png";
-                };
-              };
-
-              programs.kitty = {
-                enable = true;
-                font = { name = "JetBrains Mono"; size = 12; };
-              };
-
-              programs.firefox = {
-                enable = true;
-                enableGnomeExtensions = false;
-              };
-
-              programs.emacs = {
-                enable = true;
-                package = emacs;
-              };
-              services.emacs = {
-                enable = true;
-                package = emacs;
-                startWithUserSession = "graphical";
-                defaultEditor = true;
-              };
-            })
+            users.users.${userName} = {
+              home = "/Users/${userName}";
+              shell = pkgs.fish;
+            };
+          })
         ];
+      };
+      homeConfigurations."${userName}@murph" = home-manager.lib.homeManagerConfiguration {
+        modules = [ sharedHomeConfiguration linuxHomeConfiguration ];
+      };
+      homeConfigurations."${userName}@kenobi" = home-manager.lib.homeManagerConfiguration {
+        modules = [ sharedHomeConfiguration darwinHomeConfiguration ];
       };
       templates.rust = {
         path = ./templates/rust;
