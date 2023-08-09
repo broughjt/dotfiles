@@ -136,7 +136,11 @@
           };
         };
       darwinHomeConfiguration = { config, pkgs, ... }: {
-        home.homeDirectory = "/Users/${userName}";
+        imports = [ sharedHomeConfiguration ];
+
+        config = {
+          home.homeDirectory = "/Users/${userName}";
+        };
       };
       linuxHomeConfiguration = { config, pkgs, ... }:
         # https://nixos.wiki/wiki/Slack
@@ -155,175 +159,179 @@
           });
         in
         {
-          home.homeDirectory = "/home/${userName}";
-          home.packages = with pkgs; [
-            killall
-            lldb
+          imports = [ sharedHomeConfiguration ];
 
-            pinentry-gnome
-            source-sans
-            source-serif
+          config = {
+            home.homeDirectory = "/home/${userName}";
+            home.packages = with pkgs; [
+              killall
+              lldb
 
-            gnome.dconf-editor
-            gnomeExtensions.pop-shell
-            whitesur-gtk-theme
-            whitesur-icon-theme
+              pinentry-gnome
+              source-sans
+              source-serif
 
-            # TODO: zoom
-            slack
-            spotify
-            playerctl
-          ];
+              gnome.dconf-editor
+              gnomeExtensions.pop-shell
+              whitesur-gtk-theme
+              whitesur-icon-theme
 
-          xdg.userDirs = {
-            createDirectories = true;
-            documents = config.scratchDirectory;
-            download = config.scratchDirectory;
-            music = "${config.sharedDirectory}/music";
-            pictures = "${config.sharedDirectory}/pictures";
-            publicShare = config.scratchDirectory;
-            templates = config.scratchDirectory;
-            videos = "${config.sharedDirectory}/videos";
+              # TODO: zoom
+              slack
+              spotify
+              playerctl
+            ];
+
+            xdg.userDirs = {
+              createDirectories = true;
+              documents = config.scratchDirectory;
+              download = config.scratchDirectory;
+              music = "${config.sharedDirectory}/music";
+              pictures = "${config.sharedDirectory}/pictures";
+              publicShare = config.scratchDirectory;
+              templates = config.scratchDirectory;
+              videos = "${config.sharedDirectory}/videos";
+            };
+
+            fonts.fontconfig.enable = true;
+
+            services.gpg-agent.pinentryFlavor = "gnome3";
+
+            # https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
+            # https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
+            # TODO: playerctl
+            dconf.settings = {
+              "org/gnome/shell" = {
+                disable-user-extensions = false;
+                disabled-extensions = "disabled";
+                enabled-extensions = [
+                  "pop-shell@system76.com"
+                ];
+              };
+              "org/gnome/shell/extensions/pop-shell" = {
+                tile-by-default = true;
+              };
+              "org/gnome/desktop/wm/keybindings" = {
+                close = [ "<Super>q" ];
+                minimize = [ "<Super>comma" ];
+                toggle-maximized = [ "<Super>m" ];
+                switch-to-workspace-1 = [ "<Super>1" ];
+                switch-to-workspace-2 = [ "<Super>2" ];
+                switch-to-workspace-3 = [ "<Super>3" ];
+                switch-to-workspace-4 = [ "<Super>4" ];
+                switch-to-workspace-5 = [ "<Super>5" ];
+                switch-to-workspace-6 = [ "<Super>6" ];
+                switch-to-workspace-7 = [ "<Super>7" ];
+                switch-to-workspace-8 = [ "<Super>8" ];
+                switch-to-workspace-9 = [ "<Super>9" ];
+                move-to-workspace-1 = [ "<Super><Shift>1" ];
+                move-to-workspace-2 = [ "<Super><Shift>2" ];
+                move-to-workspace-3 = [ "<Super><Shift>3" ];
+                move-to-workspace-4 = [ "<Super><Shift>4" ];
+                move-to-workspace-5 = [ "<Super><Shift>5" ];
+                move-to-workspace-6 = [ "<Super><Shift>6" ];
+                move-to-workspace-7 = [ "<Super><Shift>7" ];
+                move-to-workspace-8 = [ "<Super><Shift>8" ];
+                move-to-workspace-9 = [ "<Super><Shift>9" ];
+              };
+              "org/gnome/shell/keybindings" = {
+                toggle-message-tray = [ ];
+                focus-active-notification = [ ];
+                toggle-overview = [ ];
+                switch-to-application-1 = [ ];
+                switch-to-application-2 = [ ];
+                switch-to-application-3 = [ ];
+                switch-to-application-4 = [ ];
+                switch-to-application-5 = [ ];
+                switch-to-application-6 = [ ];
+                switch-to-application-7 = [ ];
+                switch-to-application-8 = [ ];
+                switch-to-application-9 = [ ];
+              };
+              "org/gnome/mutter/keybindings" = {
+                switch-monitor = [ ];
+              };
+              "org/gnome/settings-daemon/plugins/media-keys" = {
+                rotate-video-lock-static = [ ];
+                screenreader = [ ];
+                custom-keybindings = [
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
+                ];
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+                name = "Terminal";
+                command = "kitty";
+                binding = "<Super>t";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+                name = "Browser";
+                command = "firefox";
+                binding = "<Super>b";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+                name = "Emacs";
+                command = "emacsclient -c";
+                binding = "<Super>e";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
+                name = "Spotify";
+                command = "spotify";
+                binding = "<Super>s";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
+                name = "Next";
+                command = "playerctl next";
+                binding = "<Super>n";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
+                name = "Previous";
+                command = "playerctl previous";
+                binding = "<Super>p";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
+                name = "Play";
+                command = "playerctl play-pause";
+                binding = "<Super>i";
+              };
+              "org/gnome/desktop/wm/preferences" = {
+                theme = "WhiteSur";
+                num-workspaces = 9;
+              };
+              "org/gnome/desktop/interface" = {
+                clock-format = "12h";
+                color-scheme = "prefer-dark";
+                enable-hot-corners = false;
+                # TODO
+                # font-antialiasing = "grayscale";
+                # font-hinting = "slight";
+                gtk-theme = "WhiteSur";
+                icon-theme = "WhiteSur";
+                # toolkit-accessibility = true;
+              };
+              "org/gnome/desktop/background" = {
+                picture-uri = "file://${config.xdg.userDirs.pictures}/deep-field.png";
+                picture-uri-dark = "file://${config.xdg.userDirs.pictures}/deep-field.png";
+              };
+            };
+
+            programs.kitty = {
+              enable = true;
+              font = { name = "JetBrains Mono"; size = 12; };
+            };
+
+            programs.firefox = {
+              enable = true;
+              enableGnomeExtensions = false;
+            };
+
+            services.emacs.startWithUserSession = "graphical";
           };
-
-          fonts.fontconfig.enable = true;
-
-          services.gpg-agent.pinentryFlavor = "gnome3";
-
-          # https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
-          # https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
-          # TODO: playerctl
-          dconf.settings = {
-            "org/gnome/shell" = {
-              disable-user-extensions = false;
-              disabled-extensions = "disabled";
-              enabled-extensions = [
-                "pop-shell@system76.com"
-              ];
-            };
-            "org/gnome/shell/extensions/pop-shell" = {
-              tile-by-default = true;
-            };
-            "org/gnome/desktop/wm/keybindings" = {
-              close = [ "<Super>q" ];
-              minimize = [ "<Super>comma" ];
-              toggle-maximized = [ "<Super>m" ];
-              switch-to-workspace-1 = [ "<Super>1" ];
-              switch-to-workspace-2 = [ "<Super>2" ];
-              switch-to-workspace-3 = [ "<Super>3" ];
-              switch-to-workspace-4 = [ "<Super>4" ];
-              switch-to-workspace-5 = [ "<Super>5" ];
-              switch-to-workspace-6 = [ "<Super>6" ];
-              switch-to-workspace-7 = [ "<Super>7" ];
-              switch-to-workspace-8 = [ "<Super>8" ];
-              switch-to-workspace-9 = [ "<Super>9" ];
-              move-to-workspace-1 = [ "<Super><Shift>1" ];
-              move-to-workspace-2 = [ "<Super><Shift>2" ];
-              move-to-workspace-3 = [ "<Super><Shift>3" ];
-              move-to-workspace-4 = [ "<Super><Shift>4" ];
-              move-to-workspace-5 = [ "<Super><Shift>5" ];
-              move-to-workspace-6 = [ "<Super><Shift>6" ];
-              move-to-workspace-7 = [ "<Super><Shift>7" ];
-              move-to-workspace-8 = [ "<Super><Shift>8" ];
-              move-to-workspace-9 = [ "<Super><Shift>9" ];
-            };
-            "org/gnome/shell/keybindings" = {
-              toggle-message-tray = [ ];
-              focus-active-notification = [ ];
-              toggle-overview = [ ];
-              switch-to-application-1 = [ ];
-              switch-to-application-2 = [ ];
-              switch-to-application-3 = [ ];
-              switch-to-application-4 = [ ];
-              switch-to-application-5 = [ ];
-              switch-to-application-6 = [ ];
-              switch-to-application-7 = [ ];
-              switch-to-application-8 = [ ];
-              switch-to-application-9 = [ ];
-            };
-            "org/gnome/mutter/keybindings" = {
-              switch-monitor = [ ];
-            };
-            "org/gnome/settings-daemon/plugins/media-keys" = {
-              rotate-video-lock-static = [ ];
-              screenreader = [ ];
-              custom-keybindings = [
-                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
-                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
-                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
-                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
-                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
-                "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
-              ];
-            };
-            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-              name = "Terminal";
-              command = "kitty";
-              binding = "<Super>t";
-            };
-            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-              name = "Browser";
-              command = "firefox";
-              binding = "<Super>b";
-            };
-            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
-              name = "Emacs";
-              command = "emacsclient -c";
-              binding = "<Super>e";
-            };
-            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
-              name = "Spotify";
-              command = "spotify";
-              binding = "<Super>s";
-            };
-            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
-              name = "Next";
-              command = "playerctl next";
-              binding = "<Super>n";
-            };
-            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
-              name = "Previous";
-              command = "playerctl previous";
-              binding = "<Super>p";
-            };
-            "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
-              name = "Play";
-              command = "playerctl play-pause";
-              binding = "<Super>i";
-            };
-            "org/gnome/desktop/wm/preferences" = {
-              theme = "WhiteSur";
-              num-workspaces = 9;
-            };
-            "org/gnome/desktop/interface" = {
-              clock-format = "12h";
-              color-scheme = "prefer-dark";
-              enable-hot-corners = false;
-              # TODO
-              # font-antialiasing = "grayscale";
-              # font-hinting = "slight";
-              gtk-theme = "WhiteSur";
-              icon-theme = "WhiteSur";
-              # toolkit-accessibility = true;
-            };
-            "org/gnome/desktop/background" = {
-              picture-uri = "file://${config.xdg.userDirs.pictures}/deep-field.png";
-              picture-uri-dark = "file://${config.xdg.userDirs.pictures}/deep-field.png";
-            };
-          };
-
-          programs.kitty = {
-            enable = true;
-            font = { name = "JetBrains Mono"; size = 12; };
-          };
-
-          programs.firefox = {
-            enable = true;
-            enableGnomeExtensions = false;
-          };
-
-          services.emacs.startWithUserSession = "graphical";
         };
     in
     {
@@ -506,23 +514,24 @@
 
             environment.systemPackages = with pkgs; [ neovim ];
 
-            programs.fish.enable = true;
+            programs.zsh.enable = true;
 
             system.configurationRevision = self.rev or self.dirtyRev or null;
             system.stateVersion = 4;
 
             users.users.${userName} = {
               home = "/Users/${userName}";
-              shell = pkgs.fish;
             };
           })
         ];
       };
-      homeConfigurations."${userName}@murph" = home-manager.lib.homeManagerConfiguration {
-        modules = [ sharedHomeConfiguration linuxHomeConfiguration ];
-      };
       homeConfigurations."${userName}@kenobi" = home-manager.lib.homeManagerConfiguration {
-        modules = [ sharedHomeConfiguration darwinHomeConfiguration ];
+        pkgs = nixpkgs.legacyPackages.x86_64-darwin;
+        modules = [ darwinHomeConfiguration ];
+      };
+      homeConfigurations."${userName}@murph" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        modules = [ linuxHomeConfiguration ];
       };
       templates.rust = {
         path = ./templates/rust;
