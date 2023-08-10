@@ -31,37 +31,28 @@
       fullName = "Jackson Brough";
       userName = "jackson";
       email = "jacksontbrough@gmail.com";
+      # packages = system: nixpkgs.legacyPackages.${system}.appendOverlays (with emacs-overlay.overlays; [ emacs-overlay.overlays.emacs emacs-overlay.overlays.package ]);
+      # emacs = pkgs: pkgs.emacsWithPackagesFromUsePackage { };
       sharedHomeConfiguration = { lib, config, pkgs, ... }:
-        let
-          emacs = (pkgs.emacsWithPackagesFromUsePackage {
-            config = ./emacs.el;
-            defaultInitFile = true;
-            package = pkgs.emacs-unstable-pgtk;
-            extraEmacsPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
-            alwaysEnsure = true;
-          });
-        in
         {
-          # TODO: Paths?
-
           options.repositoriesDirectory = lib.mkOption {
             type = lib.types.str;
-            default = "${config.homeDirectory}/repositories";
+            default = "${config.home.homeDirectory}/repositories";
           };
 
           options.sharedDirectory = lib.mkOption {
             type = lib.types.str;
-            default = "${config.homeDirectory}/shared";
+            default = "${config.home.homeDirectory}/shared";
           };
 
           options.localDirectory = lib.mkOption {
             type = lib.types.str;
-            default = "${config.homeDirectory}/local";
+            default = "${config.home.homeDirectory}/local";
           };
 
           options.scratchDirectory = lib.mkOption {
             type = lib.types.str;
-            default = "${config.homeDirectory}/scratch";
+            default = "${config.home.homeDirectory}/scratch";
           };
 
           config = {
@@ -79,10 +70,10 @@
             programs.home-manager.enable = true;
 
             xdg.enable = true;
-            xdg.cacheHome = "${config.homeDirectory}/.cache";
-            xdg.configHome = "${config.homeDirectory}/.config";
-            xdg.dataHome = "${config.homeDirectory}/.local/share";
-            xdg.stateHome = "${config.homeDirectory}/.local/state";
+            xdg.cacheHome = "${config.home.homeDirectory}/.cache";
+            xdg.configHome = "${config.home.homeDirectory}/.config";
+            xdg.dataHome = "${config.home.homeDirectory}/.local/share";
+            xdg.stateHome = "${config.home.homeDirectory}/.local/state";
 
             programs.fish = {
               enable = true;
@@ -104,14 +95,10 @@
             programs.gh.enable = true;
 
             programs.ssh.enable = true;
-            services.ssh-agent.enable = true;
 
             programs.gpg = {
               enable = true;
               homedir = "${config.xdg.dataHome}/gnupg";
-            };
-            services.gpg-agent = {
-              enable = true;
             };
 
             xdg.configFile.gopass = {
@@ -124,19 +111,24 @@
               '';
             };
 
-            programs.emacs = {
-              enable = true;
-              package = emacs;
-            };
-            services.emacs = {
-              enable = true;
-              package = emacs;
-              defaultEditor = true;
-            };
+            nixpkgs.overlays = [
+	      emacs-overlay.overlays.emacs
+	      emacs-overlay.overlays.emacs
+	      (final: prev: {
+	        emacs = final.emacsWithPackagesFromUsePackage {
+      	          config = ./emacs.el;
+                  defaultInitFile = true;
+                  package = pkgs.emacs-unstable-pgtk;
+                  extraEmacsPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
+                  alwaysEnsure = true;
+	        };
+	      })
+	    ];
+            programs.emacs.enable = true;
           };
         };
       darwinHomeConfiguration = { config, pkgs, ... }: {
-        imports = [ sharedHomeConfiguration ];
+        # imports = [ sharedHomeConfiguration ];
 
         config = {
           home.homeDirectory = "/Users/${userName}";
@@ -159,7 +151,7 @@
           });
         in
         {
-          imports = [ sharedHomeConfiguration ];
+          # imports = [ sharedHomeConfiguration ];
 
           config = {
             home.homeDirectory = "/home/${userName}";
@@ -195,7 +187,10 @@
 
             fonts.fontconfig.enable = true;
 
+            services.ssh-agent.enable = true;
             services.gpg-agent.pinentryFlavor = "gnome3";
+
+            services.gpg-agent.enable = true;
 
             # https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
             # https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
@@ -330,7 +325,11 @@
               enableGnomeExtensions = false;
             };
 
-            services.emacs.startWithUserSession = "graphical";
+            services.emacs = {
+              enable = true;
+              defaultEditor = true;
+	      startWithUserSession = "graphical";
+            };
           };
         };
     in
@@ -511,6 +510,7 @@
 
             services.nix-daemon.enable = true;
             nix.settings.experimental-features = "nix-command flakes";
+            nix.settings.trusted-users = [ "root" userName ];
 
             environment.systemPackages = with pkgs; [ neovim ];
 
@@ -526,12 +526,12 @@
         ];
       };
       homeConfigurations."${userName}@kenobi" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-darwin;
-        modules = [ darwinHomeConfiguration ];
+        pkgs = nixpkgs.legacyPackages."x86_64-darwin";
+        modules = [ sharedHomeConfiguration darwinHomeConfiguration ];
       };
       homeConfigurations."${userName}@murph" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        modules = [ linuxHomeConfiguration ];
+        pkgs = nixpkgs.legacyPackages."x86_64-linux";
+        modules = [ sharedHomeConfiguration linuxHomeConfiguration ];
       };
       templates.rust = {
         path = ./templates/rust;
