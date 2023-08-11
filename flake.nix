@@ -33,6 +33,15 @@
       email = "jacksontbrough@gmail.com";
       # packages = system: nixpkgs.legacyPackages.${system}.appendOverlays (with emacs-overlay.overlays; [ emacs-overlay.overlays.emacs emacs-overlay.overlays.package ]);
       # emacs = pkgs: pkgs.emacsWithPackagesFromUsePackage { };
+      emacsOverlay = pkgs: (final: prev: {
+        emacs = final.emacsWithPackagesFromUsePackage {
+      	  config = ./emacs.el;
+          defaultInitFile = true;
+          package = pkgs.emacs-unstable-pgtk;
+          extraEmacsPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
+          alwaysEnsure = true;
+	};
+      });
       sharedHomeConfiguration = { lib, config, pkgs, ... }:
         {
           options.repositoriesDirectory = lib.mkOption {
@@ -111,20 +120,6 @@
               '';
             };
 
-            nixpkgs.overlays = [
-	      emacs-overlay.overlays.emacs
-	      emacs-overlay.overlays.emacs
-	      (final: prev: {
-	        emacs = final.emacsWithPackagesFromUsePackage {
-      	          config = ./emacs.el;
-                  defaultInitFile = true;
-                  package = pkgs.emacs-unstable-pgtk;
-                  extraEmacsPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
-                  alwaysEnsure = true;
-	        };
-	      })
-	    ];
-            programs.emacs.enable = true;
           };
         };
       darwinHomeConfiguration = { config, pkgs, ... }: {
@@ -325,6 +320,12 @@
               enableGnomeExtensions = false;
             };
 
+            nixpkgs.overlays = [
+	      emacs-overlay.overlays.emacs
+	      emacs-overlay.overlays.package
+	      # TODO: emacs package
+	    ];
+            programs.emacs.enable = true;
             services.emacs = {
               enable = true;
               defaultEditor = true;
@@ -507,20 +508,24 @@
         modules = [
           ({ pkgs, ... }: {
             nixpkgs.hostPlatform = "x86_64-darwin";
+	    nixpkgs.config.allowUnfree = true;
 
             services.nix-daemon.enable = true;
             nix.settings.experimental-features = "nix-command flakes";
             nix.settings.trusted-users = [ "root" userName ];
 
             environment.systemPackages = with pkgs; [ neovim ];
+	    environment.shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
 
             programs.zsh.enable = true;
+	    programs.fish.enable = true;
 
             system.configurationRevision = self.rev or self.dirtyRev or null;
             system.stateVersion = 4;
 
             users.users.${userName} = {
               home = "/Users/${userName}";
+	      shell = pkgs.fish;
             };
           })
         ];
