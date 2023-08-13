@@ -34,9 +34,9 @@
       fullName = "Jackson Brough";
       userName = "jackson";
       email = "jacksontbrough@gmail.com";
-      emacsOverlay = (pkgs: package: 
+      emacsOverlay = (pkgs: package:
         (pkgs.emacsWithPackagesFromUsePackage {
-	  inherit package;
+          inherit package;
           config = ./emacs.el;
           defaultInitFile = true;
           extraEmacsPackages = epkgs: with epkgs; [ treesit-grammars.with-all-grammars ];
@@ -69,7 +69,7 @@
             home.stateVersion = "23.05";
             home.packages = with pkgs; [
               exa
-	      jq
+              jq
               ripgrep
 
               direnv
@@ -79,6 +79,7 @@
             ];
             programs.home-manager.enable = true;
 
+            nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = with emacs-overlay.overlays; [ emacs package ];
 
             xdg.enable = true;
@@ -90,7 +91,7 @@
             programs.fish = {
               enable = true;
               interactiveShellInit = "fish_vi_key_bindings";
-	      shellAliases.ls = "exa --group-directories-first";
+              shellAliases.ls = "exa --group-directories-first";
             };
 
             programs.git = {
@@ -99,7 +100,7 @@
               signing.key = "1BA5F1335AB45105";
               signing.signByDefault = true;
               # "Are the worker threads going to unionize?"
-	      extraConfig.init.defaultBranch = "main";
+              extraConfig.init.defaultBranch = "main";
             };
 
             programs.gh.enable = true;
@@ -127,81 +128,86 @@
       darwinHomeConfiguration = { config, pkgs, nixcasks, lib, ... }: {
         config = {
           home.homeDirectory = "/Users/${userName}";
-	  home.activation = { 
-	    activateSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
-	      /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
-	    '';
-	  };
+          home.activation = {
+            activateSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+              	          /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+              	          '';
+          };
+          home.packages = with pkgs; [
+            nixcasks.slack
+            # spotify
+            # zoom
+          ];
 
           # TODO: Figure out taps with nixcasks
-	  nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
+          nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
 
-	  programs.fish.interactiveShellInit = "eval (brew shellenv)";
+          programs.fish.interactiveShellInit = "eval (brew shellenv)";
 
           # http://www.rockhoppertech.com/blog/emacs-daemon-on-macos/
-	  # TODO: multi-tty work with emacs-mac, have to choose between having a server and having nice scrolling
-	  # https://bitbucket.org/mituharu/emacs-mac/src/65c6c96f27afa446df6f9d8eff63f9cc012cc738/README-mac#lines-209
-	  # launchd.agents.emacs = {
-	    # enable = true;
-	    # config = {
-	      # ProgramArguments = [ "/Applications/Emacs.app/Contents/MacOS/Emacs" "--fg-daemon" ];
-	      # RunAtLoad = true;
-	    # };
-	  # };
-	  programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable;
+          # TODO: multi-tty work with emacs-mac, have to choose between having a server and having nice scrolling
+          # https://bitbucket.org/mituharu/emacs-mac/src/65c6c96f27afa446df6f9d8eff63f9cc012cc738/README-mac#lines-209
+          launchd.agents.emacs = {
+            enable = true;
+            config = {
+              ProgramArguments = [ "${config.programs.emacs.package}/bin/emacs" "--fg-daemon" ];
+              RunAtLoad = true;
+            };
+          };
+          programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable;
 
-	  targets.darwin.defaults = {
-	      NSGlobalDomain = {
-	        AppleInterfaceStyleSwitchesAutomatically = true;
-	        WebKitDeveloperExtras = true;
-	      };
+          targets.darwin.defaults = {
+            NSGlobalDomain = {
+              AppleInterfaceStyleSwitchesAutomatically = true;
+              WebKitDeveloperExtras = true;
+            };
 
-              "com.apple.dock" = {
-	        orientation = "left";
-	        show-recents = false;
-	        static-only = true;
-                autohide = true;
-	      };
+            "com.apple.dock" = {
+              orientation = "left";
+              show-recents = false;
+              static-only = true;
+              autohide = true;
+            };
 
-	      # TODO: Change to ~/shared/pictures
-	      "com.apple.screencapture" = {
-	        location = config.scratchDirectory;
-	      };
+            # TODO: Change to ~/shared/pictures
+            "com.apple.screencapture" = {
+              location = config.scratchDirectory;
+            };
 
-	      "com.apple.Safari" = {
-		AutoOpenSafeDownloads = false;
-		SuppressSearchSuggestions = true;
-		UniversalSearchEnabled = false;
-	        AutoFillFromAddressBook = false;
-	        AutoFillPasswords = false;
-	        IncludeDevelopMenu = false;
-                AutoFillCreditCardData = false;
-                AutoFillMiscellaneousForms = false;
-                ShowFavoritesBar = false;
-                WarnAboutFraudulentWebsites = true;
-                WebKitJavaEnabled = false;
-	      };
+            "com.apple.Safari" = {
+              AutoOpenSafeDownloads = false;
+              SuppressSearchSuggestions = true;
+              UniversalSearchEnabled = false;
+              AutoFillFromAddressBook = false;
+              AutoFillPasswords = false;
+              IncludeDevelopMenu = false;
+              AutoFillCreditCardData = false;
+              AutoFillMiscellaneousForms = false;
+              ShowFavoritesBar = false;
+              WarnAboutFraudulentWebsites = true;
+              WebKitJavaEnabled = false;
+            };
 
-	      "com.apple.AdLib" = {
-                allowApplePersonalizedAdvertising = false;
-              };
+            "com.apple.AdLib" = {
+              allowApplePersonalizedAdvertising = false;
+            };
 
-	      "com.apple.finder" = {
-	        AppleShowAllFiles = true;
-	        ShowPathbar = true;
-	      };
+            "com.apple.finder" = {
+              AppleShowAllFiles = true;
+              ShowPathbar = true;
+            };
 
-	      "com.apple.print.PrintingPrefs" = {
-                "Quit When Finished" = true;
-              };
+            "com.apple.print.PrintingPrefs" = {
+              "Quit When Finished" = true;
+            };
 
-              "com.apple.SoftwareUpdate" = {
-                AutomaticCheckEnabled = true;
-                ScheduleFrequency = 1;
-                AutomaticDownload = 1;
-                CriticalUpdateInstall = 1;
-              };
-	  };
+            "com.apple.SoftwareUpdate" = {
+              AutomaticCheckEnabled = true;
+              ScheduleFrequency = 1;
+              AutomaticDownload = 1;
+              CriticalUpdateInstall = 1;
+            };
+          };
         };
       };
       linuxHomeConfiguration = { config, pkgs, ... }:
@@ -271,12 +277,12 @@
               enableGnomeExtensions = false;
             };
 
-	    programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
+            programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
             services.emacs = {
               enable = true;
-	      package = config.programs.emacs.package;
+              package = config.programs.emacs.package;
               defaultEditor = true;
-	      startWithUserSession = "graphical";
+              startWithUserSession = "graphical";
             };
 
             # https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
@@ -576,7 +582,7 @@
         modules = [
           ({ pkgs, ... }: {
             nixpkgs.hostPlatform = "x86_64-darwin";
-	    nixpkgs.config.allowUnfree = true;
+            nixpkgs.config.allowUnfree = true;
 
             services.nix-daemon.enable = true;
             nix.settings.experimental-features = "nix-command flakes";
@@ -587,24 +593,25 @@
 
             users.users.${userName} = {
               home = "/Users/${userName}";
-	      shell = pkgs.fish;
+              shell = pkgs.fish;
             };
 
             environment.systemPackages = with pkgs; [ neovim ];
-	    environment.shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
+            environment.shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
 
-	    programs.fish.enable = true;
+            programs.fish.enable = true;
 
+            # TODO: Remove
             # Unfortunately, this can't be managed in home-manager. GUI casks for macOS have to be installed here.
-	    homebrew.enable = true;
-	    homebrew.casks = [ "slack" "spotify" "zoom" ];
+            homebrew.enable = true;
+            homebrew.casks = [ "spotify" "zoom" ];
           })
         ];
       };
       homeConfigurations."${userName}@kenobi" = let system = "x86_64-darwin"; in home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages."${system}";
         modules = [ sharedHomeConfiguration darwinHomeConfiguration ];
-	extraSpecialArgs.nixcasks = nixcasks.legacyPackages."${system}";
+        extraSpecialArgs.nixcasks = nixcasks.legacyPackages."${system}";
       };
       homeConfigurations."${userName}@murph" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages."x86_64-linux";
