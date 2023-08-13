@@ -14,6 +14,10 @@
 
 ;; TODO: https://hackernoon.com/learning-vim-what-i-wish-i-knew-b5dca186bef7
 ;; TOOD: https://github.com/seagle0128/.emacs.d
+;;
+;; TODO: Org-mode
+;; https://howardism.org/Technical/Emacs/orgmode-wordprocessor.html
+;; https://howardism.org/Technical/Emacs/orgmode-wordprocessor.html
 
 (setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
