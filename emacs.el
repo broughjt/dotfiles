@@ -26,9 +26,10 @@
 (when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
 (when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
-(add-to-list 'default-frame-alist '(undecorated . t))
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-(add-to-list 'default-frame-alist '(font . "JetBrainsMono 12"))
+(when (eq system-type 'gnu/linux)
+  (add-to-list 'default-frame-alist '(undecorated . t))
+  (add-to-list 'default-frame-alist '(fullscreen . maximized)))
+(add-to-list 'default-frame-alist `(font . ,(if (eq system-type 'gnu/linux) "JetBrainsMono 12" "JetBrains Mono 12")))
 (setq visible-bell t)
 (setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode)
@@ -316,7 +317,7 @@
 
 (use-package ef-themes
   :init
-  (load-theme 'ef-dark t))
+  (load-theme 'ef-night t))
 
 (use-package vertico
   :init

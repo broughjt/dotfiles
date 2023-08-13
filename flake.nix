@@ -16,32 +16,32 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
 
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nixcasks.url = "github:jacekszymanski/nixcasks";
+    nixcasks.inputs.nixpkgs.follows = "nixpkgs";
 
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, emacs-overlay }:
+  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay }:
     let
       fullName = "Jackson Brough";
       userName = "jackson";
       email = "jacksontbrough@gmail.com";
-      # packages = system: nixpkgs.legacyPackages.${system}.appendOverlays (with emacs-overlay.overlays; [ emacs-overlay.overlays.emacs emacs-overlay.overlays.package ]);
-      # emacs = pkgs: pkgs.emacsWithPackagesFromUsePackage { };
-      emacsOverlay = pkgs: (final: prev: {
-        emacs = final.emacsWithPackagesFromUsePackage {
-      	  config = ./emacs.el;
+      emacsOverlay = (pkgs: package: 
+        (pkgs.emacsWithPackagesFromUsePackage {
+	  inherit package;
+          config = ./emacs.el;
           defaultInitFile = true;
-          package = pkgs.emacs-unstable-pgtk;
-          extraEmacsPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
+          extraEmacsPackages = epkgs: with epkgs; [ treesit-grammars.with-all-grammars ];
           alwaysEnsure = true;
-	};
-      });
+        }));
       sharedHomeConfiguration = { lib, config, pkgs, ... }:
         {
           options.repositoriesDirectory = lib.mkOption {
@@ -69,6 +69,7 @@
             home.stateVersion = "23.05";
             home.packages = with pkgs; [
               exa
+	      jq
               ripgrep
 
               direnv
@@ -78,6 +79,8 @@
             ];
             programs.home-manager.enable = true;
 
+            nixpkgs.overlays = with emacs-overlay.overlays; [ emacs package ];
+
             xdg.enable = true;
             xdg.cacheHome = "${config.home.homeDirectory}/.cache";
             xdg.configHome = "${config.home.homeDirectory}/.config";
@@ -86,10 +89,8 @@
 
             programs.fish = {
               enable = true;
-              interactiveShellInit = ''
-                fish_vi_key_bindings
-                alias ls='exa --group-directories-first'
-              '';
+              interactiveShellInit = "fish_vi_key_bindings";
+	      shellAliases.ls = "exa --group-directories-first";
             };
 
             programs.git = {
@@ -98,7 +99,7 @@
               signing.key = "1BA5F1335AB45105";
               signing.signByDefault = true;
               # "Are the worker threads going to unionize?"
-              extraConfig = { init.defaultBranch = "main"; };
+	      extraConfig.init.defaultBranch = "main";
             };
 
             programs.gh.enable = true;
@@ -120,13 +121,87 @@
               '';
             };
 
+            programs.emacs.enable = true;
           };
         };
-      darwinHomeConfiguration = { config, pkgs, ... }: {
-        # imports = [ sharedHomeConfiguration ];
-
+      darwinHomeConfiguration = { config, pkgs, nixcasks, lib, ... }: {
         config = {
           home.homeDirectory = "/Users/${userName}";
+	  home.activation = { 
+	    activateSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
+	      /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+	    '';
+	  };
+
+          # TODO: Figure out taps with nixcasks
+	  nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
+
+	  programs.fish.interactiveShellInit = "eval (brew shellenv)";
+
+          # http://www.rockhoppertech.com/blog/emacs-daemon-on-macos/
+	  # TODO: multi-tty work with emacs-mac, have to choose between having a server and having nice scrolling
+	  # https://bitbucket.org/mituharu/emacs-mac/src/65c6c96f27afa446df6f9d8eff63f9cc012cc738/README-mac#lines-209
+	  # launchd.agents.emacs = {
+	    # enable = true;
+	    # config = {
+	      # ProgramArguments = [ "/Applications/Emacs.app/Contents/MacOS/Emacs" "--fg-daemon" ];
+	      # RunAtLoad = true;
+	    # };
+	  # };
+	  programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable;
+
+	  targets.darwin.defaults = {
+	      NSGlobalDomain = {
+	        AppleInterfaceStyleSwitchesAutomatically = true;
+	        WebKitDeveloperExtras = true;
+	      };
+
+              "com.apple.dock" = {
+	        orientation = "left";
+	        show-recents = false;
+	        static-only = true;
+                autohide = true;
+	      };
+
+	      # TODO: Change to ~/shared/pictures
+	      "com.apple.screencapture" = {
+	        location = config.scratchDirectory;
+	      };
+
+	      "com.apple.Safari" = {
+		AutoOpenSafeDownloads = false;
+		SuppressSearchSuggestions = true;
+		UniversalSearchEnabled = false;
+	        AutoFillFromAddressBook = false;
+	        AutoFillPasswords = false;
+	        IncludeDevelopMenu = false;
+                AutoFillCreditCardData = false;
+                AutoFillMiscellaneousForms = false;
+                ShowFavoritesBar = false;
+                WarnAboutFraudulentWebsites = true;
+                WebKitJavaEnabled = false;
+	      };
+
+	      "com.apple.AdLib" = {
+                allowApplePersonalizedAdvertising = false;
+              };
+
+	      "com.apple.finder" = {
+	        AppleShowAllFiles = true;
+	        ShowPathbar = true;
+	      };
+
+	      "com.apple.print.PrintingPrefs" = {
+                "Quit When Finished" = true;
+              };
+
+              "com.apple.SoftwareUpdate" = {
+                AutomaticCheckEnabled = true;
+                ScheduleFrequency = 1;
+                AutomaticDownload = 1;
+                CriticalUpdateInstall = 1;
+              };
+	  };
         };
       };
       linuxHomeConfiguration = { config, pkgs, ... }:
@@ -146,8 +221,6 @@
           });
         in
         {
-          # imports = [ sharedHomeConfiguration ];
-
           config = {
             home.homeDirectory = "/home/${userName}";
             home.packages = with pkgs; [
@@ -186,6 +259,25 @@
             services.gpg-agent.pinentryFlavor = "gnome3";
 
             services.gpg-agent.enable = true;
+
+
+            programs.kitty = {
+              enable = true;
+              font = { name = "JetBrains Mono"; size = 12; };
+            };
+
+            programs.firefox = {
+              enable = true;
+              enableGnomeExtensions = false;
+            };
+
+	    programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
+            services.emacs = {
+              enable = true;
+	      package = config.programs.emacs.package;
+              defaultEditor = true;
+	      startWithUserSession = "graphical";
+            };
 
             # https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
             # https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
@@ -308,28 +400,6 @@
                 picture-uri = "file://${config.xdg.userDirs.pictures}/deep-field.png";
                 picture-uri-dark = "file://${config.xdg.userDirs.pictures}/deep-field.png";
               };
-            };
-
-            programs.kitty = {
-              enable = true;
-              font = { name = "JetBrains Mono"; size = 12; };
-            };
-
-            programs.firefox = {
-              enable = true;
-              enableGnomeExtensions = false;
-            };
-
-            nixpkgs.overlays = [
-	      emacs-overlay.overlays.emacs
-	      emacs-overlay.overlays.package
-	      # TODO: emacs package
-	    ];
-            programs.emacs.enable = true;
-            services.emacs = {
-              enable = true;
-              defaultEditor = true;
-	      startWithUserSession = "graphical";
             };
           };
         };
@@ -479,9 +549,7 @@
                 neovim
               ];
 
-              programs.fish = {
-                enable = true;
-              };
+              programs.fish.enable = true;
 
               services.openssh = {
                 enable = true;
@@ -514,12 +582,6 @@
             nix.settings.experimental-features = "nix-command flakes";
             nix.settings.trusted-users = [ "root" userName ];
 
-            environment.systemPackages = with pkgs; [ neovim ];
-	    environment.shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
-
-            programs.zsh.enable = true;
-	    programs.fish.enable = true;
-
             system.configurationRevision = self.rev or self.dirtyRev or null;
             system.stateVersion = 4;
 
@@ -527,12 +589,22 @@
               home = "/Users/${userName}";
 	      shell = pkgs.fish;
             };
+
+            environment.systemPackages = with pkgs; [ neovim ];
+	    environment.shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
+
+	    programs.fish.enable = true;
+
+            # Unfortunately, this can't be managed in home-manager. GUI casks for macOS have to be installed here.
+	    homebrew.enable = true;
+	    homebrew.casks = [ "slack" "spotify" "zoom" ];
           })
         ];
       };
-      homeConfigurations."${userName}@kenobi" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages."x86_64-darwin";
+      homeConfigurations."${userName}@kenobi" = let system = "x86_64-darwin"; in home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages."${system}";
         modules = [ sharedHomeConfiguration darwinHomeConfiguration ];
+	extraSpecialArgs.nixcasks = nixcasks.legacyPackages."${system}";
       };
       homeConfigurations."${userName}@murph" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages."x86_64-linux";
