@@ -638,7 +638,7 @@
         description = "Rust template";
       };
       templates.herbie = {
-        path = ./templates/herbi;
+        path = ./templates/herbie;
         description = "Herbie template";
       };
     };
