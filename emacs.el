@@ -355,6 +355,13 @@
   :init
   (global-company-mode))
 
+;; TODO
+;; (setq org-startup-indented t)
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
+
+(use-package org-modern
+  :hook (org-mode . org-modern-mode))
+
 (use-package org-roam
   :custom
   (org-roam-v2-ack t)
