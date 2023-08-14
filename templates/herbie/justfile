@@ -1,0 +1,8 @@
+build:
+    raco pkg remove --force herbie && echo "Uninstalled old herbie" || :
+    raco pkg remove --force egg-herbie || :
+    raco pkg remove --force egg-herbie-linux || :
+    cargo build --release --manifest-path=egg-herbie/Cargo.toml
+    raco pkg install ./egg-herbie
+    raco pkg install --scope user --auto --name herbie src/
+    raco pkg update --scope user --name herbie --deps search-auto src/
