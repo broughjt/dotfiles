@@ -81,7 +81,6 @@
             ];
             programs.home-manager.enable = true;
 
-            nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = with emacs-overlay.overlays; [
               emacs
               package
@@ -150,6 +149,7 @@
           # TODO: Figure out taps with nixcasks
           nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
 
+          # TODO: Remove
           programs.fish.interactiveShellInit = "eval (brew shellenv)";
 
           # http://www.rockhoppertech.com/blog/emacs-daemon-on-macos/
@@ -219,23 +219,26 @@
         };
       };
       linuxHomeConfiguration = { config, pkgs, ... }:
-        # https://nixos.wiki/wiki/Slack
-        # https://wiki.archlinux.org/title/wayland
-        # TODO: Screen sharing
-        let
-          slack = pkgs.slack.overrideAttrs (previous: {
-            installPhase = previous.installPhase + ''
-              rm $out/bin/slack
-
-              makeWrapper $out/lib/slack/slack $out/bin/slack \
-                --prefix XDG_DATA_DIRS : $GSETTINGS_SCHEMAS_PATH \
-                --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.xdg-utils]} \
-                --add-flags "--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer"
-            '';
-          });
-        in
         {
           config = {
+            # https://nixos.wiki/wiki/Slack
+            # https://wiki.archlinux.org/title/wayland
+            # TODO: Screen sharing
+            nixpkgs.overlays = [
+              (final: prev: {
+                slack = prev.slack.overrideAttrs (previous: {
+                  installPhase = previous.installPhase + ''
+                    rm $out/bin/slack
+                           
+                    makeWrapper $out/lib/slack/slack $out/bin/slack \
+                    --prefix XDG_DATA_DIRS : $GSETTINGS_SCHEMAS_PATH \
+                    --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.xdg-utils]} \
+                    --add-flags "--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer"
+                  '';
+                });
+              })
+            ];
+
             home.homeDirectory = "/home/${userName}";
             home.packages = with pkgs; [
               killall
@@ -273,7 +276,6 @@
             services.gpg-agent.pinentryFlavor = "gnome3";
 
             services.gpg-agent.enable = true;
-
 
             programs.kitty = {
               enable = true;
@@ -617,12 +619,18 @@
         ];
       };
       homeConfigurations."${userName}@kenobi" = let system = "x86_64-darwin"; in home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages."${system}";
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
         modules = [ sharedHomeConfiguration darwinHomeConfiguration ];
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."${system}";
       };
       homeConfigurations."${userName}@murph" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages."x86_64-linux";
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfree = true;
+        };
         modules = [ sharedHomeConfiguration linuxHomeConfiguration ];
       };
       templates.rust = {
