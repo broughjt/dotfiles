@@ -319,9 +319,7 @@
 
 (use-package modus-themes)
 
-(use-package ef-themes
-  :init
-  (load-theme 'ef-night t))
+(use-package ef-themes)
 
 (use-package vertico
   :init
