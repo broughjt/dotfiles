@@ -159,14 +159,14 @@
           # http://www.rockhoppertech.com/blog/emacs-daemon-on-macos/
           # TODO: multi-tty work with emacs-mac, have to choose between having a server and having nice scrolling
           # https://bitbucket.org/mituharu/emacs-mac/src/65c6c96f27afa446df6f9d8eff63f9cc012cc738/README-mac#lines-209
-          programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
           # launchd.agents.emacs = {
-            # enable = true;
-            # config = {
-              # ProgramArguments = [ "${config.programs.emacs.package}/bin/emacs" "--fg-daemon" ];
-              # RunAtLoad = true;
-            # };
+          # enable = true;
+          # config = {
+          # ProgramArguments = [ "${config.programs.emacs.package}/bin/emacs" "--fg-daemon" ];
+          # RunAtLoad = true;
           # };
+          # };
+          programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
 
           targets.darwin.defaults = {
             NSGlobalDomain = {
@@ -591,6 +591,59 @@
               };
             })
         ];
+      };
+      # TODO: Share modules between NixOS and nix-darwin since there's three machines now
+      nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        modules = [
+          ({ config, pkgs, ... }:
+
+	  {
+
+          boot = {
+	    kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
+	    initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
+	    loader = {
+	      grub.enable = false;
+	      generic-extlinux-compatible.enable = true;
+	    };
+	  };
+  
+	  fileSystems = {
+	    "/" = {
+	      device = "/dev/disk/by-label/NIXOS_SD";
+	      fsType = "ext4";
+	      options = [ "noatime" ];
+	    };
+	  };
+
+	  hardware.enableRedistributableFirmware = true;
+
+              # Make Nix can flakes
+          nix.package = pkgs.nixFlakes;
+          nix.extraOptions = "experimental-features = nix-command flakes";
+          nix.settings.trusted-users = [ "root" "jackson" ];
+
+          nixpkgs.config.allowUnfree = true;
+
+	  system.stateVersion = "23.11";
+
+          networking.hostName = "share1";
+          networking.networkmanager.enable = true;
+
+	  environment.systemPackages = with pkgs; [ curl git neovim ];
+
+          programs.fish.enable = true;
+
+	  services.openssh.enable = true;
+
+	  users.users.${userName} = {
+            isNormalUser = true;
+	    extraGroups = [ "networkmanager" "wheel" ];
+	    shell = pkgs.fish;
+	  };
+        })
+	];
       };
       darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
         modules = [
