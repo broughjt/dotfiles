@@ -1,0 +1,73 @@
+#+TITLE: Configuration
+#+DATE: <2023-08-15 Tue>
+#+AUTHOR: Jackson Brough
+
+* TODO Literate programming
+* Structure
+#+begin_src nix :tangle flake1.nix :noweb yes
+{
+  description = "Are these your configuration files, Larry?";
+
+  nixConfig = {
+    extra-substituters = [
+      "https://cache.nixos.org/"
+      "https://nix-community.cachix.org"
+    ];
+
+    extra-trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+    ];
+  };
+
+  <<inputs>>
+
+  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay }:
+    let
+      <<modules>>
+    in {
+      <<murph>>
+      <<share1>>
+      <<kenobi>>
+      <<rust-template>>
+      <<herbie-template>>
+    }
+}
+#+end_src
+* Inputs
+#+NAME: inputs
+#+begin_src nix
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    nix-darwin.url = "github:LnL7/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixcasks.url = "github:jacekszymanski/nixcasks";
+    nixcasks.inputs.nixpkgs.follows = "nixpkgs";
+
+    emacs-overlay.url = "github:nix-community/emacs-overlay";
+    emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
+  };
+#+end_src
+* Modules
+** User
+#+NAME: user
+#+begin_src nix
+  { lib, ... }:
+
+  {
+    options.fullName = lib.mkOption {
+      
+    };
+  }
+#+end_src
+* Commands
+** TODO ~home-manager switch~ without Home Manager 
+* COMMENT Local variables
+# Local Variables:
+# eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
+# End:

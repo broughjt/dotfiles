@@ -359,6 +359,8 @@
 
 ;; TODO
 ;; (setq org-startup-indented t)
+(setq org-src-preserve-indentation nil
+      org-edit-src-content-indentation 0)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
 (use-package org-modern
