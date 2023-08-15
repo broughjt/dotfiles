@@ -44,16 +44,36 @@
           extraEmacsPackages = epkgs: with epkgs; [ treesit-grammars.with-all-grammars ];
           alwaysEnsure = true;
         }));
+      emacsConfiguration = { pkgs, ... }:
+        {
+          nixpkgs.overlays = with emacs-overlay.overlays; [
+            emacs
+            package
+            (final: prev: {
+              inherit (nixpkgs-emacs29-macport.legacyPackages.${prev.system}) emacs29-macport;
+            })
+          ];
+
+          programs.emacs.enable = true;
+        };
+      sharedGraphicalConfiguration = { lib, config, pkgs, ... }:
+        {
+          options.shareDirectory = lib.mkOption {
+            type = lib.types.str;
+            default = "${config.home.homeDirectory}/share";
+          };
+
+          config = {
+            home.packages = with pkgs; [
+              jetbrains-mono
+            ];
+          };
+        };
       sharedHomeConfiguration = { lib, config, pkgs, ... }:
         {
           options.repositoriesDirectory = lib.mkOption {
             type = lib.types.str;
             default = "${config.home.homeDirectory}/repositories";
-          };
-
-          options.sharedDirectory = lib.mkOption {
-            type = lib.types.str;
-            default = "${config.home.homeDirectory}/shared";
           };
 
           options.localDirectory = lib.mkOption {
@@ -76,18 +96,8 @@
 
               direnv
               gopass
-
-              jetbrains-mono
             ];
             programs.home-manager.enable = true;
-
-            nixpkgs.overlays = with emacs-overlay.overlays; [
-              emacs
-              package
-              (final: prev: {
-                inherit (nixpkgs-emacs29-macport.legacyPackages.${prev.system}) emacs29-macport;
-              })
-            ];
 
             xdg.enable = true;
             xdg.cacheHome = "${config.home.homeDirectory}/.cache";
@@ -131,8 +141,6 @@
                     hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
               '';
             };
-
-            programs.emacs.enable = true;
           };
         };
       darwinHomeConfiguration = { config, pkgs, nixcasks, lib, ... }: {
@@ -222,7 +230,18 @@
           };
         };
       };
-      linuxHomeConfiguration = { config, pkgs, ... }:
+      linuxHomeConfiguration = { pkgs, ... }:
+        {
+          home.homeDirectory = "/home/${userName}";
+          home.packages = with pkgs; [
+            killall
+            lldb
+          ];
+
+          services.ssh-agent.enable = true;
+          services.gpg-agent.enable = true;
+        };
+      linuxGraphicalConfiguration = { config, pkgs, ... }:
         {
           config = {
             # https://nixos.wiki/wiki/Slack
@@ -243,11 +262,7 @@
               })
             ];
 
-            home.homeDirectory = "/home/${userName}";
             home.packages = with pkgs; [
-              killall
-              lldb
-
               pinentry-gnome
               source-sans
               source-serif
@@ -267,19 +282,16 @@
               createDirectories = true;
               documents = config.scratchDirectory;
               download = config.scratchDirectory;
-              music = "${config.sharedDirectory}/music";
-              pictures = "${config.sharedDirectory}/pictures";
+              music = "${config.shareDirectory}/music";
+              pictures = "${config.shareDirectory}/pictures";
               publicShare = config.scratchDirectory;
               templates = config.scratchDirectory;
-              videos = "${config.sharedDirectory}/videos";
+              videos = "${config.shareDirectory}/videos";
             };
 
             fonts.fontconfig.enable = true;
 
-            services.ssh-agent.enable = true;
             services.gpg-agent.pinentryFlavor = "gnome3";
-
-            services.gpg-agent.enable = true;
 
             programs.kitty = {
               enable = true;
@@ -680,12 +692,19 @@
           inherit system;
           config.allowUnfree = true;
         };
-        modules = [ sharedHomeConfiguration darwinHomeConfiguration ];
+        modules = [ sharedHomeConfiguration sharedGraphicalConfiguration darwinHomeConfiguration emacsConfiguration ];
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."${system}";
       };
       homeConfigurations."${userName}@murph" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
           system = "x86_64-linux";
+          config.allowUnfree = true;
+        };
+        modules = [ sharedHomeConfiguration sharedGraphicalConfiguration linuxHomeConfiguration linuxGraphicalConfiguration emacsConfiguration ];
+      };
+      homeConfigurations."${userName}@share1" = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          system = "aarch64-linux";
           config.allowUnfree = true;
         };
         modules = [ sharedHomeConfiguration linuxHomeConfiguration ];
