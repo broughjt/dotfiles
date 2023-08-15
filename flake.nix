@@ -110,7 +110,10 @@
               extraConfig.init.defaultBranch = "main";
             };
 
-            programs.gh.enable = true;
+            programs.gh = {
+              enable = true;
+              settings.git_protocol = "ssh";
+            };
 
             programs.ssh.enable = true;
 
@@ -145,6 +148,7 @@
             # spotify
             # zoom
           ];
+          home.sessionVariables.EDITOR = "emacsclient";
 
           # TODO: Figure out taps with nixcasks
           nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
@@ -155,14 +159,14 @@
           # http://www.rockhoppertech.com/blog/emacs-daemon-on-macos/
           # TODO: multi-tty work with emacs-mac, have to choose between having a server and having nice scrolling
           # https://bitbucket.org/mituharu/emacs-mac/src/65c6c96f27afa446df6f9d8eff63f9cc012cc738/README-mac#lines-209
-          # launchd.agents.emacs = {
-          # enable = true;
-          # config = {
-          # ProgramArguments = [ "${config.programs.emacs.package}/bin/emacs" "--fg-daemon" ];
-          # RunAtLoad = true;
-          # };
-          # };
           programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
+          # launchd.agents.emacs = {
+            # enable = true;
+            # config = {
+              # ProgramArguments = [ "${config.programs.emacs.package}/bin/emacs" "--fg-daemon" ];
+              # RunAtLoad = true;
+            # };
+          # };
 
           targets.darwin.defaults = {
             NSGlobalDomain = {

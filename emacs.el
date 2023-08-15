@@ -319,7 +319,9 @@
 
 (use-package modus-themes)
 
-(use-package ef-themes)
+(use-package ef-themes 
+  :init
+  (load-theme 'ef-day t))
 
 (use-package vertico
   :init
