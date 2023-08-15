@@ -16,8 +16,6 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
 
-    nixpkgs-emacs29-macport.url = "github:broughjt/nixpkgs";
-
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -31,7 +29,7 @@
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-emacs29-macport, home-manager, nix-darwin, nixcasks, emacs-overlay }:
+  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay }:
     let
       fullName = "Jackson Brough";
       userName = "jackson";
@@ -46,13 +44,7 @@
         }));
       emacsConfiguration = { pkgs, ... }:
         {
-          nixpkgs.overlays = with emacs-overlay.overlays; [
-            emacs
-            package
-            (final: prev: {
-              inherit (nixpkgs-emacs29-macport.legacyPackages.${prev.system}) emacs29-macport;
-            })
-          ];
+          nixpkgs.overlays = with emacs-overlay.overlays; [ emacs package ];
 
           programs.emacs.enable = true;
         };
@@ -240,6 +232,9 @@
 
           services.ssh-agent.enable = true;
           services.gpg-agent.enable = true;
+        };
+      linuxHeadlessConfiguration = { pkgs, ... }:
+        {
           services.gpg-agent.pinentryFlavor = "tty";
         };
       linuxGraphicalConfiguration = { config, pkgs, ... }:
@@ -708,7 +703,7 @@
           system = "aarch64-linux";
           config.allowUnfree = true;
         };
-        modules = [ sharedHomeConfiguration linuxHomeConfiguration ];
+        modules = [ sharedHomeConfiguration linuxHomeConfiguration linuxHeadlessConfiguration ];
       };
       templates.rust = {
         path = ./templates/rust;

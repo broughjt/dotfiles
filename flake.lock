@@ -115,21 +115,6 @@
         "type": "indirect"
       }
     },
-    "nixpkgs-emacs29-macport": {
-      "locked": {
-        "lastModified": 1691964441,
-        "narHash": "sha256-T/HL4X1p+t5UjOLMOL3DvRSol9VbGNCgsumP5ZCtyzc=",
-        "owner": "broughjt",
-        "repo": "nixpkgs",
-        "rev": "07c07dbbdcd934783404531106ac438ec2f9868e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "broughjt",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-stable": {
       "locked": {
         "lastModified": 1691831739,
@@ -152,8 +137,7 @@
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
         "nixcasks": "nixcasks",
-        "nixpkgs": "nixpkgs",
-        "nixpkgs-emacs29-macport": "nixpkgs-emacs29-macport"
+        "nixpkgs": "nixpkgs"
       }
     },
     "systems": {
