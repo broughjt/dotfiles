@@ -768,7 +768,7 @@
       
              environment.systemPackages = [ pkgs.tailscale ];
       
-             age.secrets.secret1.file = ./secrets/share1-auth-key1.age;
+             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
              services.tailscaleAutoconnect = {
                enable = true;
                authKeyFile = config.age.secrets.share1-auth-key1.path;
