@@ -768,9 +768,10 @@
       
              environment.systemPackages = [ pkgs.tailscale ];
       
+             age.secrets.secret1.file = ./secrets/share1-auth-key1.age;
              services.tailscaleAutoconnect = {
                enable = true;
-               authKeyFile = ../secrets/share1-auth-key1.age;
+               authKeyFile = config.age.secrets.share1-auth-key1.path;
                loginServer = "https://login.tailscale.com";
              };
       
