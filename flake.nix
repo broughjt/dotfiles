@@ -648,7 +648,8 @@
              networking.hostName = "share1";
              networking.networkmanager.enable = true;
       
-             powermanagement.cpuFreqGovernor = lib.mkDefault "ondemand";
+             powerManagement.enable = true;
+             powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
       
              nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
       
