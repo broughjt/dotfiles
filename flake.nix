@@ -619,13 +619,15 @@
       nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         modules = [
-          ({ config, pkgs, ... }:
+          ({ config, pkgs, lib, ... }:
       
            {
-             imports = [ linuxSystem ];
+             imports = [
+               (modulesPath + "/installer/scan/not-detected.nix")
+               linuxSystem
+             ];
       
              boot = {
-               kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
                initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
                loader = {
                  grub.enable = false;
@@ -645,6 +647,8 @@
       
              networking.hostName = "share1";
              networking.networkmanager.enable = true;
+      
+             powermanagement.cpuFreqGovernor = lib.mkDefault "aarch64-linux";
       
              users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
            })
