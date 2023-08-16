@@ -27,9 +27,15 @@
 
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-server.url = "github:Guekka/nixos-server";
+    nixos-server.inputs.nixpkgs.follows = "nixpkgs";
+
+    agenix.url = "github:ryantm/agenix";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay }:
+  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay, nixos-server, agenix }:
     let
       modules = rec {
         personal = { config, lib, ... }:
@@ -68,7 +74,7 @@
         system = { config, pkgs, ... }:
         
           {
-            imports = [ package-manager personal ];
+            imports = [ agenix.nixosModules.default package-manager personal ];
         
             nix.settings.trusted-users = [ "root" config.personal.userName ];
         
@@ -118,10 +124,13 @@
         
           {
             imports = [ personal ];
-          
+        
+            nixpkgs.overlays = [ agenix.overlays.default ];
+        
             home.username = config.personal.userName;
             home.stateVersion = "23.05";
             home.packages = with pkgs; [
+              pkgs.agenix
               exa
               jq
               ripgrep
@@ -625,9 +634,11 @@
              imports = [
                (modulesPath + "/installer/scan/not-detected.nix")
                linuxSystem
+               nixos-server.nixosModules.tailscale-autoconnect
              ];
       
              boot = {
+               kernelPackages = pkgs.linuxKernel.packages.linux_rpi3;
                initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
                loader = {
                  grub.enable = false;
@@ -652,6 +663,14 @@
              powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
       
              nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+      
+             environment.systemPackages = [ pkgs.tailscale ];
+      
+             services.tailscaleAutoconnect = {
+               enable = true;
+               authKeyFile = ../secrets/share1-auth-key1.age;
+               loginServer = "https://login.tailscale.com";
+             };
       
              users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
            })

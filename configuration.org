@@ -34,9 +34,15 @@
 
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-server.url = "github:Guekka/nixos-server";
+    nixos-server.inputs.nixpkgs.follows = "nixpkgs";
+
+    agenix.url = "github:ryantm/agenix";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay }:
+  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay, nixos-server, agenix }:
     let
       modules = rec {
         <<modules>>
@@ -110,7 +116,7 @@ package-manager = { pkgs, ... }:
 system = { config, pkgs, ... }:
 
   {
-    imports = [ package-manager personal ];
+    imports = [ agenix.nixosModules.default package-manager personal ];
 
     nix.settings.trusted-users = [ "root" config.personal.userName ];
 
@@ -171,10 +177,13 @@ home = { lib, config, pkgs, ... }:
 
   {
     imports = [ personal ];
-  
+
+    nixpkgs.overlays = [ agenix.overlays.default ];
+
     home.username = config.personal.userName;
     home.stateVersion = "23.05";
     home.packages = with pkgs; [
+      pkgs.agenix
       exa
       jq
       ripgrep
@@ -1001,6 +1010,18 @@ emacsConfiguration = { pkgs, ... }:
 #+end_src
 
 *** TODO Actually seperate this out
+* Secrets
+#+NAME: 
+#+begin_src nix :tangle secrets/secrets.nix
+let
+  jackson = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICv+kva6ORZ2Z9FZNi8ufzzYPQKzy1WvhAYDQt4kEiFU";
+
+  share1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJDyIr/FSz1cJdcoW69R+NrWzwGK/+3gJpqD1t8L2zE";
+in
+{
+  "share1-auth-key1.age".publicKeys = [ share1 ];
+}
+#+end_src
 * Systems
 ** ~kenobi~
 #+NAME: kenobi
@@ -1173,9 +1194,11 @@ nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
        imports = [
          (modulesPath + "/installer/scan/not-detected.nix")
          linuxSystem
+         nixos-server.nixosModules.tailscale-autoconnect
        ];
 
        boot = {
+         kernelPackages = pkgs.linuxKernel.packages.linux_rpi3;
          initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
          loader = {
            grub.enable = false;
@@ -1200,6 +1223,14 @@ nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
        powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 
        nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+
+       environment.systemPackages = [ pkgs.tailscale ];
+
+       services.tailscaleAutoconnect = {
+         enable = true;
+         authKeyFile = ../secrets/share1-auth-key1.age;
+         loginServer = "https://login.tailscale.com";
+       };
 
        users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
      })
