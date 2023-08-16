@@ -32,13 +32,29 @@
   outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay }:
     let
       modules = rec {
-        personal = { lib, ... }:
+        personal = { config, lib, ... }:
         
           {
             options.personal = {
               userName = lib.mkOption { type = lib.types.str; default = "jackson"; };
               fullName = lib.mkOption { type = lib.types.str; default = "Jackson Brough"; };
               email = lib.mkOption { type = lib.types.str; default = "jacksontbrough@gmail.com"; };
+              repositoriesDirectory = lib.mkOption {
+                type = lib.types.str; 
+                default = "${config.home.homeDirectory}/repositories";
+              };
+              localDirectory = lib.mkOption {
+                type = lib.types.str; 
+                default = "${config.home.homeDirectory}/local";
+              };
+              scratchDirectory = lib.mkOption {
+                type = lib.types.str; 
+                default = "${config.home.homeDirectory}/scratch";
+              };
+              shareDirectory = lib.mkOption {
+                type = lib.types.str; 
+                default = "${config.home.homeDirectory}/share";
+              };
             };
           };
         home = { lib, config, pkgs, ... }:
@@ -46,79 +62,60 @@
           {
             imports = [ personal ];
           
-            options.repositoriesDirectory = lib.mkOption {
-              type = lib.types.str;
-              default = "${config.home.homeDirectory}/repositories";
-            };
-          
-            options.localDirectory = lib.mkOption {
-              type = lib.types.str;
-              default = "${config.home.homeDirectory}/local";
-            };
-          
-            options.scratchDirectory = lib.mkOption {
-              type = lib.types.str;
-              default = "${config.home.homeDirectory}/scratch";
-            };
-          
-            config = {
-              nixpkgs.config.allowUnfree = true;
-        
-              home.username = config.personal.userName;
-              home.stateVersion = "23.05";
-              home.packages = with pkgs; [
-                exa
-                jq
-                ripgrep
+            home.username = config.personal.userName;
+            home.stateVersion = "23.05";
+            home.packages = with pkgs; [
+              exa
+              jq
+              ripgrep
                 
-                direnv
-                gopass
-              ];
-              programs.home-manager.enable = true;
+              direnv
+              gopass
+            ];
+            programs.home-manager.enable = true;
           
-              xdg.enable = true;
-              xdg.cacheHome = "${config.home.homeDirectory}/.cache";
-              xdg.configHome = "${config.home.homeDirectory}/.config";
-              xdg.dataHome = "${config.home.homeDirectory}/.local/share";
-              xdg.stateHome = "${config.home.homeDirectory}/.local/state";
+            xdg.enable = true;
+            xdg.cacheHome = "${config.home.homeDirectory}/.cache";
+            xdg.configHome = "${config.home.homeDirectory}/.config";
+            xdg.dataHome = "${config.home.homeDirectory}/.local/share";
+            xdg.stateHome = "${config.home.homeDirectory}/.local/state";
           
-              programs.fish = {
-                enable = true;
-                interactiveShellInit = "fish_vi_key_bindings";
-                shellAliases.ls = "exa --group-directories-first";
-              };
+            programs.fish = {
+              enable = true;
+              interactiveShellInit = "fish_vi_key_bindings";
+              shellAliases.ls = "exa --group-directories-first";
+            };
           
-              programs.git = {
-                enable = true;
-                userName = config.personal.fullName;
-                userEmail = config.personal.email;
-                signing.key = "1BA5F1335AB45105";
-                signing.signByDefault = true;
-                # "Are the worker threads going to unionize?"
-                extraConfig.init.defaultBranch = "main";
-              };
+            programs.git = {
+              enable = true;
+              userName = config.personal.fullName;
+              userEmail = config.personal.email;
+              signing.key = "1BA5F1335AB45105";
+              signing.signByDefault = true;
+              # "Are the worker threads going to unionize?"
+              extraConfig.init.defaultBranch = "main";
+            };
           
-              programs.gh = {
-                enable = true;
-                settings.git_protocol = "ssh";
-              };
+            programs.gh = {
+              enable = true;
+              settings.git_protocol = "ssh";
+            };
           
-              programs.ssh.enable = true;
+            programs.ssh.enable = true;
           
-              programs.gpg = {
-                enable = true;
-                homedir = "${config.xdg.dataHome}/gnupg";
-              };
+            programs.gpg = {
+              enable = true;
+              homedir = "${config.xdg.dataHome}/gnupg";
+            };
           
-              xdg.configFile.gopass = {
-                target = "gopass/config";
-                text = ''
-                  [mounts]
-                      path = ${config.repositoriesDirectory}/passwords
-                  [recipients]
-                      hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
-                '';
-              };
+            xdg.configFile.gopass = {
+              target = "gopass/config";
+              text = ''
+                [mounts]
+                    path = ${config.personal.repositoriesDirectory}/passwords
+                [recipients]
+                    hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
+              '';
             };
           };
         darwinHome = { config, pkgs, nixcasks, lib, ... }:
@@ -160,7 +157,7 @@
         
             # TODO: Change to ~/shared/pictures
             "com.apple.screencapture" = {
-              location = config.scratchDirectory;
+              location = config.personal.scratchDirectory;
             };
         
             "com.apple.Safari" = {
@@ -240,13 +237,13 @@
           
           xdg.userDirs = {
             createDirectories = true;
-            documents = config.scratchDirectory;
-            download = config.scratchDirectory;
-            music = "${config.shareDirectory}/music";
-            pictures = "${config.shareDirectory}/pictures";
-            publicShare = config.scratchDirectory;
-            templates = config.scratchDirectory;
-            videos = "${config.shareDirectory}/videos";
+            documents = config.personal.scratchDirectory;
+            download = config.personal.scratchDirectory;
+            music = "${config.personal.shareDirectory}/music";
+            pictures = "${config.personal.shareDirectory}/pictures";
+            publicShare = config.personal.scratchDirectory;
+            templates = config.personal.scratchDirectory;
+            videos = "${config.personal.shareDirectory}/videos";
           };
           
           fonts.fontconfig.enable = true;
@@ -613,7 +610,10 @@
         ];
       };
       homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfree = true;
+        };
         modules = [ linuxHomeGraphical ];
       };
       
@@ -621,7 +621,10 @@
         modules = [ darwinSystem ];
       };
       homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        pkgs = import nixpkgs {
+          system = "x86_64-darwin";
+          config.allowUnfree = true;
+        };
         modules = [ darwinHome ];
       };
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
