@@ -57,6 +57,63 @@
               };
             };
           };
+        package-manager = { pkgs, ... }:
+        
+          {
+            nix.package = pkgs.nixFlakes;
+            nix.settings.experimental-features = [ "nix-command" "flakes" ];
+        
+            nixpkgs.config.allowUnfree = true;
+          };
+        system = { config, pkgs, ... }:
+        
+          {
+            imports = [ package-manager personal ];
+        
+            nix.settings.trusted-users = [ "root" config.personal.userName ];
+        
+            environment.systemPackages = with pkgs; [ curl git neovim ];
+            environment.shells = with pkgs; [ bashInteractive zsh fish ];
+        
+            programs.fish.enable = true;
+        
+            users.users.${config.personal.userName}.shell = pkgs.fish;
+          };
+        darwinSystem = { config, pkgs, ... }:
+        
+          {
+            imports = [ system ];
+        
+            config = {
+              services.nix-daemon.enable = true;
+              system.configurationRevision = self.rev or self.dirtyRev or null;
+              system.stateVersion = 4;
+        
+              users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
+        
+              homebrew.enable = true;
+              homebrew.casks = [ "spotify" "zoom" ];
+            };
+          };
+        linuxSystem = { config, pkgs, ... }:
+        
+          {
+            imports = [ system ];
+        
+            system.stateVersion = "23.05";
+        
+            users.users.${config.personal.userName} = {
+              home = "/home/${config.personal.userName}";
+              extraGroups = [ "wheel" ];
+              isNormalUser = true;
+            };
+        
+            services.openssh = {
+              enable = true;
+              settings.PasswordAuthentication = true;
+              settings.KbdInteractiveAuthentication = true;
+            };
+          };
         home = { lib, config, pkgs, ... }:
         
           {
@@ -130,8 +187,8 @@
         
           programs.fish.interactiveShellInit = "eval (brew shellenv)";
         
-          home.sessionVariables.EDITOR = "emacsclient";
           programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
+          home.sessionVariables.EDITOR = "emacsclient";
         };
         defaultSettings = { config, lib, ... }:
         
@@ -406,64 +463,6 @@
             };
           };
         };
-        package-manager = { pkgs, ... }:
-        
-          {
-            nix.package = pkgs.nixFlakes;
-            nix.settings.experimental-features = [ "nix-command" "flakes" ];
-        
-            nixpkgs.config.allowUnfree = true;
-          };
-        system = { self, config, pkgs, ... }:
-        
-          {
-            imports = [ package-manager personal ];
-        
-            nix.settings.trusted-users = [ "root" config.personal.userName ];
-        
-            environment.systemPackages = with pkgs; [ curl git neovim ];
-            environment.shells = with pkgs; [ bashInteractive zsh fish ];
-        
-            programs.fish.enable = true;
-        
-            users.users.${config.personal.userName}.shell = pkgs.fish;
-          };
-        darwinSystem = { self, config, pkgs, ... }:
-        
-          {
-            imports = [ system ];
-        
-            config = {
-              nixpkgs.hostPlatform = pkgs.system;
-              services.nix-daemon.enable = true;
-              system.configurationRevision = self.rev or self.dirtyRev or null;
-              system.stateVersion = 4;
-        
-              users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
-        
-              homebrew.enable = true;
-              homebrew.casks = [ "spotify" "zoom" ];
-            };
-          };
-        linuxSystem = { self, config, pkgs, ... }:
-        
-          {
-            imports = [ system ];
-        
-            system.stateVersion = "23.05";
-        
-            users.users.${config.personal.userName} = {
-              home = "/home/${config.personal.userName}";
-              extraGroups = [ "wheel" ];
-              isNormalUser = true;
-            };
-        
-            services.openssh = {
-              enable = true;
-              settings.PasswordAuthentication = true;
-              settings.KbdInteractiveAuthentication = true;
-            };
-          };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
             inherit package;
@@ -618,16 +617,22 @@
         modules = [ linuxHomeGraphical ];
       };
       
-      darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
-        modules = [ darwinSystem ];
-      };
-      homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "x86_64-darwin";
-          config.allowUnfree = true;
-        };
-        modules = [ darwinHome ];
-      };
+         darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
+           modules = [
+        darwinSystem
+       (inputs: { nixpkgs.hostPlatform = "x86_64-darwin"; })
+      ];
+         };
+         homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
+           pkgs = import nixpkgs {
+             system = "x86_64-darwin";
+             config.allowUnfree = true;
+           };
+           modules = [
+          darwinHome
+          ];
+           extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
+         };
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
       formatter.x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.nixpkgs-fmt;
       templates.rust = {
