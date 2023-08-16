@@ -569,7 +569,7 @@ with lib; let
 in {
   options.services.tailscaleAutoconnect = {
     enable = mkEnableOption "tailscaleAutoconnect";
-    authkeyFile = mkOption {
+    authKeyFile = mkOption {
       type = types.str;
       description = "The authkey to use for authentication with Tailscale";
     };
@@ -602,8 +602,8 @@ in {
   config = mkIf cfg.enable {
     assertions = [
       {
-        assertion = cfg.authkeyFile != "";
-        message = "authkeyFile must be set";
+        assertion = cfg.authKeyFile != "";
+        message = "authKeyFile must be set";
       }
       {
         assertion = cfg.exitNodeAllowLanAccess -> cfg.exitNode != "";
@@ -641,7 +641,7 @@ in {
         # timeout after 10 seconds to avoid hanging the boot process
         ${coreutils}/bin/timeout 10 ${tailscale}/bin/tailscale up \
           ${lib.optionalString (cfg.loginServer != "") "--login-server=${cfg.loginServer}"} \
-          --authkey=$(cat "${cfg.authkeyFile}")
+          --authkey=$(cat "${cfg.authKeyFile}")
 
         # we have to proceed in two steps because some options are only available
         # after authentication
