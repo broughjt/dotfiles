@@ -573,7 +573,7 @@
                 else "client";
             };
           };
-        }
+        };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
             inherit package;

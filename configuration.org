@@ -666,7 +666,7 @@ in {
         else "client";
     };
   };
-}
+};
 #+end_src
 * Emacs
 ** Nix
