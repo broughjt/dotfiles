@@ -616,7 +616,47 @@
         };
         modules = [ linuxHomeGraphical ];
       };
+      nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        modules = [
+          ({ config, pkgs, ... }:
       
+           {
+             imports = [ linuxSystem ];
+      
+             boot = {
+               kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
+               initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
+               loader = {
+                 grub.enable = false;
+                 generic-extlinux-compatible.enable = true;
+               };
+             };
+      
+             fileSystems = {
+               "/" = {
+                 device = "/dev/disk/by-label/NIXOS_SD";
+                 fsType = "ext4";
+                 options = [ "noatime" ];
+               };
+             };
+      
+             hardware.enableRedistributableFirmware = true;
+      
+             networking.hostName = "share1";
+             networking.networkmanager.enable = true;
+      
+             users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
+           })
+        ];
+      };
+      homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          system = "aarch64-linux";
+          config.allowUnfree = true;
+        };
+        modules = [ linuxHomeHeadless ];
+      };
          darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
            modules = [
         darwinSystem

@@ -1162,7 +1162,7 @@ homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
 };
 #+end_src
 ** ~share1~
-#+NAME: share
+#+NAME: share1
 #+begin_src nix
 nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
   system = "aarch64-linux";
