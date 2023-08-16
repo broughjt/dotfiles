@@ -619,7 +619,7 @@
       nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         modules = [
-          ({ config, pkgs, lib, ... }:
+          ({ config, modulesPath, lib, pkgs, ... }:
       
            {
              imports = [
