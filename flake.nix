@@ -90,6 +90,7 @@
           
               programs.git = {
                 enable = true;
+                userName = config.personal.fullName;
                 userEmail = config.personal.email;
                 signing.key = "1BA5F1335AB45105";
                 signing.signByDefault = true;
