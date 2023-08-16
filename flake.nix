@@ -126,7 +126,7 @@
           nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
         
           home.homeDirectory = "/Users/${config.personal.userName}";
-          home.packages = with pkgs; [ nixcasks.slack ];
+          home.packages = with pkgs; [ nixcasks.slack jetbrains-mono ];
         
           programs.fish.interactiveShellInit = "eval (brew shellenv)";
         
@@ -222,6 +222,7 @@
         
           home.packages = with pkgs; [
             pinentry-gnome
+            jetbrains-mono
             source-sans
             source-serif
           
@@ -605,7 +606,7 @@
       
              nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
       
-             users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
+             users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
            })
         ];
       };
