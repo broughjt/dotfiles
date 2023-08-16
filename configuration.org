@@ -4,7 +4,7 @@
 
 * TODO Literate programming
 * Structure
-#+begin_src nix :tangle flake1.nix :noweb yes
+#+begin_src nix :tangle flake.nix :noweb yes
 {
   description = "Are these your configuration files, Larry?";
 
@@ -20,23 +20,6 @@
     ];
   };
 
-  <<inputs>>
-
-  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay }:
-    let
-      <<modules>>
-    in {
-      <<murph>>
-      <<share1>>
-      <<kenobi>>
-      <<rust-template>>
-      <<herbie-template>>
-    }
-}
-#+end_src
-* Inputs
-#+NAME: inputs
-#+begin_src nix
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
 
@@ -52,18 +35,1164 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
+
+  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay }:
+    let
+      modules = rec {
+        <<modules>>
+      };
+    in with modules; {
+      nixosModules = modules;
+      <<murph>>
+      <<share1>>
+      <<kenobi>>
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
+      formatter.x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.nixpkgs-fmt;
+      templates.rust = {
+        path = ./templates/rust;
+        description = "Rust template";
+      };
+      templates.herbie = {
+        path = ./templates/herbie;
+        description = "Herbie template";
+      };
+  };
+}
 #+end_src
 * Modules
-** User
-#+NAME: user
+:PROPERTIES:
+:header-args: :noweb-ref modules
+:END:
+
+** Personal Information
 #+begin_src nix
-  { lib, ... }:
+personal = { lib, ... }:
 
   {
-    options.fullName = lib.mkOption {
-      
+    options.personal = {
+      userName = lib.mkOption { type = lib.types.str; default = "jackson"; };
+      fullName = lib.mkOption { type = lib.types.str; default = "Jackson Brough"; };
+      email = lib.mkOption { type = lib.types.str; default = "jacksontbrough@gmail.com"; };
     };
-  }
+  };
+#+end_src
+** Home
+#+begin_src nix
+home = { lib, config, pkgs, ... }:
+
+  {
+    imports = [ personal ];
+  
+    options.repositoriesDirectory = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.home.homeDirectory}/repositories";
+    };
+  
+    options.localDirectory = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.home.homeDirectory}/local";
+    };
+  
+    options.scratchDirectory = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.home.homeDirectory}/scratch";
+    };
+  
+    config = {
+      nixpkgs.config.allowUnfree = true;
+
+      home.username = config.personal.userName;
+      home.stateVersion = "23.05";
+      home.packages = with pkgs; [
+        exa
+        jq
+        ripgrep
+        
+        direnv
+        gopass
+      ];
+      programs.home-manager.enable = true;
+  
+      xdg.enable = true;
+      xdg.cacheHome = "${config.home.homeDirectory}/.cache";
+      xdg.configHome = "${config.home.homeDirectory}/.config";
+      xdg.dataHome = "${config.home.homeDirectory}/.local/share";
+      xdg.stateHome = "${config.home.homeDirectory}/.local/state";
+  
+      programs.fish = {
+        enable = true;
+        interactiveShellInit = "fish_vi_key_bindings";
+        shellAliases.ls = "exa --group-directories-first";
+      };
+  
+      programs.git = {
+        enable = true;
+        userEmail = config.personal.email;
+        signing.key = "1BA5F1335AB45105";
+        signing.signByDefault = true;
+        # "Are the worker threads going to unionize?"
+        extraConfig.init.defaultBranch = "main";
+      };
+  
+      programs.gh = {
+        enable = true;
+        settings.git_protocol = "ssh";
+      };
+  
+      programs.ssh.enable = true;
+  
+      programs.gpg = {
+        enable = true;
+        homedir = "${config.xdg.dataHome}/gnupg";
+      };
+  
+      xdg.configFile.gopass = {
+        target = "gopass/config";
+        text = ''
+          [mounts]
+              path = ${config.repositoriesDirectory}/passwords
+          [recipients]
+              hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
+        '';
+      };
+    };
+  };
+#+end_src
+*** TODO Figure out how to remove the extra ~nixpkgs.config.allowUnfree~
+** Darwin home
+#+begin_src nix
+darwinHome = { config, pkgs, nixcasks, lib, ... }:
+
+{
+  imports = [ home emacsConfiguration defaultSettings ];
+   
+  nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
+
+  home.homeDirectory = "/Users/${config.personal.userName}";
+  home.packages = with pkgs; [ nixcasks.slack ];
+
+  programs.fish.interactiveShellInit = "eval (brew shellenv)";
+
+  home.sessionVariables.EDITOR = "emacsclient";
+  programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
+};
+#+END_SRC
+*** ~default~ settings
+#+BEGIN_SRC nix
+defaultSettings = { config, lib, ... }:
+
+{
+  home.activation = {
+    activateSettings = lib.hm.dag.entryAfter
+      [ "writeBoundary" ] 
+      "/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u";
+  };
+
+  targets.darwin.defaults = {
+    NSGlobalDomain = {
+      AppleInterfaceStyleSwitchesAutomatically = true;
+      WebKitDeveloperExtras = true;
+    };
+
+    "com.apple.dock" = {
+      orientation = "left";
+      show-recents = false;
+      static-only = true;
+      autohide = true;
+    };
+
+    # TODO: Change to ~/shared/pictures
+    "com.apple.screencapture" = {
+      location = config.scratchDirectory;
+    };
+
+    "com.apple.Safari" = {
+      AutoOpenSafeDownloads = false;
+      SuppressSearchSuggestions = true;
+      UniversalSearchEnabled = false;
+      AutoFillFromAddressBook = false;
+      AutoFillPasswords = false;
+      IncludeDevelopMenu = false;
+      AutoFillCreditCardData = false;
+      AutoFillMiscellaneousForms = false;
+      ShowFavoritesBar = false;
+      WarnAboutFraudulentWebsites = true;
+      WebKitJavaEnabled = false;
+    };
+
+    "com.apple.AdLib" = {
+      allowApplePersonalizedAdvertising = false;
+    };
+
+    "com.apple.finder" = {
+      AppleShowAllFiles = true;
+      ShowPathbar = true;
+    };
+
+    "com.apple.print.PrintingPrefs" = {
+      "Quit When Finished" = true;
+    };
+
+    "com.apple.SoftwareUpdate" = {
+      AutomaticCheckEnabled = true;
+      ScheduleFrequency = 1;
+      AutomaticDownload = 1;
+      CriticalUpdateInstall = 1;
+    };
+  };
+};
+#+end_src
+*** TODO Add taps to nixcasks
+*** TODO Make Slack, Spotify, and Zoom regular packages
+** Linux home
+#+begin_src nix
+linuxHome = { config, pkgs, ... }:
+
+  {
+    imports = [ home ];
+
+    home.homeDirectory = "/home/${config.personal.userName}";
+    home.packages = with pkgs; [
+      killall
+      lldb
+    ];
+
+    services.ssh-agent.enable = true;
+    services.gpg-agent.enable = true;
+  };
+#+end_src
+
+*** Headless
+#+begin_src nix
+linuxHomeHeadless = { pkgs, ... }:
+  {
+    imports = [ linuxHome ];
+
+    services.gpg-agent.pinentryFlavor = "tty";
+  };
+#+end_src
+*** Graphical
+#+begin_src nix
+linuxHomeGraphical = { config, pkgs, ... }:
+
+{
+  imports = [ linuxHome emacsConfiguration dconfSettings slackOverlay ];
+
+  home.packages = with pkgs; [
+    pinentry-gnome
+    source-sans
+    source-serif
+  
+    gnome.dconf-editor
+    gnomeExtensions.pop-shell
+    whitesur-gtk-theme
+    whitesur-icon-theme
+    
+    slack
+    spotify
+    playerctl
+  ];
+  
+  xdg.userDirs = {
+    createDirectories = true;
+    documents = config.scratchDirectory;
+    download = config.scratchDirectory;
+    music = "${config.shareDirectory}/music";
+    pictures = "${config.shareDirectory}/pictures";
+    publicShare = config.scratchDirectory;
+    templates = config.scratchDirectory;
+    videos = "${config.shareDirectory}/videos";
+  };
+  
+  fonts.fontconfig.enable = true;
+
+  services.gpg-agent.pinentryFlavor = "gnome3";
+
+  programs.kitty = {
+    enable = true;
+    font = { name = "JetBrains Mono"; size = 12; };
+  };
+  
+  programs.firefox = {
+    enable = true;
+    enableGnomeExtensions = false;
+  };
+    
+  programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
+  services.emacs = {
+    enable = true;
+    package = config.programs.emacs.package;
+    defaultEditor = true;
+    startWithUserSession = "graphical";
+  };
+};
+#+END_SRC
+
+**** Slack overlay
+Patch slack to work natively on wayland by passing extra electron
+command line arguments. See
+
+- https://wiki.archlinux.org/title/wayland
+- https://nixos.wiki/wiki/Slack
+- TODO Seems broken, running X
+- TODO Screen sharing
+
+#+begin_src nix
+slackOverlay = { pkgs, ... }:
+
+{
+  nixpkgs.overlays = [
+    (final: prev: {
+      slack = prev.slack.overrideAttrs (previous: {
+        installPhase = previous.installPhase + ''
+          rm $out/bin/slack
+  
+          makeWrapper $out/lib/slack/slack $out/bin/slack \
+          --prefix XDG_DATA_DIRS : $GSETTINGS_SCHEMAS_PATH \
+          --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.xdg-utils]} \
+          --add-flags "--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer"
+        '';
+      });
+    })
+  ];
+};
+#+end_src
+**** ~dconf~ settings
+See
+- https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
+- https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
+
+#+BEGIN_SRC nix
+dconfSettings = { config, ... }:
+
+{
+  dconf.settings = {
+    "org/gnome/shell" = {
+      disable-user-extensions = false;
+      disabled-extensions = "disabled";
+      enabled-extensions = [
+        "pop-shell@system76.com"
+      ];
+    };
+    "org/gnome/shell/extensions/pop-shell" = {
+      tile-by-default = true;
+    };
+    "org/gnome/desktop/wm/keybindings" = {
+      close = [ "<Super>q" ];
+      minimize = [ "<Super>comma" ];
+      toggle-maximized = [ "<Super>m" ];
+      switch-to-workspace-1 = [ "<Super>1" ];
+      switch-to-workspace-2 = [ "<Super>2" ];
+      switch-to-workspace-3 = [ "<Super>3" ];
+      switch-to-workspace-4 = [ "<Super>4" ];
+      switch-to-workspace-5 = [ "<Super>5" ];
+      switch-to-workspace-6 = [ "<Super>6" ];
+      switch-to-workspace-7 = [ "<Super>7" ];
+      switch-to-workspace-8 = [ "<Super>8" ];
+      switch-to-workspace-9 = [ "<Super>9" ];
+      move-to-workspace-1 = [ "<Super><Shift>1" ];
+      move-to-workspace-2 = [ "<Super><Shift>2" ];
+      move-to-workspace-3 = [ "<Super><Shift>3" ];
+      move-to-workspace-4 = [ "<Super><Shift>4" ];
+      move-to-workspace-5 = [ "<Super><Shift>5" ];
+      move-to-workspace-6 = [ "<Super><Shift>6" ];
+      move-to-workspace-7 = [ "<Super><Shift>7" ];
+      move-to-workspace-8 = [ "<Super><Shift>8" ];
+      move-to-workspace-9 = [ "<Super><Shift>9" ];
+    };
+    "org/gnome/shell/keybindings" = {
+      toggle-message-tray = [ ];
+      focus-active-notification = [ ];
+      toggle-overview = [ ];
+      switch-to-application-1 = [ ];
+      switch-to-application-2 = [ ];
+      switch-to-application-3 = [ ];
+      switch-to-application-4 = [ ];
+      switch-to-application-5 = [ ];
+      switch-to-application-6 = [ ];
+      switch-to-application-7 = [ ];
+      switch-to-application-8 = [ ];
+      switch-to-application-9 = [ ];
+    };
+    "org/gnome/mutter/keybindings" = {
+      switch-monitor = [ ];
+    };
+    "org/gnome/settings-daemon/plugins/media-keys" = {
+      rotate-video-lock-static = [ ];
+      screenreader = [ ];
+      custom-keybindings = [
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
+      ];
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+      name = "Terminal";
+      command = "kitty";
+      binding = "<Super>t";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+      name = "Browser";
+      command = "firefox";
+      binding = "<Super>b";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+      name = "Emacs";
+      command = "emacsclient -c";
+      binding = "<Super>e";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
+      name = "Spotify";
+      command = "spotify";
+      binding = "<Super>s";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
+      name = "Next";
+      command = "playerctl next";
+      binding = "<Super>n";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
+      name = "Previous";
+      command = "playerctl previous";
+      binding = "<Super>p";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
+      name = "Play";
+      command = "playerctl play-pause";
+      binding = "<Super>i";
+    };
+    "org/gnome/desktop/wm/preferences" = {
+      theme = "WhiteSur";
+      num-workspaces = 9;
+    };
+    "org/gnome/desktop/interface" = {
+      clock-format = "12h";
+      color-scheme = "prefer-dark";
+      enable-hot-corners = false;
+      gtk-theme = "WhiteSur";
+      icon-theme = "WhiteSur";
+    };
+    "org/gnome/desktop/background" = {
+      picture-uri = "file://${config.xdg.userDirs.pictures}/deep-field.png";
+      picture-uri-dark = "file://${config.xdg.userDirs.pictures}/deep-field.png";
+    };
+  };
+};
+#+end_src
+** Package manager configuration
+Make Nix can flakes.
+
+#+begin_src nix
+package-manager = { pkgs, ... }:
+
+  {
+    nix.package = pkgs.nixFlakes;
+    nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+    nixpkgs.config.allowUnfree = true;
+  };
+#+end_src
+** System
+#+begin_src nix
+system = { self, config, pkgs, ... }:
+
+  {
+    imports = [ package-manager personal ];
+
+    nix.settings.trusted-users = [ "root" config.personal.userName ];
+
+    environment.systemPackages = with pkgs; [ curl git neovim ];
+    environment.shells = with pkgs; [ bashInteractive zsh fish ];
+
+    programs.fish.enable = true;
+
+    users.users.${config.personal.userName}.shell = pkgs.fish;
+  };
+#+end_src
+*** TODO Turn off mutable users and use agenix for password
+** Darwin system
+#+begin_src nix
+darwinSystem = { self, config, pkgs, ... }:
+
+  {
+    imports = [ system ];
+
+    config = {
+      nixpkgs.hostPlatform = pkgs.system;
+      services.nix-daemon.enable = true;
+      system.configurationRevision = self.rev or self.dirtyRev or null;
+      system.stateVersion = 4;
+
+      users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
+
+      homebrew.enable = true;
+      homebrew.casks = [ "spotify" "zoom" ];
+    };
+  };
+#+end_src
+** Linux system
+#+begin_src nix
+linuxSystem = { self, config, pkgs, ... }:
+
+  {
+    imports = [ system ];
+
+    system.stateVersion = "23.05";
+
+    users.users.${config.personal.userName} = {
+      home = "/home/${config.personal.userName}";
+      extraGroups = [ "wheel" ];
+      isNormalUser = true;
+    };
+
+    services.openssh = {
+      enable = true;
+      settings.PasswordAuthentication = true;
+      settings.KbdInteractiveAuthentication = true;
+    };
+  };
+#+end_src
+*** TODO Remove ssh password authentication
+* Emacs
+** Nix
+:PROPERTIES:
+:header-args: :noweb-ref modules
+:END:
+
+*** Overlay
+#+begin_src nix
+emacsOverlay = (pkgs: package:
+  (pkgs.emacsWithPackagesFromUsePackage {
+    inherit package;
+    config = ./emacs.el;
+    defaultInitFile = true;
+    extraEmacsPackages = epkgs: with epkgs; [ treesit-grammars.with-all-grammars ];
+    alwaysEnsure = true;
+  }));
+#+end_src
+*** Module
+#+begin_src nix
+emacsConfiguration = { pkgs, ... }:
+
+  {
+    nixpkgs.overlays = with emacs-overlay.overlays; [ emacs package ];
+
+    programs.emacs.enable = true;
+  };
+#+end_src
+** Configuration
+#+begin_src elisp :tangle emacs.el
+;; TODO:
+;; kakoune/helix
+;;   navigation mode, maybe syntactically with treesitter
+;; treesitter
+;; <space> leader
+;; dired
+;; Alacritty has no scrollbar, and fish doesn't have backwards word kill with C-backspace, need a terminal in emacs
+;;   Ideally, have a little popup window like vscode
+;; https://coredumped.dev/2020/01/04/native-shell-completion-in-emacs/
+;; buffer and window management in general
+;; Highlight line with a different color if you're at the center of the buffer, I press zz all the time unnecesarilly
+;; debuggers
+;; https://github.com/emacs-grammarly
+
+;; TODO: https://hackernoon.com/learning-vim-what-i-wish-i-knew-b5dca186bef7
+;; TOOD: https://github.com/seagle0128/.emacs.d
+;;
+;; TODO: Org-mode
+;; https://howardism.org/Technical/Emacs/orgmode-wordprocessor.html
+;; https://howardism.org/Technical/Emacs/orgmode-wordprocessor.html
+
+(setq package-enable-at-startup nil)
+(setq use-package-ensure-function 'ignore)
+(setq package-archives nil)
+
+(setq use-package-always-ensure t)
+(eval-when-compile (require 'use-package))
+(require 'bind-key)
+
+(when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
+(when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
+(when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
+(when (eq system-type 'gnu/linux)
+  (add-to-list 'default-frame-alist '(undecorated . t))
+  (add-to-list 'default-frame-alist '(fullscreen . maximized)))
+(add-to-list 'default-frame-alist `(font . ,(if (eq system-type 'gnu/linux) "JetBrainsMono 12" "JetBrains Mono 12")))
+(setq visible-bell t)
+(setq display-line-numbers-type 'visual)
+(global-display-line-numbers-mode)
+
+;; TODO: Actually understand these from long ago and hopefully get rid of most of it
+;; TODO: Make path implicit
+(setq local-directory (expand-file-name "~/.local/data/emacs/"))
+(setq backup-directory (concat local-directory "backups/"))
+(setq auto-save-directory (concat local-directory "auto-saves/"))
+(setq backup-directory-alist '(("*" . ,backup-directory)))
+(setq backup-inhibited t)
+(setq auto-save-file-name-transforms `((".*" ,auto-save-directory t)))
+(setq auto-save-list-file-prefix auto-save-directory)
+(setq auto-save-default nil)
+(setq create-lockfiles nil)
+(setq vc-make-backup-files t)
+;; TODO: Ideally just don't have one
+(setq custom-file (concat user-emacs-directory "custom.el"))
+
+(setq-default indent-tabs-mode nil)
+
+;; (comment (use-package ryo-modal
+;;   ;; :disabled
+;;   :bind
+;;   ("<escape>" . modal/normal-mode)
+;;   :hook
+;;   (after-init . modal/setup)
+;;   (prog-mode . modal/normal-mode)
+;;   :config  
+;;   (defun modal/insert-mode ()
+;;     "Return to insert mode."
+;;     (interactive)
+;;     (ryo-modal-mode 0))
+;;   
+;;   (defun modal/normal-mode ()
+;;     "Enter normal mode."
+;;     (interactive)
+;;     (ryo-modal-mode 1))
+;;   
+;;   (defun modal/set-mark-at-point ()
+;;     "Set the mark at the location of the point."
+;;     (interactive)
+;;     (set-mark (point)))
+;;   
+;;   (defun modal/set-mark-at-point-if-inactive ()
+;;     "Set the mark at the location of the point if it isn't active."
+;;     (interactive)
+;;     (unless (use-region-p)
+;;       (modal/set-mark-at-point)))
+;;    
+;;   ;; TODO: What's with rectangle-mark-mode
+;;   (defun modal/deactivate-mark ()
+;;     "Deactivate the mark.
+;; 
+;; Deactivate the mark unless mark-region-mode is active."
+;;     (interactive)
+;;     (unless rectangle-mark-mode (deactivate-mark)))
+;; 
+;;   ;;; Movement
+;; 
+;;   ;; TODO: bikeshed name, this is wrong
+;;   (defun modal/select-word-end ()
+;;     "Select preceding whitespaces and the word on the right of selection end."
+;;     (interactive)
+;;     (forward-word)
+;;     (backward-char))
+;; 
+;;   (defun modal/backward-same-syntax (count)
+;;     "Move backward COUNT times by same syntax blocks."
+;;     (interactive "p")
+;;     (forward-same-syntax (- count)))
+;;  
+;;   (defun modal/select-whole-line (count)
+;;     "Expand selections to contain full lines."
+;;     (interactive "p")
+;;     (beginning-of-line)
+;;     (modal/set-mark-at-point)
+;;     (forward-line count))
+;; 
+;;   (defun modal/select-to (count character)
+;;     "Select to (including) the COUNTth occurance of CHARACTER."
+;;     (interactive "p\ncSelect to character: ")
+;;     (let ((direction (if (>= count 0) 1 -1)))
+;;       (forward-char direction)
+;;       (unwind-protect
+;;        (search-forward (char-to-string character) nil nil count))
+;;       (point)))
+;; 
+;;   (defun modal/select-until (count character)
+;;     "Select until (excluding) the COUNTth occurance of CHARACTER."
+;;     (interactive "p\ncSelect until character: ")
+;;     (let ((direction (if (>= count 0) 1 -1)))
+;;       (forward-char direction)
+;;       (unwind-protect
+;;        (search-forward (char-to-string character) nil nil count)
+;;        (backward-char direction))
+;;       (point)))
+;; 
+;;   (defun modal/goto (count)
+;;     "Go to the beginning of the buffer or the COUNTth line."
+;;     (interactive "p")
+;;     (goto-char (point-min))
+;;     (when count (forward-line (1- count))))
+;;        
+;;   ;;; Changes
+;;   
+;;   (defun modal/kill (count)
+;;     "Kill selected text or delete `count` characters."
+;;     (interactive "p")
+;;     (if (use-region-p)
+;;         (kill-region (region-beginning) (region-end))
+;;       (delete-char count t)))
+;; 
+;;   (defun modal/yank (count)
+;;     "Yank COUNT times after the point."
+;;     (interactive "p")
+;;     (dotimes (_ count) (save-excursion (yank))))
+;; 
+;;   (defun modal/open-above (count)
+;;     "Open COUNT lines above the cursor and go into insert mode."
+;;     (interactive "p")
+;;     (beginning-of-line)
+;;     (dotimes (_ count)
+;;       (newline)
+;;       (forward-line -1)))
+;; 
+;;   (defun modal/open-below (count)
+;;     "Open COUNT lines below the cursor and go into insert mode."
+;;     (interactive "p")
+;;     (end-of-line)
+;;     (dotimes (_ count)
+;;       (electric-newline-and-maybe-indent)))
+;; 
+;;   (defun modal/join ()
+;;     "Join the next line to the current one."
+;;     (interactive)
+;;     (join-line 1))
+;; 
+;;   ;; Configuration
+;; 
+;;   (defun modal/setup ()
+;;     "Set up keybindings for normal mode."
+;;     (interactive)
+;;     (global-subword-mode 1)
+;;     (ryo-modal-major-mode-keys
+;;      'prog-mode
+;;      ("b" modal/backward-same-syntax :first '(modal/set-mark-at-point) :mc-all t)
+;;      ("B" modal/backward-same-syntax :first '(modal/set-mark-at-point-if-inactive) :mc-all t)
+;;      ("w" forward-same-syntax :first '(modal/set-mark-at-point) :mc-all t)
+;;      ("W" forward-same-syntax :first '(modal/set-mark-at-point-if-inactive) :mc-all t))
+;;     (ryo-modal-keys
+;;      (:mc-all t)
+;;      ("a" forward-char :exit t)
+;;      ("A" move-end-of-line :exit t)
+;;      ("b" backward-word :first '(modal/set-mark-at-point))
+;;      ("B" backward-word :first '(modal/set-mark-at-point-if-inactive))
+;;      ("c" modal/kill :exit t)
+;;      ("C" ignore)
+;;      ("d" modal/kill)
+;;      ("D" ignore)
+;;      ("e" ignore)
+;;      ("E" ignore)
+;;      ("f" modal/select-to :first '(modal/set-mark-at-point))
+;;      ("F" modal/select-to :first '(modal/set-mark-at-point-if-inactive))
+;;      ("g" (("g" modal/goto)
+;;            ("h" beginning-of-line)
+;;            ("i" back-to-indentation)
+;;            ("j" end-of-buffer)
+;;            ("k" beginning-of-buffer)
+;;            ("l" end-of-line)) :first '(modal/deactivate-mark))
+;;      ("G" (("g" modal/goto)
+;;            ("i" back-to-indentation)
+;;            ("h" beginning-of-line)
+;;            ("j" end-of-buffer)
+;;            ("k" beginning-of-buffer)
+;;            ("l" end-of-line)) :first '(modal/set-mark-at-point-if-inactive))
+;;      ("h" backward-char :first '(deactivate-mark))
+;;      ("H" backward-char :first '(modal/set-mark-at-point-if-inactive))
+;;      ("i" modal/insert-mode)
+;;      ("I" back-to-indentation :exit t)
+;;      ("j" next-line :first '(deactivate-mark))
+;;      ("J" next-line :first '(modal/set-mark-at-point-if-inactive))
+;;      ("M-j" modal/join)
+;;      ("k" previous-line :first '(deactivate-mark))
+;;      ("K" previous-line :first '(modal/set-mark-at-point-if-inactive))
+;;      ("l" forward-char :first '(deactivate-mark))
+;;      ("L" forward-char :first '(modal/set-mark-at-point-if-inactive))
+;;      ("m" ignore)
+;;      ("M" ignore)
+;;      ("n" ignore)
+;;      ("N" ignore)
+;;      ;; TODO: These don't open the new line at the right indentation
+;;      ("o" modal/open-below :exit t)
+;;      ("O" modal/open-above :exit t)
+;;      ("p" modal/yank)
+;;      ("P" ignore)
+;;      ("q" ignore)
+;;      ("Q" ignore)
+;;      ("r" ignore)
+;;      ("R" ignore)
+;;      ("s" ignore)
+;;      ("S" ignore)
+;;      ("t" modal/select-until :first '(modal/set-mark-at-point))
+;;      ("T" modal/select-until :first '(modal/set-mark-at-point-if-inactive))
+;;      ("u" undo)
+;;      ("U" undo-redo)
+;;      ("v" (("v" recenter)))
+;;      ("V" ignore)
+;;      ("w" forward-word :first '(modal/set-mark-at-point))
+;;      ("W" forward-word :first '(modal/set-mark-at-point-if-inactive))
+;;      ("x" modal/select-whole-line)
+;;      ("X" ignore)
+;;      ("y" kill-ring-save)
+;;      ("Y" ignore)
+;;      ("z" ignore)
+;;      ("Z" ignore)
+;;    
+;;      ("0" "M-0")
+;;      ("1" "M-1")
+;;      ("2" "M-2")
+;;      ("3" "M-3")
+;;      ("4" "M-4")
+;;      ("5" "M-5")
+;;      ("6" "M-6")
+;;      ("7" "M-7")
+;;      ("8" "M-8")
+;;      ("9" "M-9")
+;;    
+;;      ("~" ignore)
+;;      ("`" ignore)
+;;      ("!" ignore)
+;;      ("@" ignore)
+;;      ("#" ignore)
+;;      ("$" ignore)
+;;      ("%" ignore)
+;;      ("^" ignore)
+;;      ("&" ignore)
+;;      ("*" ignore)
+;;      ("(" ignore)
+;;      (")" ignore)
+;;      ("-" ignore)
+;;      ("_" ignore)
+;;      ("=" ignore)
+;;      ("+" ignore)
+;;      ("<backspace>" ignore)
+;;      ("<del>" ignore)
+;;      ("[" ignore)
+;;      ("{" ignore)
+;;      ("]" ignore)
+;;      ("}" ignore)
+;;      ("|" ignore)
+;;      ("\\" ignore)
+;;      (";" deactivate-mark)
+;;      (":" ignore)
+;;      ("'" ignore)
+;;      ("\"" ignore)
+;;      ("," ignore)
+;;      ("<" ignore)
+;;      ("." ignore)
+;;      (">" ignore)
+;;      ("/" ignore)
+;;      ("?" ignore)
+;; 
+;;      ("C-u" scroll-down-command :first '(deactivate-mark))
+;;      ("C-d" scroll-up-command :first '(deactivate-mark))))
+;;   
+;;   (setq ryo-modal-mode-cursor-type 'box)
+;;  (setq ryo-modal-cursor-color "pink")))
+
+(use-package evil
+ :custom
+ (evil-want-keybinding nil)
+ (evil-undo-system 'undo-redo)
+ :config
+ (evil-mode 1))
+
+(use-package evil-collection
+ :after evil
+ :init
+ (evil-collection-init))
+
+(use-package standard-themes)
+
+(use-package modus-themes)
+
+(use-package ef-themes 
+  :init
+  (load-theme 'ef-day t))
+
+(use-package vertico
+  :init
+  (vertico-mode))
+
+(use-package marginalia
+  :init
+  (marginalia-mode))
+
+(use-package consult
+  :bind (("C-x b" . consult-buffer)
+         ("C-x p b" . consult-project-buffer)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ("M-s d" . consult-find)
+         ("M-s g" . consult-ripgrep)))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package which-key
+  :config (which-key-mode 1))
+
+(use-package company
+  :custom
+  (company-idle-delay 0.1)
+  :bind
+  (:map company-active-map
+	("C-n" . company-select-next)
+	("C-p" . company-select-previous))
+  :init
+  (global-company-mode))
+
+;; TODO
+;; (setq org-startup-indented t)
+(setq org-src-preserve-indentation nil
+      org-edit-src-content-indentation 0)
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
+
+(use-package org-modern
+  :hook (org-mode . org-modern-mode))
+
+(use-package org-roam
+  :custom
+  (org-roam-v2-ack t)
+  ;; TODO: Inject sharedDirectory
+  (org-roam-directory "~/shared/notes")
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert))
+  :config
+  (org-roam-setup))
+
+(use-package nix-mode
+  :mode "\\.nix\\'")
+
+(use-package envrc
+  :config
+  (envrc-global-mode))
+
+(use-package dap-mode
+  :commands dap-debug
+  :config
+  (require 'dap-gdb-lldb)
+  (dap-gdb-lldb-setup))
+
+;; TODO: https://github.com/jeapostrophe/racket-langserver
+(use-package racket-mode)
+
+(use-package rust-mode
+  :hook
+  ((rust-mode . eglot-ensure)
+   (rust-mode . flymake-mode))
+  :config
+  (setq-default eglot-workspace-configuration
+                '(:rust-analyzer (:check (:command "clippy")))))
+
+(use-package proof-general)
+
+;; TODO
+(add-hook 'tsx-ts-mode-hook #'eglot-ensure)
+
+(use-package yasnippet
+  :config
+  (yas-reload-all)
+  (add-hook 'prog-mode-hook 'yas-minor-mode)
+  (add-hook 'text-mode-hook 'yas-minor-mode))
+
+(use-package magit)
+#+end_src
+
+*** TODO Actually seperate this out
+* Systems
+** ~kenobi~
+#+NAME: kenobi
+#+begin_src nix
+darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
+  modules = [ darwinSystem ];
+};
+homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
+  pkgs = nixpkgs.legacyPackages.x86_64-linux;
+  modules = [ darwinHome ];
+};
+#+end_src
+** ~murph~
+#+NAME: murph
+#+begin_src nix
+nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
+  system = "aarch64-linux";
+  modules = [
+    ({ config, lib, modulesPath, pkgs, ... }:
+
+     {
+       imports = [
+         (modulesPath + "/installer/scan/not-detected.nix")
+         linuxSystem
+       ];
+
+       boot = {
+         kernelModules = [ "kvm-intel" ];
+         kernelParams = [ "mem_sleep_default=deep" ];
+         loader.systemd-boot.enable = true;
+         loader.efi.canTouchEfiVariables = true;
+         initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
+         initrd.secrets = { "/crypto_keyfile.bin" = null; };
+       };
+
+       fileSystems."/" =
+         {
+           device = "/dev/disk/by-uuid/5ab3b7b9-8ec3-4d65-848a-6c338e278219";
+           fsType = "ext4";
+         };
+       boot.initrd.luks.devices."luks-d2fca484-d24f-4d68-b08f-882533b0b987".device = "/dev/disk/by-uuid/d2fca484-d24f-4d68-b08f-882533b0b987";
+       fileSystems."/boot" =
+         {
+           device = "/dev/disk/by-uuid/990E-C2F5";
+           fsType = "vfat";
+         };
+
+       networking.hostName = "murph";
+       networking.networkmanager.enable = true;
+       networking.useDHCP = lib.mkDefault true;
+
+       powerManagement.enable = true;
+       powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+
+       hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+
+       security.polkit.enable = true;
+
+       security.rtkit.enable = true;
+       services.pipewire = {
+         enable = true;
+         alsa.enable = true;
+         alsa.support32Bit = true;
+         pulse.enable = true;
+       };
+       hardware.pulseaudio.enable = false;
+       hardware.bluetooth.enable = true;
+       services.blueman.enable = true;
+
+       services.xserver = {
+         enable = true;
+         displayManager.gdm.enable = true;
+         displayManager.gdm.wayland = true;
+         desktopManager.gnome.enable = true;
+         videoDrivers = [ "nvidia" ];
+       };
+       environment.gnome.excludePackages = (with pkgs; [
+         gnome-photos
+         gnome-tour
+       ]) ++ (with pkgs.gnome; [
+         cheese
+         atomix
+         epiphany
+         evince
+         geary
+         gedit # @Conman
+         gnome-characters
+         gnome-music
+         hitori
+         iagno
+         tali
+         totem
+         gnome-calculator
+         gnome-calendar
+         gnome-clocks
+         gnome-contacts
+         gnome-maps
+         gnome-weather
+         # gnome-disk-image-mounter
+         # gnome-disks
+         # gnome-extensions
+         # gnome-extensions-app
+         # gnome-logs
+         # gnome-system-monitor
+         simple-scan
+       ]) ++ (with pkgs.gnome.apps; [
+         # TODO: Figure how to remove these
+         # gnome-connections
+         # gnome-help
+         # gnome-text-editor
+         # gnome-thumbnail-font
+       ]);
+       hardware.opengl = {
+         enable = true;
+         driSupport = true;
+         driSupport32Bit = true;
+       };
+       hardware.nvidia = {
+         modesetting.enable = true;
+         powerManagement.enable = true;
+       };
+
+       time.timeZone = "America/Denver";
+
+       i18n.defaultLocale = "en_US.UTF-8";
+       i18n.extraLocaleSettings = {
+         LC_ADDRESS = "en_US.UTF-8";
+         LC_IDENTIFICATION = "en_US.UTF-8";
+         LC_MEASUREMENT = "en_US.UTF-8";
+         LC_MONETARY = "en_US.UTF-8";
+         LC_NAME = "en_US.UTF-8";
+         LC_NUMERIC = "en_US.UTF-8";
+         LC_PAPER = "en_US.UTF-8";
+         LC_TELEPHONE = "en_US.UTF-8";
+         LC_TIME = "en_US.UTF-8";
+       };
+
+       nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+
+       users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
+     })
+  ];
+};
+homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
+  pkgs = nixpkgs.legacyPackages.x86_64-linux;
+  modules = [ linuxHomeGraphical ];
+};
+#+end_src
+** ~share1~
+#+NAME: share
+#+begin_src nix
+nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
+  system = "aarch64-linux";
+  modules = [
+    ({ config, pkgs, ... }:
+
+     {
+       imports = [ linuxSystem ];
+
+       boot = {
+         kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
+         initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
+         loader = {
+           grub.enable = false;
+           generic-extlinux-compatible.enable = true;
+         };
+       };
+
+       fileSystems = {
+         "/" = {
+           device = "/dev/disk/by-label/NIXOS_SD";
+           fsType = "ext4";
+           options = [ "noatime" ];
+         };
+       };
+
+       hardware.enableRedistributableFirmware = true;
+
+       networking.hostName = "share1";
+       networking.networkmanager.enable = true;
+
+       users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
+     })
+  ];
+};
+homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration {
+  pkgs = nixpkgs.legacyPackages.aarch64-linux;
+  modules = [ linuxHomeHeadless ];
+};
 #+end_src
 * Commands
 ** TODO ~home-manager switch~ without Home Manager 
@@ -71,3 +1200,4 @@
 # Local Variables:
 # eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
 # End:
+** TODO Figure out how to make tangled files read-only by default

@@ -35,7 +35,7 @@
   (add-to-list 'default-frame-alist '(fullscreen . maximized)))
 (add-to-list 'default-frame-alist `(font . ,(if (eq system-type 'gnu/linux) "JetBrainsMono 12" "JetBrains Mono 12")))
 (setq visible-bell t)
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type 'visual)
 (global-display-line-numbers-mode)
 
 ;; TODO: Actually understand these from long ago and hopefully get rid of most of it
@@ -413,4 +413,3 @@
   (add-hook 'text-mode-hook 'yas-minor-mode))
 
 (use-package magit)
-
