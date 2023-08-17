@@ -118,6 +118,8 @@
               settings.PasswordAuthentication = true;
               settings.KbdInteractiveAuthentication = true;
             };
+        
+            services.tailscale.enable = true;
           };
         home = { lib, config, pkgs, ... }:
         

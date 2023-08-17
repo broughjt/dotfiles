@@ -167,6 +167,8 @@ linuxSystem = { config, pkgs, ... }:
       settings.PasswordAuthentication = true;
       settings.KbdInteractiveAuthentication = true;
     };
+
+    services.tailscale.enable = true;
   };
 #+end_src
 *** TODO Remove ssh password authentication
@@ -562,7 +564,7 @@ dconfSettings = { config, ... }:
   };
 };
 #+end_src
-** Tailscale
+** Tailscale auto-connect
 #+begin_src nix
 tailscale-autoconnect = { config, lib, pkgs, ... }:
 
