@@ -142,6 +142,8 @@ darwinSystem = { config, pkgs, ... }:
 
       homebrew.enable = true;
       homebrew.casks = [ "spotify" "zoom" ];
+
+      services.tailscale.enable = true;
     };
   };
 #+end_src
@@ -167,8 +169,6 @@ linuxSystem = { config, pkgs, ... }:
       settings.PasswordAuthentication = true;
       settings.KbdInteractiveAuthentication = true;
     };
-
-    services.tailscale.enable = true;
   };
 #+end_src
 *** TODO Remove ssh password authentication

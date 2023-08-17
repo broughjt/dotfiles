@@ -96,6 +96,8 @@
         
               homebrew.enable = true;
               homebrew.casks = [ "spotify" "zoom" ];
+        
+              services.tailscale.enable = true;
             };
           };
         linuxSystem = { config, pkgs, ... }:
@@ -118,8 +120,6 @@
               settings.PasswordAuthentication = true;
               settings.KbdInteractiveAuthentication = true;
             };
-        
-            services.tailscale.enable = true;
           };
         home = { lib, config, pkgs, ... }:
         
