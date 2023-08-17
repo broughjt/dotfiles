@@ -1076,7 +1076,7 @@ emacsConfiguration = { pkgs, ... }:
   :custom
   (org-roam-v2-ack t)
   ;; TODO: Inject sharedDirectory
-  (org-roam-directory "~/shared/notes")
+  (org-roam-directory "~/share/notes")
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert))
