@@ -787,7 +787,7 @@
                configureRedis = true;
                package = pkgs.nextcloud27;
                hostName = "share1";
-               services.nextcloud.config.adminuser = config.personal.userName;
+               config.adminuser = config.personal.userName;
                config.adminpassFile = config.age.secretes.share1-admin-password.path;
              };
       
