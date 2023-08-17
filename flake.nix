@@ -336,6 +336,9 @@
             defaultEditor = true;
             startWithUserSession = "graphical";
           };
+        
+          services.nextcloud-client.enable = true;
+          services.nextcloud-client.startInBackground = true;
         };
         slackOverlay = { pkgs, ... }:
         
@@ -781,7 +784,12 @@
                loginServer = "https://login.tailscale.com";
              };
       
-             age.secrets.share1-admin-password.file = ./secrets/share1-admin-password.age;
+             age.secrets.share1-admin-password = {
+               file = ./secrets/share1-admin-password.age;
+               mode = "770";
+               owner = "nextcloud";
+               group = "nextcloud";
+             };
              services.nextcloud = {
                enable = true;
                configureRedis = true;
