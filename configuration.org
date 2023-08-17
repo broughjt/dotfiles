@@ -122,6 +122,8 @@ system = { config, pkgs, ... }:
 
     programs.fish.enable = true;
 
+    virtualisation.docker.enable = true;
+
     users.users.${config.personal.userName}.shell = pkgs.fish;
   };
 #+end_src
@@ -156,9 +158,11 @@ linuxSystem = { config, pkgs, ... }:
 
     users.users.${config.personal.userName} = {
       home = "/home/${config.personal.userName}";
-      extraGroups = [ "wheel" ];
+      extraGroups = [ "docker" "wheel" ];
       isNormalUser = true;
     };
+
+    virtualisation.docker.enable = true;
 
     services.openssh = {
       enable = true;
@@ -1272,6 +1276,8 @@ nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
        };
 
        nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+
+       services.tailscale.enable = true;
 
        users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
      })

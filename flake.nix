@@ -80,6 +80,8 @@
         
             programs.fish.enable = true;
         
+            virtualisation.docker.enable = true;
+        
             users.users.${config.personal.userName}.shell = pkgs.fish;
           };
         darwinSystem = { config, pkgs, ... }:
@@ -107,9 +109,11 @@
         
             users.users.${config.personal.userName} = {
               home = "/home/${config.personal.userName}";
-              extraGroups = [ "wheel" ];
+              extraGroups = [ "docker" "wheel" ];
               isNormalUser = true;
             };
+        
+            virtualisation.docker.enable = true;
         
             services.openssh = {
               enable = true;
@@ -715,6 +719,8 @@
              };
       
              nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+      
+             services.tailscale.enable = true;
       
              users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
            })
