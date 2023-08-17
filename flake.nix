@@ -788,7 +788,7 @@
                package = pkgs.nextcloud27;
                hostName = "share1";
                config.adminuser = config.personal.userName;
-               config.adminpassFile = config.age.secretes.share1-admin-password.path;
+               config.adminpassFile = config.age.secrets.share1-admin-password.path;
              };
       
              users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
