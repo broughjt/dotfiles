@@ -335,6 +335,7 @@ linuxHome = { config, pkgs, ... }:
     home.packages = with pkgs; [
       killall
       lldb
+      docker-compose
     ];
 
     services.ssh-agent.enable = true;
@@ -1355,6 +1356,10 @@ homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration 
 ** TODO Get rid of extra ~allowUnfree~s
 * Commands
 ** TODO ~home-manager switch~ without Home Manager 
+#+begin_src sh
+nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activationPackage
+#+end_src
+** TODO Prolly you can make a variable and run this directly from here
 * COMMENT Local variables
 # Local Variables:
 # eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)

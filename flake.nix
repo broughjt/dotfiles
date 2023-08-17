@@ -271,6 +271,7 @@
             home.packages = with pkgs; [
               killall
               lldb
+              docker-compose
             ];
         
             services.ssh-agent.enable = true;
