@@ -80,8 +80,6 @@
         
             programs.fish.enable = true;
         
-            virtualisation.docker.enable = true;
-        
             users.users.${config.personal.userName}.shell = pkgs.fish;
           };
         darwinSystem = { config, pkgs, ... }:

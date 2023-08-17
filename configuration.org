@@ -122,8 +122,6 @@ system = { config, pkgs, ... }:
 
     programs.fish.enable = true;
 
-    virtualisation.docker.enable = true;
-
     users.users.${config.personal.userName}.shell = pkgs.fish;
   };
 #+end_src
