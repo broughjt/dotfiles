@@ -781,6 +781,16 @@
                loginServer = "https://login.tailscale.com";
              };
       
+             age.secrets.share1-admin-password.file = ./secrets/share1-admin-password.age;
+             services.nextcloud = {
+               enable = true;
+               configureRedis = true;
+               package = pkgs.nextcloud27;
+               hostName = "share1";
+               services.nextcloud.config.adminuser = config.personal.userName;
+               config.adminpassFile = config.age.secretes.share1-admin-password.path;
+             };
+      
              users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
            })
         ];

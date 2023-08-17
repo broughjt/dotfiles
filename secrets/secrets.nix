@@ -4,4 +4,5 @@ let
 in
 {
   "share1-auth-key1.age".publicKeys = [ jackson share1 ];
+  "share1-admin-password.age".publicKeys = [ jackson share1 ];
 }
