@@ -184,6 +184,8 @@
                     hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
               '';
             };
+        
+            services.syncthing.enable = true;
           };
         darwinHome = { config, pkgs, nixcasks, lib, ... }:
         
@@ -336,9 +338,6 @@
             defaultEditor = true;
             startWithUserSession = "graphical";
           };
-        
-          services.nextcloud-client.enable = true;
-          services.nextcloud-client.startInBackground = true;
         };
         slackOverlay = { pkgs, ... }:
         
@@ -782,21 +781,6 @@
                enable = true;
                authKeyFile = config.age.secrets.share1-auth-key1.path;
                loginServer = "https://login.tailscale.com";
-             };
-      
-             age.secrets.share1-admin-password = {
-               file = ./secrets/share1-admin-password.age;
-               mode = "770";
-               owner = "nextcloud";
-               group = "nextcloud";
-             };
-             services.nextcloud = {
-               enable = true;
-               configureRedis = true;
-               package = pkgs.nextcloud27;
-               hostName = "share1";
-               config.adminuser = config.personal.userName;
-               config.adminpassFile = config.age.secrets.share1-admin-password.path;
              };
       
              users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
