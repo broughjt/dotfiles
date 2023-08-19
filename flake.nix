@@ -184,8 +184,6 @@
                     hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
               '';
             };
-        
-            services.syncthing.enable = true;
           };
         darwinHome = { config, pkgs, nixcasks, lib, ... }:
         
@@ -201,6 +199,8 @@
         
           programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
           home.sessionVariables.EDITOR = "emacsclient";
+        
+          services.syncthing.enable = true;
         };
         defaultSettings = { config, lib, ... }:
         
@@ -288,7 +288,7 @@
         linuxHomeGraphical = { config, pkgs, ... }:
         
         {
-          imports = [ linuxHome emacsConfiguration dconfSettings slackOverlay ];
+          imports = [ linuxHome emacsConfiguration dconfSettings ];
         
           home.packages = with pkgs; [
             pinentry-gnome
@@ -338,6 +338,8 @@
             defaultEditor = true;
             startWithUserSession = "graphical";
           };
+        
+          services.syncthing.enable = true;
         };
         slackOverlay = { pkgs, ... }:
         
@@ -781,6 +783,13 @@
                enable = true;
                authKeyFile = config.age.secrets.share1-auth-key1.path;
                loginServer = "https://login.tailscale.com";
+             };
+      
+             services.syncthing = {
+               enable = true;
+               user = config.personal.userName;
+               dataDir = config.user.users.${config.personal.userName}.home;
+               guiAddress = "0.0.0.0:8384";
              };
       
              users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];

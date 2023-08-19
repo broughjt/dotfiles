@@ -304,14 +304,16 @@
 ;;  (setq ryo-modal-cursor-color "pink")))
 
 (use-package evil
+ :init
+ (setq evil-want-keybinding nil)
  :custom
- (evil-want-keybinding nil)
  (evil-undo-system 'undo-redo)
  :config
  (evil-mode 1))
 
 (use-package evil-collection
  :after evil
+ :custom (evil-want-keybinding nil)
  :init
  (evil-collection-init))
 
@@ -360,7 +362,11 @@
 ;; TODO
 ;; (setq org-startup-indented t)
 (setq org-src-preserve-indentation nil
-      org-edit-src-content-indentation 0)
+      org-edit-src-content-indentation 0
+      org-babel-load-languages
+        '((emacs-lisp . t)
+          (shell . t)
+          (python . t)))
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
 (use-package org-modern

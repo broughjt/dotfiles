@@ -237,8 +237,6 @@ home = { lib, config, pkgs, ... }:
             hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
       '';
     };
-
-    services.syncthing.enable = true;
   };
 #+end_src
 ** Darwin home
@@ -257,6 +255,8 @@ darwinHome = { config, pkgs, nixcasks, lib, ... }:
 
   programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
   home.sessionVariables.EDITOR = "emacsclient";
+
+  services.syncthing.enable = true;
 };
 #+END_SRC
 *** ~default~ settings
@@ -359,7 +359,7 @@ linuxHomeHeadless = { pkgs, ... }:
 linuxHomeGraphical = { config, pkgs, ... }:
 
 {
-  imports = [ linuxHome emacsConfiguration dconfSettings slackOverlay ];
+  imports = [ linuxHome emacsConfiguration dconfSettings ];
 
   home.packages = with pkgs; [
     pinentry-gnome
@@ -409,6 +409,8 @@ linuxHomeGraphical = { config, pkgs, ... }:
     defaultEditor = true;
     startWithUserSession = "graphical";
   };
+
+  services.syncthing.enable = true;
 };
 #+END_SRC
 
@@ -1010,14 +1012,16 @@ emacsConfiguration = { pkgs, ... }:
 ;;  (setq ryo-modal-cursor-color "pink")))
 
 (use-package evil
+ :init
+ (setq evil-want-keybinding nil)
  :custom
- (evil-want-keybinding nil)
  (evil-undo-system 'undo-redo)
  :config
  (evil-mode 1))
 
 (use-package evil-collection
  :after evil
+ :custom (evil-want-keybinding nil)
  :init
  (evil-collection-init))
 
@@ -1066,7 +1070,11 @@ emacsConfiguration = { pkgs, ... }:
 ;; TODO
 ;; (setq org-startup-indented t)
 (setq org-src-preserve-indentation nil
-      org-edit-src-content-indentation 0)
+      org-edit-src-content-indentation 0
+      org-babel-load-languages
+        '((emacs-lisp . t)
+          (shell . t)
+          (python . t)))
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
 (use-package org-modern
@@ -1122,6 +1130,8 @@ emacsConfiguration = { pkgs, ... }:
 #+end_src
 
 *** TODO Actually seperate this out
+*** TODO Try disabling flymake and flycheck when using eglot, maybe slow
+https://www.reddit.com/r/emacs/comments/10w30uj/any_good_tips_to_speed_up_eglotpyright_setup/
 * Secrets
 #+begin_src nix :tangle secrets/secrets.nix
 let
@@ -1342,6 +1352,13 @@ nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
          enable = true;
          authKeyFile = config.age.secrets.share1-auth-key1.path;
          loginServer = "https://login.tailscale.com";
+       };
+
+       services.syncthing = {
+         enable = true;
+         user = config.personal.userName;
+         dataDir = config.user.users.${config.personal.userName}.home;
+         guiAddress = "0.0.0.0:8384";
        };
 
        users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
