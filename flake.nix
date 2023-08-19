@@ -788,7 +788,7 @@
              services.syncthing = {
                enable = true;
                user = config.personal.userName;
-               dataDir = config.user.users.${config.personal.userName}.home;
+               dataDir = config.users.users.${config.personal.userName}.home;
                guiAddress = "0.0.0.0:8384";
              };
       

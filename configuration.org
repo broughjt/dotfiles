@@ -1357,7 +1357,7 @@ nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
        services.syncthing = {
          enable = true;
          user = config.personal.userName;
-         dataDir = config.user.users.${config.personal.userName}.home;
+         dataDir = config.users.users.${config.personal.userName}.home;
          guiAddress = "0.0.0.0:8384";
        };
 
@@ -1373,6 +1373,7 @@ homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration 
   modules = [ linuxHomeHeadless ];
 };
 #+end_src
+** TODO Make syncthing configuration entirely declarative, have a module and a list of encrypted ids
 ** TODO Get rid of extra ~allowUnfree~s
 * Commands
 ** TODO ~home-manager switch~ without Home Manager 
