@@ -705,36 +705,34 @@ emacsConfiguration = { pkgs, ... }:
   };
 #+end_src
 ** Configuration
-#+begin_src elisp :tangle emacs.el
-;; TODO:
-;; kakoune/helix
-;;   navigation mode, maybe syntactically with treesitter
-;; treesitter
-;; <space> leader
-;; dired
-;; Alacritty has no scrollbar, and fish doesn't have backwards word kill with C-backspace, need a terminal in emacs
-;;   Ideally, have a little popup window like vscode
-;; https://coredumped.dev/2020/01/04/native-shell-completion-in-emacs/
-;; buffer and window management in general
-;; Highlight line with a different color if you're at the center of the buffer, I press zz all the time unnecesarilly
-;; debuggers
-;; https://github.com/emacs-grammarly
+:PROPERTIES:
+:header-args: :tangle emacs.el
+:END:
 
-;; TODO: https://hackernoon.com/learning-vim-what-i-wish-i-knew-b5dca186bef7
-;; TOOD: https://github.com/seagle0128/.emacs.d
-;;
-;; TODO: Org-mode
-;; https://howardism.org/Technical/Emacs/orgmode-wordprocessor.html
-;; https://howardism.org/Technical/Emacs/orgmode-wordprocessor.html
+*** Disable package manager
+I'm not actually sure where I got this code, and I'm not sure it's
+even working. When I've searched it, most people are using it in their
+~early-init.el~, which I'm not sure how to get working with
+~emacsWithPackagesFromUsePackage~.
 
+#+begin_src elisp
 (setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
 (setq package-archives nil)
 
 (setq use-package-always-ensure t)
 (eval-when-compile (require 'use-package))
+;; Required for ~:bind~ to work later
 (require 'bind-key)
+#+end_src
 
+*** Defaults
+I gotta work on this. Much of this is pulled from emacs configuration
+I started back in 2019-2020. A lot of it is probably not necessary but
+I'm a little scared to touch for fear I'll rediscover one of the
+painful experiences that led me to try "fixing it" here.
+
+#+begin_src elisp
 (when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
 (when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
@@ -762,7 +760,13 @@ emacsConfiguration = { pkgs, ... }:
 (setq custom-file (concat user-emacs-directory "custom.el"))
 
 (setq-default indent-tabs-mode nil)
+#+end_src
 
+*** Kakoune/Helix bindings
+These are attempted Kakoune bindings that I haven't had time to finish
+yet. Switching keybindings wholesale is kinda hard!
+
+#+begin_src elisp
 ;; (comment (use-package ryo-modal
 ;;   ;; :disabled
 ;;   :bind
@@ -1010,7 +1014,9 @@ emacsConfiguration = { pkgs, ... }:
 ;;   
 ;;   (setq ryo-modal-mode-cursor-type 'box)
 ;;  (setq ryo-modal-cursor-color "pink")))
-
+#+end_src
+*** Evil mode
+#+begin_src elisp
 (use-package evil
  :init
  (setq evil-want-keybinding nil)
@@ -1024,15 +1030,29 @@ emacsConfiguration = { pkgs, ... }:
  :custom (evil-want-keybinding nil)
  :init
  (evil-collection-init))
+#+end_src
 
+**** TODO Figure out ~evil-want-keybinding~
+*** Themes
+Emacs themes: just skip to the end, discover [[https://protesilaos.com][Protesilaos Stavrou]], and
+install the ~ef~ themes.
+
+#+begin_src elisp
 (use-package standard-themes)
 
 (use-package modus-themes)
 
 (use-package ef-themes 
   :init
-  (load-theme 'ef-day t))
+  (load-theme 'ef-light t))
+#+end_src
 
+**** TODO Figure out auto theme switching
+*** Completion menus
+Dude I just copied these hip packages from whoever posted about them
+on Reddit first, I don't actually understand them. They look nice though.
+
+#+begin_src elisp
 (use-package vertico
   :init
   (vertico-mode))
@@ -1053,10 +1073,18 @@ emacsConfiguration = { pkgs, ... }:
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
 
+I suppose ~which-key~ also counts as a completion menu thing. Honestly it
+should built into emacs, I would be so screwed without it.
+
+#+begin_src elisp
 (use-package which-key
   :config (which-key-mode 1))
+#+end_src
 
+*** Company
+#+begin_src elisp
 (use-package company
   :custom
   (company-idle-delay 0.1)
@@ -1066,9 +1094,12 @@ emacsConfiguration = { pkgs, ... }:
 	("C-p" . company-select-previous))
   :init
   (global-company-mode))
+#+end_src
 
-;; TODO
-;; (setq org-startup-indented t)
+*** Org
+Still very much in the learning stage with org-mode.
+
+#+begin_src elisp
 (setq org-src-preserve-indentation nil
       org-edit-src-content-indentation 0
       org-babel-load-languages
@@ -1077,24 +1108,12 @@ emacsConfiguration = { pkgs, ... }:
           (python . t)))
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
-;; TODO: Doesn't seem to be working rn
-;; (use-package org
-;;   :hooks
-;;   (org-mode . turn-on-auto-fill)
-;;   :custom
-;;   (org-edit-src-content-indentation 0)
-;;   (org-babel-load-languages
-;;    '((emacs-lisp . t)
-;;      (shell . t)
-;;      (python . t))))
-
 (use-package org-modern
   :hook (org-mode . org-modern-mode))
 
 (use-package org-roam
   :custom
   (org-roam-v2-ack t)
-  ;; TODO: Inject sharedDirectory
   (org-roam-directory "~/share/notes")
   (org-roam-dailies-directory "daily/")
   (org-roam-dailies-capture-templates
@@ -1108,23 +1127,29 @@ emacsConfiguration = { pkgs, ... }:
          ("C-c n t" . org-roam-dailies-capture-today))
   :config
   (org-roam-setup))
+#+end_src
 
+**** TODO Get ~use-package org~ working
+**** TODO Inject shareDirectory for notes directory
+*** Nix
+#+begin_src elisp
 (use-package nix-mode
   :mode "\\.nix\\'")
 
 (use-package envrc
   :config
   (envrc-global-mode))
+#+end_src
 
-(use-package dap-mode
-  :commands dap-debug
-  :config
-  (require 'dap-gdb-lldb)
-  (dap-gdb-lldb-setup))
-
-;; TODO: https://github.com/jeapostrophe/racket-langserver
+*** Racket
+#+begin_src elisp
 (use-package racket-mode)
+#+end_src
 
+**** TODO Racket language server
+Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket langauge server]], should check that out.
+*** Rust
+#+begin_src elisp
 (use-package rust-mode
   :hook
   ((rust-mode . eglot-ensure)
@@ -1132,22 +1157,38 @@ emacsConfiguration = { pkgs, ... }:
   :config
   (setq-default eglot-workspace-configuration
                 '(:rust-analyzer (:check (:command "clippy")))))
+#+end_src
 
+*** Proof general
+[[https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/][The holy trinity.]]
+
+#+begin_src elisp
 (use-package proof-general)
+#+end_src
 
-;; TODO
-(add-hook 'tsx-ts-mode-hook #'eglot-ensure)
-
+*** Snippets
+#+begin_src elisp
 (use-package yasnippet
   :config
   (yas-reload-all)
   (add-hook 'prog-mode-hook 'yas-minor-mode)
   (add-hook 'text-mode-hook 'yas-minor-mode))
-
+#+end_src
+*** Magit
+#+begin_src elisp
 (use-package magit)
 #+end_src
 
-*** TODO Actually seperate this out
+*** TODO Treesitter
+*** TODO ~<space>~ leader
+*** TODO Learn dired
+*** TODO Terminal emulator in emacs
+See https://coredumped.dev/2020/01/04/native-shell-completion-in-emacs/
+*** TODO Highlight center line to prevent unncessary ~zz~s
+*** TODO Debuggers
+**** TODO dap mode
+*** TODO Grammarly
+*** TODO Check out https://github.com/seagle0128/.emacs.d
 *** TODO Try disabling flymake and flycheck when using eglot, maybe slow
 https://www.reddit.com/r/emacs/comments/10w30uj/any_good_tips_to_speed_up_eglotpyright_setup/
 * Secrets

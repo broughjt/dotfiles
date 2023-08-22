@@ -1,30 +1,10 @@
-;; TODO:
-;; kakoune/helix
-;;   navigation mode, maybe syntactically with treesitter
-;; treesitter
-;; <space> leader
-;; dired
-;; Alacritty has no scrollbar, and fish doesn't have backwards word kill with C-backspace, need a terminal in emacs
-;;   Ideally, have a little popup window like vscode
-;; https://coredumped.dev/2020/01/04/native-shell-completion-in-emacs/
-;; buffer and window management in general
-;; Highlight line with a different color if you're at the center of the buffer, I press zz all the time unnecesarilly
-;; debuggers
-;; https://github.com/emacs-grammarly
-
-;; TODO: https://hackernoon.com/learning-vim-what-i-wish-i-knew-b5dca186bef7
-;; TOOD: https://github.com/seagle0128/.emacs.d
-;;
-;; TODO: Org-mode
-;; https://howardism.org/Technical/Emacs/orgmode-wordprocessor.html
-;; https://howardism.org/Technical/Emacs/orgmode-wordprocessor.html
-
 (setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
 (setq package-archives nil)
 
 (setq use-package-always-ensure t)
 (eval-when-compile (require 'use-package))
+;; Required for ~:bind~ to work later
 (require 'bind-key)
 
 (when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
@@ -323,7 +303,7 @@
 
 (use-package ef-themes 
   :init
-  (load-theme 'ef-day t))
+  (load-theme 'ef-light t))
 
 (use-package vertico
   :init
@@ -359,8 +339,6 @@
   :init
   (global-company-mode))
 
-;; TODO
-;; (setq org-startup-indented t)
 (setq org-src-preserve-indentation nil
       org-edit-src-content-indentation 0
       org-babel-load-languages
@@ -369,24 +347,12 @@
           (python . t)))
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
-;; TODO: Doesn't seem to be working rn
-;; (use-package org
-;;   :hooks
-;;   (org-mode . turn-on-auto-fill)
-;;   :custom
-;;   (org-edit-src-content-indentation 0)
-;;   (org-babel-load-languages
-;;    '((emacs-lisp . t)
-;;      (shell . t)
-;;      (python . t))))
-
 (use-package org-modern
   :hook (org-mode . org-modern-mode))
 
 (use-package org-roam
   :custom
   (org-roam-v2-ack t)
-  ;; TODO: Inject sharedDirectory
   (org-roam-directory "~/share/notes")
   (org-roam-dailies-directory "daily/")
   (org-roam-dailies-capture-templates
@@ -408,13 +374,6 @@
   :config
   (envrc-global-mode))
 
-(use-package dap-mode
-  :commands dap-debug
-  :config
-  (require 'dap-gdb-lldb)
-  (dap-gdb-lldb-setup))
-
-;; TODO: https://github.com/jeapostrophe/racket-langserver
 (use-package racket-mode)
 
 (use-package rust-mode
@@ -426,9 +385,6 @@
                 '(:rust-analyzer (:check (:command "clippy")))))
 
 (use-package proof-general)
-
-;; TODO
-(add-hook 'tsx-ts-mode-hook #'eglot-ensure)
 
 (use-package yasnippet
   :config
