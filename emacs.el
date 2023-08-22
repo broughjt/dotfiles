@@ -1,5 +1,3 @@
-
-
 ;; TODO:
 ;; kakoune/helix
 ;;   navigation mode, maybe syntactically with treesitter
@@ -361,15 +359,26 @@
   :init
   (global-company-mode))
 
-(use-package org
-  :hooks
-  (org-mode . turn-on-auto-fill)
-  :custom
-  (org-edit-src-content-indentation 0)
-  (org-babel-load-languages
-   '((emacs-lisp . t)
-     (shell . t)
-     (python . t))))
+;; TODO
+;; (setq org-startup-indented t)
+(setq org-src-preserve-indentation nil
+      org-edit-src-content-indentation 0
+      org-babel-load-languages
+        '((emacs-lisp . t)
+          (shell . t)
+          (python . t)))
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
+
+;; TODO: Doesn't seem to be working rn
+;; (use-package org
+;;   :hooks
+;;   (org-mode . turn-on-auto-fill)
+;;   :custom
+;;   (org-edit-src-content-indentation 0)
+;;   (org-babel-load-languages
+;;    '((emacs-lisp . t)
+;;      (shell . t)
+;;      (python . t))))
 
 (use-package org-modern
   :hook (org-mode . org-modern-mode))
