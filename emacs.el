@@ -33,7 +33,7 @@
 (when (eq system-type 'gnu/linux)
   (add-to-list 'default-frame-alist '(undecorated . t))
   (add-to-list 'default-frame-alist '(fullscreen . maximized)))
-(add-to-list 'default-frame-alist `(font . ,(if (eq system-type 'gnu/linux) "JetBrainsMono 12" "JetBrains Mono 12")))
+(add-to-list 'default-frame-alist `(font . ,(if (eq system-type 'gnu/linux) "JetBrainsMono 12" "JetBrains Mono 14")))
 (setq visible-bell t)
 (setq display-line-numbers-type 'visual)
 (global-display-line-numbers-mode)
@@ -359,15 +359,15 @@
   :init
   (global-company-mode))
 
-;; TODO
-;; (setq org-startup-indented t)
-(setq org-src-preserve-indentation nil
-      org-edit-src-content-indentation 0
-      org-babel-load-languages
-        '((emacs-lisp . t)
-          (shell . t)
-          (python . t)))
-(add-hook 'org-mode-hook 'turn-on-auto-fill)
+(use-package org
+  :hooks
+  (org-mode . turn-on-auto-fill)
+  :custom
+  (org-edit-src-content-indentation 0)
+  (org-babel-load-languages
+   '((emacs-lisp . t)
+     (shell . t)
+     (python . t))))
 
 (use-package org-modern
   :hook (org-mode . org-modern-mode))
@@ -377,9 +377,16 @@
   (org-roam-v2-ack t)
   ;; TODO: Inject sharedDirectory
   (org-roam-directory "~/share/notes")
+  (org-roam-dailies-directory "daily/")
+  (org-roam-dailies-capture-templates
+   '(("d" "default" entry
+      "* %?"
+      :target (file+head "%<%Y-%m-%d>.org"
+                         "#+title: %<%Y-%m-%d>\n"))))
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert))
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n t" . org-roam-dailies-capture-today))
   :config
   (org-roam-setup))
 
