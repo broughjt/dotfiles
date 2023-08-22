@@ -1,3 +1,5 @@
+
+
 ;; TODO:
 ;; kakoune/helix
 ;;   navigation mode, maybe syntactically with treesitter
