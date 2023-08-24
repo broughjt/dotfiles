@@ -1467,6 +1467,9 @@ nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
          guiAddress = "0.0.0.0:8384";
        };
 
+       # TODO: Yikes!
+       services.openssh.settings.PermitRootLogin = "yes";
+
        users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
      })
   ];
