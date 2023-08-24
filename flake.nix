@@ -193,7 +193,15 @@
           nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
         
           home.homeDirectory = "/Users/${config.personal.userName}";
-          home.packages = with pkgs; [ nixcasks.slack jetbrains-mono ];
+          home.packages = with pkgs; [
+            nixcasks.slack
+            jetbrains-mono
+            (pkgs.texlive.combine {
+              inherit (pkgs.texlive) scheme-basic
+                dvisvgm dvipng
+                wrapfig amsmath ulem hyperref capt-of;
+            })
+          ];
         
           programs.fish.interactiveShellInit = "eval (brew shellenv)";
         
@@ -274,6 +282,11 @@
               killall
               lldb
               docker-compose
+              (pkgs.texlive.combine {
+                inherit (pkgs.texlive) scheme-basic
+                  dvisvgm dvipng
+                  wrapfig amsmath ulem hyperref capt-of;
+              })
             ];
         
             services.ssh-agent.enable = true;
@@ -791,6 +804,9 @@
                dataDir = config.users.users.${config.personal.userName}.home;
                guiAddress = "0.0.0.0:8384";
              };
+      
+             # TODO: Yikes!
+             services.openssh.settings.PermitRootLogin = "yes";
       
              users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
            })

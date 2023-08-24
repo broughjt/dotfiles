@@ -35,6 +35,130 @@
 
 (setq-default indent-tabs-mode nil)
 
+(setq max-image-size 32766)
+
+(use-package evil
+ :init
+ (setq evil-want-keybinding nil)
+ :custom
+ (evil-undo-system 'undo-redo)
+ :config
+ (evil-mode 1))
+
+(use-package evil-collection
+ :after evil
+ :custom (evil-want-keybinding nil)
+ :init
+ (evil-collection-init))
+
+(setq org-src-preserve-indentation nil
+      org-edit-src-content-indentation 0
+      org-babel-load-languages
+        '((emacs-lisp . t)
+          (shell . t)
+          (python . t))
+      org-latex-compiler "lualatex"
+      org-latex-create-formula-image-program 'dvisvgm
+      org-startup-with-latex-preview t
+      org-agenda-span 14)
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
+
+(use-package org-modern
+  :hook (org-mode . org-modern-mode))
+
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
+
+(use-package org-roam
+  :custom
+  (org-roam-v2-ack t)
+  (org-directory "~/share/org")
+  (org-roam-directory "~/share/notes")
+  (org-roam-dailies-directory "daily/")
+  (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
+  (org-roam-dailies-capture-templates
+   '(("d" "default" entry
+      "* %?"
+      :target (file+head "%<%Y-%m-%d>.org"
+                         "#+title: %<%Y-%m-%d>\n\n"))))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n t" . org-roam-dailies-capture-today)
+         ("C-c n a" . org-agenda)
+         ("C-c n b" . org-iswitchb))
+  :config
+  (org-roam-setup))
+
+(use-package vertico
+  :init
+  (vertico-mode))
+
+(use-package marginalia
+  :init
+  (marginalia-mode))
+
+(use-package consult
+  :bind (("C-x b" . consult-buffer)
+         ("C-x p b" . consult-project-buffer)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ("M-s d" . consult-find)
+         ("M-s g" . consult-ripgrep)))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package which-key
+  :config (which-key-mode 1))
+
+(use-package company
+  :custom
+  (company-idle-delay 0.1)
+  :bind
+  (:map company-active-map
+	("C-n" . company-select-next)
+	("C-p" . company-select-previous))
+  :init
+  (global-company-mode))
+
+(use-package yasnippet
+  :config
+  (yas-reload-all)
+  (add-hook 'prog-mode-hook 'yas-minor-mode)
+  (add-hook 'text-mode-hook 'yas-minor-mode))
+
+(use-package standard-themes)
+
+(use-package modus-themes)
+
+(use-package ef-themes 
+  :init
+  (load-theme 'ef-light t))
+
+(use-package nix-mode
+  :mode "\\.nix\\'")
+
+(use-package envrc
+  :config
+  (envrc-global-mode))
+
+(use-package racket-mode)
+
+(use-package rust-mode
+  :hook
+  ((rust-mode . eglot-ensure)
+   (rust-mode . flymake-mode))
+  :config
+  (setq-default eglot-workspace-configuration
+                '(:rust-analyzer (:check (:command "clippy")))))
+
+(use-package proof-general)
+
+(use-package magit)
+
 ;; (comment (use-package ryo-modal
 ;;   ;; :disabled
 ;;   :bind
@@ -282,114 +406,3 @@
 ;;   
 ;;   (setq ryo-modal-mode-cursor-type 'box)
 ;;  (setq ryo-modal-cursor-color "pink")))
-
-(use-package evil
- :init
- (setq evil-want-keybinding nil)
- :custom
- (evil-undo-system 'undo-redo)
- :config
- (evil-mode 1))
-
-(use-package evil-collection
- :after evil
- :custom (evil-want-keybinding nil)
- :init
- (evil-collection-init))
-
-(use-package standard-themes)
-
-(use-package modus-themes)
-
-(use-package ef-themes 
-  :init
-  (load-theme 'ef-light t))
-
-(use-package vertico
-  :init
-  (vertico-mode))
-
-(use-package marginalia
-  :init
-  (marginalia-mode))
-
-(use-package consult
-  :bind (("C-x b" . consult-buffer)
-         ("C-x p b" . consult-project-buffer)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-imenu-multi)
-         ("M-s d" . consult-find)
-         ("M-s g" . consult-ripgrep)))
-
-(use-package orderless
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
-
-(use-package which-key
-  :config (which-key-mode 1))
-
-(use-package company
-  :custom
-  (company-idle-delay 0.1)
-  :bind
-  (:map company-active-map
-	("C-n" . company-select-next)
-	("C-p" . company-select-previous))
-  :init
-  (global-company-mode))
-
-(setq org-src-preserve-indentation nil
-      org-edit-src-content-indentation 0
-      org-babel-load-languages
-        '((emacs-lisp . t)
-          (shell . t)
-          (python . t)))
-(add-hook 'org-mode-hook 'turn-on-auto-fill)
-
-(use-package org-modern
-  :hook (org-mode . org-modern-mode))
-
-(use-package org-roam
-  :custom
-  (org-roam-v2-ack t)
-  (org-roam-directory "~/share/notes")
-  (org-roam-dailies-directory "daily/")
-  (org-roam-dailies-capture-templates
-   '(("d" "default" entry
-      "* %?"
-      :target (file+head "%<%Y-%m-%d>.org"
-                         "#+title: %<%Y-%m-%d>\n"))))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n t" . org-roam-dailies-capture-today))
-  :config
-  (org-roam-setup))
-
-(use-package nix-mode
-  :mode "\\.nix\\'")
-
-(use-package envrc
-  :config
-  (envrc-global-mode))
-
-(use-package racket-mode)
-
-(use-package rust-mode
-  :hook
-  ((rust-mode . eglot-ensure)
-   (rust-mode . flymake-mode))
-  :config
-  (setq-default eglot-workspace-configuration
-                '(:rust-analyzer (:check (:command "clippy")))))
-
-(use-package proof-general)
-
-(use-package yasnippet
-  :config
-  (yas-reload-all)
-  (add-hook 'prog-mode-hook 'yas-minor-mode)
-  (add-hook 'text-mode-hook 'yas-minor-mode))
-
-(use-package magit)

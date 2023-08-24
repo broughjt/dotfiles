@@ -249,7 +249,15 @@ darwinHome = { config, pkgs, nixcasks, lib, ... }:
   nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
 
   home.homeDirectory = "/Users/${config.personal.userName}";
-  home.packages = with pkgs; [ nixcasks.slack jetbrains-mono ];
+  home.packages = with pkgs; [
+    nixcasks.slack
+    jetbrains-mono
+    (pkgs.texlive.combine {
+      inherit (pkgs.texlive) scheme-basic
+        dvisvgm dvipng
+        wrapfig amsmath ulem hyperref capt-of;
+    })
+  ];
 
   programs.fish.interactiveShellInit = "eval (brew shellenv)";
 
@@ -259,6 +267,7 @@ darwinHome = { config, pkgs, nixcasks, lib, ... }:
   services.syncthing.enable = true;
 };
 #+END_SRC
+*** TODO Dedupliate texlive package config
 *** ~default~ settings
 #+BEGIN_SRC nix
 defaultSettings = { config, lib, ... }:
@@ -338,6 +347,11 @@ linuxHome = { config, pkgs, ... }:
       killall
       lldb
       docker-compose
+      (pkgs.texlive.combine {
+        inherit (pkgs.texlive) scheme-basic
+          dvisvgm dvipng
+          wrapfig amsmath ulem hyperref capt-of;
+      })
     ];
 
     services.ssh-agent.enable = true;
@@ -762,7 +776,204 @@ painful experiences that led me to try "fixing it" here.
 (setq-default indent-tabs-mode nil)
 #+end_src
 
-*** Kakoune/Helix bindings
+Here's how I think I'm going to do this. Below this paragraph is all
+of the emacs defaults that I've added since making the configuration
+literate. I'll just incrementally add stuff here as it becomes
+relevant to me.
+
+After reading the wonderful [[https://nixos.wiki/wiki/TexLive][texlive ~nixpkgs~ page]] (because seriously
+have you ever tried to install latex on any other machine ever?), and
+messing with org-mode preview settings to make it use svg, I still was
+getting weird square boxes. Come to find out emacs was refusing to
+display images bigger than 10x10 pixels. C'mon son.
+
+#+begin_src elisp
+(setq max-image-size 32766)
+#+end_src
+
+*** Evil mode
+#+begin_src elisp
+(use-package evil
+ :init
+ (setq evil-want-keybinding nil)
+ :custom
+ (evil-undo-system 'undo-redo)
+ :config
+ (evil-mode 1))
+
+(use-package evil-collection
+ :after evil
+ :custom (evil-want-keybinding nil)
+ :init
+ (evil-collection-init))
+#+end_src
+
+**** TODO Figure out ~evil-want-keybinding~
+*** Org
+Still very much in the learning stage with org-mode.
+
+Useful stuff:
+
+- [[http://doc.norang.ca/org-mode.html]]
+
+#+begin_src elisp
+(setq org-src-preserve-indentation nil
+      org-edit-src-content-indentation 0
+      org-babel-load-languages
+        '((emacs-lisp . t)
+          (shell . t)
+          (python . t))
+      org-latex-compiler "lualatex"
+      org-latex-create-formula-image-program 'dvisvgm
+      org-startup-with-latex-preview t
+      org-agenda-span 14)
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
+
+(use-package org-modern
+  :hook (org-mode . org-modern-mode))
+
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
+
+(use-package org-roam
+  :custom
+  (org-roam-v2-ack t)
+  (org-directory "~/share/org")
+  (org-roam-directory "~/share/notes")
+  (org-roam-dailies-directory "daily/")
+  (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
+  (org-roam-dailies-capture-templates
+   '(("d" "default" entry
+      "* %?"
+      :target (file+head "%<%Y-%m-%d>.org"
+                         "#+title: %<%Y-%m-%d>\n\n"))))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n t" . org-roam-dailies-capture-today)
+         ("C-c n a" . org-agenda)
+         ("C-c n b" . org-iswitchb))
+  :config
+  (org-roam-setup))
+#+end_src
+
+**** TODO Get ~use-package org~ working
+**** TODO Inject shareDirectory for notes directory
+**** TODO Figure out clocking
+*** Completion
+Dude I just copied these hip packages from wherever I first saw them
+on the internet, I don't actually understand them. They look very pretty though.
+
+#+begin_src elisp
+(use-package vertico
+  :init
+  (vertico-mode))
+
+(use-package marginalia
+  :init
+  (marginalia-mode))
+
+(use-package consult
+  :bind (("C-x b" . consult-buffer)
+         ("C-x p b" . consult-project-buffer)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ("M-s d" . consult-find)
+         ("M-s g" . consult-ripgrep)))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
+
+I suppose ~which-key~ also counts as a completion menu thing. Honestly it
+should built into emacs, I would be so screwed without it.
+
+#+begin_src elisp
+(use-package which-key
+  :config (which-key-mode 1))
+#+end_src
+
+There's also ~company~ and ~yasnippet~, which I've never really gone
+without so I honestly couldn't say where normal emacs completion
+ends and these two start.
+
+#+begin_src elisp
+(use-package company
+  :custom
+  (company-idle-delay 0.1)
+  :bind
+  (:map company-active-map
+	("C-n" . company-select-next)
+	("C-p" . company-select-previous))
+  :init
+  (global-company-mode))
+#+end_src
+
+#+begin_src elisp
+(use-package yasnippet
+  :config
+  (yas-reload-all)
+  (add-hook 'prog-mode-hook 'yas-minor-mode)
+  (add-hook 'text-mode-hook 'yas-minor-mode))
+#+end_src
+*** Themes
+Emacs themes: just skip to the end, discover [[https://protesilaos.com][Protesilaos Stavrou]], and
+install the ~ef~ themes.
+
+#+begin_src elisp
+(use-package standard-themes)
+
+(use-package modus-themes)
+
+(use-package ef-themes 
+  :init
+  (load-theme 'ef-light t))
+#+end_src
+
+**** TODO Figure out auto theme switching
+*** Nix
+#+begin_src elisp
+(use-package nix-mode
+  :mode "\\.nix\\'")
+
+(use-package envrc
+  :config
+  (envrc-global-mode))
+#+end_src
+
+*** Racket
+#+begin_src elisp
+(use-package racket-mode)
+#+end_src
+
+**** TODO Racket language server
+Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket langauge server]], should check that out.
+*** Rust
+#+begin_src elisp
+(use-package rust-mode
+  :hook
+  ((rust-mode . eglot-ensure)
+   (rust-mode . flymake-mode))
+  :config
+  (setq-default eglot-workspace-configuration
+                '(:rust-analyzer (:check (:command "clippy")))))
+#+end_src
+
+*** Proof general
+[[https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/][The holy trinity.]]
+
+#+begin_src elisp
+(use-package proof-general)
+#+end_src
+
+*** Magit
+#+begin_src elisp
+(use-package magit)
+#+end_src
+
+*** TODO Kakoune/Helix bindings
 These are attempted Kakoune bindings that I haven't had time to finish
 yet. Switching keybindings wholesale is kinda hard!
 
@@ -1015,170 +1226,6 @@ yet. Switching keybindings wholesale is kinda hard!
 ;;   (setq ryo-modal-mode-cursor-type 'box)
 ;;  (setq ryo-modal-cursor-color "pink")))
 #+end_src
-*** Evil mode
-#+begin_src elisp
-(use-package evil
- :init
- (setq evil-want-keybinding nil)
- :custom
- (evil-undo-system 'undo-redo)
- :config
- (evil-mode 1))
-
-(use-package evil-collection
- :after evil
- :custom (evil-want-keybinding nil)
- :init
- (evil-collection-init))
-#+end_src
-
-**** TODO Figure out ~evil-want-keybinding~
-*** Themes
-Emacs themes: just skip to the end, discover [[https://protesilaos.com][Protesilaos Stavrou]], and
-install the ~ef~ themes.
-
-#+begin_src elisp
-(use-package standard-themes)
-
-(use-package modus-themes)
-
-(use-package ef-themes 
-  :init
-  (load-theme 'ef-light t))
-#+end_src
-
-**** TODO Figure out auto theme switching
-*** Completion menus
-Dude I just copied these hip packages from whoever posted about them
-on Reddit first, I don't actually understand them. They look nice though.
-
-#+begin_src elisp
-(use-package vertico
-  :init
-  (vertico-mode))
-
-(use-package marginalia
-  :init
-  (marginalia-mode))
-
-(use-package consult
-  :bind (("C-x b" . consult-buffer)
-         ("C-x p b" . consult-project-buffer)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-imenu-multi)
-         ("M-s d" . consult-find)
-         ("M-s g" . consult-ripgrep)))
-
-(use-package orderless
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
-#+end_src
-
-I suppose ~which-key~ also counts as a completion menu thing. Honestly it
-should built into emacs, I would be so screwed without it.
-
-#+begin_src elisp
-(use-package which-key
-  :config (which-key-mode 1))
-#+end_src
-
-*** Company
-#+begin_src elisp
-(use-package company
-  :custom
-  (company-idle-delay 0.1)
-  :bind
-  (:map company-active-map
-	("C-n" . company-select-next)
-	("C-p" . company-select-previous))
-  :init
-  (global-company-mode))
-#+end_src
-
-*** Org
-Still very much in the learning stage with org-mode.
-
-#+begin_src elisp
-(setq org-src-preserve-indentation nil
-      org-edit-src-content-indentation 0
-      org-babel-load-languages
-        '((emacs-lisp . t)
-          (shell . t)
-          (python . t)))
-(add-hook 'org-mode-hook 'turn-on-auto-fill)
-
-(use-package org-modern
-  :hook (org-mode . org-modern-mode))
-
-(use-package org-roam
-  :custom
-  (org-roam-v2-ack t)
-  (org-roam-directory "~/share/notes")
-  (org-roam-dailies-directory "daily/")
-  (org-roam-dailies-capture-templates
-   '(("d" "default" entry
-      "* %?"
-      :target (file+head "%<%Y-%m-%d>.org"
-                         "#+title: %<%Y-%m-%d>\n"))))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n t" . org-roam-dailies-capture-today))
-  :config
-  (org-roam-setup))
-#+end_src
-
-**** TODO Get ~use-package org~ working
-**** TODO Inject shareDirectory for notes directory
-*** Nix
-#+begin_src elisp
-(use-package nix-mode
-  :mode "\\.nix\\'")
-
-(use-package envrc
-  :config
-  (envrc-global-mode))
-#+end_src
-
-*** Racket
-#+begin_src elisp
-(use-package racket-mode)
-#+end_src
-
-**** TODO Racket language server
-Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket langauge server]], should check that out.
-*** Rust
-#+begin_src elisp
-(use-package rust-mode
-  :hook
-  ((rust-mode . eglot-ensure)
-   (rust-mode . flymake-mode))
-  :config
-  (setq-default eglot-workspace-configuration
-                '(:rust-analyzer (:check (:command "clippy")))))
-#+end_src
-
-*** Proof general
-[[https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/][The holy trinity.]]
-
-#+begin_src elisp
-(use-package proof-general)
-#+end_src
-
-*** Snippets
-#+begin_src elisp
-(use-package yasnippet
-  :config
-  (yas-reload-all)
-  (add-hook 'prog-mode-hook 'yas-minor-mode)
-  (add-hook 'text-mode-hook 'yas-minor-mode))
-#+end_src
-*** Magit
-#+begin_src elisp
-(use-package magit)
-#+end_src
-
 *** TODO Treesitter
 *** TODO ~<space>~ leader
 *** TODO Learn dired
