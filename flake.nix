@@ -407,8 +407,8 @@
         
             "com.apple.dock" = {
               orientation = "left";
-              show-recents = false;
-              static-only = true;
+              # show-recents = false;
+              # static-only = true;
               autohide = true;
             };
         
