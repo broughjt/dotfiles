@@ -121,6 +121,186 @@
               settings.KbdInteractiveAuthentication = true;
             };
           };
+        murph = ({ config, lib, modulesPath, pkgs, ... }:
+          
+          {
+            imports = [
+              (modulesPath + "/installer/scan/not-detected.nix")
+              linuxSystem
+            ];
+            
+            boot = {
+              kernelModules = [ "kvm-intel" ];
+              kernelParams = [ "mem_sleep_default=deep" ];
+              loader.systemd-boot.enable = true;
+              loader.efi.canTouchEfiVariables = true;
+              initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
+              initrd.secrets = { "/crypto_keyfile.bin" = null; };
+            };
+            
+            fileSystems."/" =
+              {
+                device = "/dev/disk/by-uuid/5ab3b7b9-8ec3-4d65-848a-6c338e278219";
+                fsType = "ext4";
+              };
+            boot.initrd.luks.devices."luks-d2fca484-d24f-4d68-b08f-882533b0b987".device = "/dev/disk/by-uuid/d2fca484-d24f-4d68-b08f-882533b0b987";
+            fileSystems."/boot" =
+              {
+                device = "/dev/disk/by-uuid/990E-C2F5";
+                fsType = "vfat";
+              };
+            
+            networking.hostName = "murph";
+            networking.networkmanager.enable = true;
+            networking.useDHCP = lib.mkDefault true;
+            
+            powerManagement.enable = true;
+            powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+            
+            hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+            
+            security.polkit.enable = true;
+            
+            security.rtkit.enable = true;
+            services.pipewire = {
+              enable = true;
+              alsa.enable = true;
+              alsa.support32Bit = true;
+              pulse.enable = true;
+            };
+            hardware.pulseaudio.enable = false;
+            hardware.bluetooth.enable = true;
+            services.blueman.enable = true;
+            
+            services.xserver = {
+              enable = true;
+              displayManager.gdm.enable = true;
+              displayManager.gdm.wayland = true;
+              desktopManager.gnome.enable = true;
+              videoDrivers = [ "nvidia" ];
+            };
+            environment.gnome.excludePackages = (with pkgs; [
+              gnome-photos
+              gnome-tour
+            ]) ++ (with pkgs.gnome; [
+              cheese
+              atomix
+              epiphany
+              evince
+              geary
+              gedit # @Conman
+              gnome-characters
+              gnome-music
+              hitori
+              iagno
+              tali
+              totem
+              gnome-calculator
+              gnome-calendar
+              gnome-clocks
+              gnome-contacts
+              gnome-maps
+              gnome-weather
+              # gnome-disk-image-mounter
+              # gnome-disks
+              # gnome-extensions
+              # gnome-extensions-app
+              # gnome-logs
+              # gnome-system-monitor
+              simple-scan
+            ]) ++ (with pkgs.gnome.apps; [
+              # TODO: Figure how to remove these
+              # gnome-connections
+              # gnome-help
+              # gnome-text-editor
+              # gnome-thumbnail-font
+            ]);
+            hardware.opengl = {
+              enable = true;
+              driSupport = true;
+              driSupport32Bit = true;
+            };
+            hardware.nvidia = {
+              modesetting.enable = true;
+              powerManagement.enable = true;
+            };
+            
+            time.timeZone = "America/Denver";
+            
+            i18n.defaultLocale = "en_US.UTF-8";
+            i18n.extraLocaleSettings = {
+              LC_ADDRESS = "en_US.UTF-8";
+              LC_IDENTIFICATION = "en_US.UTF-8";
+              LC_MEASUREMENT = "en_US.UTF-8";
+              LC_MONETARY = "en_US.UTF-8";
+              LC_NAME = "en_US.UTF-8";
+              LC_NUMERIC = "en_US.UTF-8";
+              LC_PAPER = "en_US.UTF-8";
+              LC_TELEPHONE = "en_US.UTF-8";
+              LC_TIME = "en_US.UTF-8";
+            };
+            
+            nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+            
+            services.tailscale.enable = true;
+            
+            users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
+          });
+        share1 = ({ config, modulesPath, lib, pkgs, ... }:
+          
+          {
+            imports = [
+              (modulesPath + "/installer/scan/not-detected.nix")
+              linuxSystem
+              tailscale-autoconnect
+            ];
+            
+            boot = {
+              initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
+              loader = {
+                grub.enable = false;
+                generic-extlinux-compatible.enable = true;
+              };
+            };
+            hardware.enableRedistributableFirmware = true;
+            
+            fileSystems = {
+              "/" = {
+                device = "/dev/disk/by-label/NIXOS_SD";
+                fsType = "ext4";
+                options = [ "noatime" ];
+              };
+            };
+            
+            networking.hostName = "share1";
+            networking.networkmanager.enable = true;
+            
+            powerManagement.enable = true;
+            powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
+            
+            nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+            
+            environment.systemPackages = [ pkgs.tailscale ];
+            
+            age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
+            services.tailscaleAutoconnect = {
+              enable = true;
+              authKeyFile = config.age.secrets.share1-auth-key1.path;
+              loginServer = "https://login.tailscale.com";
+            };
+            
+            services.syncthing = {
+              enable = true;
+              user = config.personal.userName;
+              dataDir = config.users.users.${config.personal.userName}.home;
+              guiAddress = "0.0.0.0:8384";
+            };
+            
+            # TODO: Yikes!
+            services.openssh.settings.PermitRootLogin = "yes";
+            
+            users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
+          });
         home = { lib, config, pkgs, ... }:
         
           {
@@ -612,137 +792,11 @@
             programs.emacs.enable = true;
           };
       };
-    in with modules; {
+    in with modules; rec {
       nixosModules = modules;
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
-        modules = [
-          ({ config, lib, modulesPath, pkgs, ... }:
-      
-           {
-             imports = [
-               (modulesPath + "/installer/scan/not-detected.nix")
-               linuxSystem
-             ];
-      
-             boot = {
-               kernelModules = [ "kvm-intel" ];
-               kernelParams = [ "mem_sleep_default=deep" ];
-               loader.systemd-boot.enable = true;
-               loader.efi.canTouchEfiVariables = true;
-               initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
-               initrd.secrets = { "/crypto_keyfile.bin" = null; };
-             };
-      
-             fileSystems."/" =
-               {
-                 device = "/dev/disk/by-uuid/5ab3b7b9-8ec3-4d65-848a-6c338e278219";
-                 fsType = "ext4";
-               };
-             boot.initrd.luks.devices."luks-d2fca484-d24f-4d68-b08f-882533b0b987".device = "/dev/disk/by-uuid/d2fca484-d24f-4d68-b08f-882533b0b987";
-             fileSystems."/boot" =
-               {
-                 device = "/dev/disk/by-uuid/990E-C2F5";
-                 fsType = "vfat";
-               };
-      
-             networking.hostName = "murph";
-             networking.networkmanager.enable = true;
-             networking.useDHCP = lib.mkDefault true;
-      
-             powerManagement.enable = true;
-             powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
-      
-             hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-      
-             security.polkit.enable = true;
-      
-             security.rtkit.enable = true;
-             services.pipewire = {
-               enable = true;
-               alsa.enable = true;
-               alsa.support32Bit = true;
-               pulse.enable = true;
-             };
-             hardware.pulseaudio.enable = false;
-             hardware.bluetooth.enable = true;
-             services.blueman.enable = true;
-      
-             services.xserver = {
-               enable = true;
-               displayManager.gdm.enable = true;
-               displayManager.gdm.wayland = true;
-               desktopManager.gnome.enable = true;
-               videoDrivers = [ "nvidia" ];
-             };
-             environment.gnome.excludePackages = (with pkgs; [
-               gnome-photos
-               gnome-tour
-             ]) ++ (with pkgs.gnome; [
-               cheese
-               atomix
-               epiphany
-               evince
-               geary
-               gedit # @Conman
-               gnome-characters
-               gnome-music
-               hitori
-               iagno
-               tali
-               totem
-               gnome-calculator
-               gnome-calendar
-               gnome-clocks
-               gnome-contacts
-               gnome-maps
-               gnome-weather
-               # gnome-disk-image-mounter
-               # gnome-disks
-               # gnome-extensions
-               # gnome-extensions-app
-               # gnome-logs
-               # gnome-system-monitor
-               simple-scan
-             ]) ++ (with pkgs.gnome.apps; [
-               # TODO: Figure how to remove these
-               # gnome-connections
-               # gnome-help
-               # gnome-text-editor
-               # gnome-thumbnail-font
-             ]);
-             hardware.opengl = {
-               enable = true;
-               driSupport = true;
-               driSupport32Bit = true;
-             };
-             hardware.nvidia = {
-               modesetting.enable = true;
-               powerManagement.enable = true;
-             };
-      
-             time.timeZone = "America/Denver";
-      
-             i18n.defaultLocale = "en_US.UTF-8";
-             i18n.extraLocaleSettings = {
-               LC_ADDRESS = "en_US.UTF-8";
-               LC_IDENTIFICATION = "en_US.UTF-8";
-               LC_MEASUREMENT = "en_US.UTF-8";
-               LC_MONETARY = "en_US.UTF-8";
-               LC_NAME = "en_US.UTF-8";
-               LC_NUMERIC = "en_US.UTF-8";
-               LC_PAPER = "en_US.UTF-8";
-               LC_TELEPHONE = "en_US.UTF-8";
-               LC_TIME = "en_US.UTF-8";
-             };
-      
-             nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-      
-             services.tailscale.enable = true;
-      
-             users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
-           })
-        ];
+        modules = [ murph ];
       };
       homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
@@ -752,66 +806,20 @@
         modules = [ linuxHomeGraphical ];
       };
       nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
+        # system = "aarch64-linux";
+        system = "x86_64-darwin";
         modules = [
-          ({ config, modulesPath, lib, pkgs, ... }:
-      
-           {
-             imports = [
-               (modulesPath + "/installer/scan/not-detected.nix")
-               linuxSystem
-               tailscale-autoconnect
-             ];
-      
-             boot = {
-               initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
-               loader = {
-                 grub.enable = false;
-                 generic-extlinux-compatible.enable = true;
-               };
-             };
-      
-             fileSystems = {
-               "/" = {
-                 device = "/dev/disk/by-label/NIXOS_SD";
-                 fsType = "ext4";
-                 options = [ "noatime" ];
-               };
-             };
-      
-             hardware.enableRedistributableFirmware = true;
-      
-             networking.hostName = "share1";
-             networking.networkmanager.enable = true;
-      
-             powerManagement.enable = true;
-             powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
-      
-             nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
-      
-             environment.systemPackages = [ pkgs.tailscale ];
-      
-             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
-             services.tailscaleAutoconnect = {
-               enable = true;
-               authKeyFile = config.age.secrets.share1-auth-key1.path;
-               loginServer = "https://login.tailscale.com";
-             };
-      
-             services.syncthing = {
-               enable = true;
-               user = config.personal.userName;
-               dataDir = config.users.users.${config.personal.userName}.home;
-               guiAddress = "0.0.0.0:8384";
-             };
-      
-             # TODO: Yikes!
-             services.openssh.settings.PermitRootLogin = "yes";
-      
-             users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
-           })
+          share1
+          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
+          {
+            nixpkgs.config.allowUnsupportedSystem = true;
+            nixpkgs.hostPlatform.system = "aarch64-linux";
+            nixpkgs.buildPlatform.system = "x86_64-darwin";
+            nixpkgs.crossSystem.system = "aarch64-linux";
+          }
         ];
       };
+      images.share1 = nixosConfigurations.share1.config.system.build.sdImage;
       homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
           system = "aarch64-linux";
