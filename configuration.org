@@ -964,7 +964,7 @@ even working. When I've searched it, most people are using it in their
 #+end_src
 
 *** Defaults
-I gotta work on this. Much of this is pulled from emacs configuration
+I gotta work on this. Much of this is pulled from Emacs configuration
 I started back in 2019-2020. A lot of it is probably not necessary but
 I'm a little scared to touch for fear I'll rediscover one of the
 painful experiences that led me to try "fixing it" here.
@@ -1006,12 +1006,14 @@ relevant to me.
 
 After reading the wonderful [[https://nixos.wiki/wiki/TexLive][texlive ~nixpkgs~ page]] (because seriously
 have you ever tried to install latex on any other machine ever?), and
-messing with org-mode preview settings to make it use svg, I still was
-getting weird square boxes. Come to find out emacs was refusing to
-display images bigger than 10x10 pixels. C'mon son.
+messing with org-mode preview settings to make it use svg[fn:2] but still
+ending up with frustrating square boxes, this setting... ended up
+having nothing to do with it: it was that I was typing
+~\begin{equation*}~ but only ~\end~. But still, there shall be no
+limit to the size of the images I can load with Emacs.
 
 #+begin_src elisp
-(setq max-image-size 32766)
+(setq max-image-size nil)
 #+end_src
 
 *** Evil mode
@@ -1050,6 +1052,7 @@ Useful stuff:
       org-latex-compiler "lualatex"
       org-latex-create-formula-image-program 'dvisvgm
       org-startup-with-latex-preview t
+      org-startup-with-inline-images t
       org-agenda-span 14)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
@@ -1552,3 +1555,4 @@ nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activation
 ** TODO Figure out how to make tangled files read-only by default
 * Footnotes
 [fn:1] "No. Suffer my pain"
+[fn:2] https://twitter.com/bcantrill/status/1007680560133623808 

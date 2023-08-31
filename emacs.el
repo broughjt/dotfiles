@@ -35,7 +35,7 @@
 
 (setq-default indent-tabs-mode nil)
 
-(setq max-image-size 32766)
+(setq max-image-size nil)
 
 (use-package evil
  :init
@@ -61,6 +61,7 @@
       org-latex-compiler "lualatex"
       org-latex-create-formula-image-program 'dvisvgm
       org-startup-with-latex-preview t
+      org-startup-with-inline-images t
       org-agenda-span 14)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
