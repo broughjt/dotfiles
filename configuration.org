@@ -2,6 +2,36 @@
 #+date: <2023-08-15 Tue>
 #+author: Jackson Brough
 
+* "Are these your configuration files, Larry?"
+
+This has been my experience with Emacs: I would re-clone my ~.emacs.d~
+and recommit myself to the true way. It would last about a month or
+so, and then I would hit up against some great stumbling block that no
+amount of blog post debugging would fix. At that point I would throw
+up my hands, admit to myself that I wasn't a real man, and go back to
+VSCode.
+
+I came back after a full year of not using Emacs because I was going
+to be spending the summer writing [[https://github.com/herbie-fp/herbie][a bunch of Racket code]] and felt like
+a fraud doing so in VSCode. I think there were a couple factors that
+kept me from relapsing when August came around: I learned some elisp,
+read the Info tutorial in its entirety so I would know how to use it,
+and forced myself to ~C-h~ before googling a problem; I accidently
+joined the NixOS cult, wasting a perfectly good summer weekend in the
+process (See ~hlissner~'s [[https://github.com/hlissner/dotfiles][dotfiles]] for how 2 flakes[fn:1], and check out
+Ian Henry's [[https://ianthehenry.com/posts/how-to-learn-nix/introduction/][blog series]] if you'd like some genuine comedy with your
+maddenning Nix journey - I thought his writing was seriously
+hilarious); I also made my first pass through /How to Take Smart
+Notes/ by Sönke Ahrens this summer, and am therefore obligated to try
+becoming an org-roam cultist as well.
+
+I tried the whole [[https://nixos.wiki/wiki/Import_From_Derivation][IFD]] thing, and before I ~git init~ed, there was an
+attempt at a tiny flake that had just enough to tangle this org file,
+build the generated flake as a derivation, and evaluate that
+derivation by importing it, but I can't yet bend spoons with my nix
+fu, so I have settled on the "commit the build artifacts" approach,
+which I'm actually decently happy with.
+
 * Flake
 #+begin_src nix :tangle flake.nix :noweb yes
 {
@@ -1516,3 +1546,5 @@ nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activation
 # eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
 # End:
 ** TODO Figure out how to make tangled files read-only by default
+* Footnotes
+[fn:1] "No. Suffer my pain"
