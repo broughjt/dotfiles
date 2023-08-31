@@ -53,6 +53,7 @@
 
 (setq org-src-preserve-indentation nil
       org-edit-src-content-indentation 0
+      org-confirm-babel-evaluate nil
       org-babel-load-languages
         '((emacs-lisp . t)
           (shell . t)
