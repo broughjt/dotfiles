@@ -849,6 +849,10 @@
         path = ./templates/rust;
         description = "Rust template";
       };
+      templates.python = {
+        path = ./templates/python;
+        description = "Python template";
+      };
       templates.herbie = {
         path = ./templates/herbie;
         description = "Herbie template";
