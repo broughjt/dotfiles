@@ -144,6 +144,15 @@ package-manager = { pkgs, ... }:
   };
 #+end_src
 ** System
+I include ~git~ (and ~curl~ and ~neovim~) on every system to prevent a
+world of pain where I spend upwards of twenty minutes cursing the nix
+2.4 binary before realizing that it wants git to exist in the universe
+but refused to tell me that. Prolly should also include the busybox
+tools on every system, but that had weird ~lspci~ output that left a
+bad taste in my mouth. Also, I don't yet feel fully qualified: I
+haven't had to set my init process to a statically linked python2 to
+recover my hard drive.
+
 #+begin_src nix
 system = { config, pkgs, ... }:
 
@@ -160,6 +169,7 @@ system = { config, pkgs, ... }:
     users.users.${config.personal.userName}.shell = pkgs.fish;
   };
 #+end_src
+*** TODO Try nushell?
 *** TODO Turn off mutable users and use agenix for password
 ** Darwin system
 #+begin_src nix
@@ -1147,7 +1157,8 @@ ends and these two start.
 #+end_src
 *** Themes
 Emacs themes: just skip to the end, discover [[https://protesilaos.com][Protesilaos Stavrou]], and
-install the ~ef~ themes.
+install the ~ef~ themes. Apparently he's building a hut in the Cyprus
+mountains?
 
 #+begin_src elisp
 (use-package standard-themes)
@@ -1161,6 +1172,8 @@ install the ~ef~ themes.
 
 **** TODO Figure out auto theme switching
 *** Nix
+"Yep! Make a symlink! You’re an adult!"
+
 #+begin_src elisp
 (use-package nix-mode
   :mode "\\.nix\\'")
