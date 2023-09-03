@@ -1,7 +1,7 @@
 let
-  jackson = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICv+kva6ORZ2Z9FZNi8ufzzYPQKzy1WvhAYDQt4kEiFU";
-  share1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIYfJm9tI/Tn8cJfpEC1MOrJbCk0kVL+FHpYxcEXuJYe";
+  kenobi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com";
 in
 {
-  "share1-auth-key1.age".publicKeys = [ jackson share1 ];
+  "share1-auth-key1.age".publicKeys = [ kenobi ];
+  "wireless.age".publicKeys = [ kenobi ];
 }

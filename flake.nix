@@ -95,7 +95,7 @@
               users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
         
               homebrew.enable = true;
-              homebrew.casks = [ "spotify" "zoom" ];
+              homebrew.casks = [ "spotify" "zoom" "docker" ];
         
               services.tailscale.enable = true;
             };
@@ -115,12 +115,102 @@
         
             virtualisation.docker.enable = true;
         
-            services.openssh = {
-              enable = true;
-              settings.PasswordAuthentication = true;
-              settings.KbdInteractiveAuthentication = true;
-            };
+            services.openssh.enable = true;
           };
+        raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:
+        
+          {
+            imports = [
+              (modulesPath + "/installer/scan/not-detected.nix")
+              linuxSystem
+            ];
+        
+            boot = {
+              initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
+              loader = {
+                grub.enable = false;
+                generic-extlinux-compatible.enable = true;
+              };
+            };
+            hardware.enableRedistributableFirmware = true;
+        
+            fileSystems = {
+              "/" = {
+                device = "/dev/disk/by-label/NIXOS_SD";
+                fsType = "ext4";
+                options = [ "noatime" ];
+              };
+            };
+        
+            powerManagement.enable = true;
+            powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
+        
+            # nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+          });
+        share = ({ config, pkgs, ... }:
+          
+          {
+            imports = [
+              tailscale-autoconnect
+            ];
+            
+            environment.systemPackages = [ pkgs.tailscale ];
+            
+            age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
+            services.tailscaleAutoConnect = {
+              enable = true;
+              authKeyFile = config.age.secrets.share1-auth-key1.path;
+              loginServer = "https://login.tailscale.com";
+            };
+            
+            services.syncthing = {
+              enable = true;
+              user = config.personal.userName;
+              dataDir = config.users.users.${config.personal.userName}.home;
+              guiAddress = "0.0.0.0:8384";
+            };
+          });
+        linode = ({ config, lib, pkgs, modulesPath, ... }:
+        
+          {
+            imports = [
+              (modulesPath + "/profiles/qemu-guest.nix")
+              linuxSystem
+            ];
+        
+            boot = {
+              initrd.availableKernelModules = [ "virtio_pci" "virtio_scsi" "ahci" "sd_mod" ];
+              kernelParams = [ "console=ttyS0,19200n8" ];
+              loader.grub.enable = true;
+              loader.grub.forceInstall = true;
+              loader.grub.extraConfig = ''
+                serial --speed=19200 --unit=0 --word=8 --parity=no --stop=1;
+                terminal_input serial;
+                terminal_output serial
+              '';
+              loader.grub.device = "nodev";
+              loader.timeout = 10;
+            };
+        
+            fileSystems."/" = {
+              device = "/dev/sda";
+              fsType = "ext4";
+            };
+            swapDevices = [ { device = "/dev/sdb"; } ];
+        
+            networking.useDHCP = lib.mkDefault true;
+            networking.usePredictableInterfaceNames = false;
+            networking.useDHCP = false; # Disable DHCP globally as we will not need it.
+            networking.interfaces.eth0.useDHCP = true;
+        
+            time.timeZone = "UTC";
+        
+            nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+        
+            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [
+              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com"
+            ];
+          });
         murph = ({ config, lib, modulesPath, pkgs, ... }:
           
           {
@@ -242,64 +332,14 @@
             
             nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
             
+            services.openssh = {
+              settings.PasswordAuthentication = true;
+              settings.KbdInteractiveAuthentication = true;
+            };
+        
             services.tailscale.enable = true;
             
             users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
-          });
-        share1 = ({ config, modulesPath, lib, pkgs, ... }:
-          
-          {
-            imports = [
-              (modulesPath + "/installer/scan/not-detected.nix")
-              linuxSystem
-              tailscale-autoconnect
-            ];
-            
-            boot = {
-              initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
-              loader = {
-                grub.enable = false;
-                generic-extlinux-compatible.enable = true;
-              };
-            };
-            hardware.enableRedistributableFirmware = true;
-            
-            fileSystems = {
-              "/" = {
-                device = "/dev/disk/by-label/NIXOS_SD";
-                fsType = "ext4";
-                options = [ "noatime" ];
-              };
-            };
-            
-            networking.hostName = "share1";
-            networking.networkmanager.enable = true;
-            
-            powerManagement.enable = true;
-            powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
-            
-            nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
-            
-            environment.systemPackages = [ pkgs.tailscale ];
-            
-            age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
-            services.tailscaleAutoconnect = {
-              enable = true;
-              authKeyFile = config.age.secrets.share1-auth-key1.path;
-              loginServer = "https://login.tailscale.com";
-            };
-            
-            services.syncthing = {
-              enable = true;
-              user = config.personal.userName;
-              dataDir = config.users.users.${config.personal.userName}.home;
-              guiAddress = "0.0.0.0:8384";
-            };
-            
-            # TODO: Yikes!
-            services.openssh.settings.PermitRootLogin = "yes";
-            
-            users.users.${config.personal.userName}.extraGroups = [ "networkmanager" ];
           });
         home = { lib, config, pkgs, ... }:
         
@@ -375,6 +415,8 @@
           home.homeDirectory = "/Users/${config.personal.userName}";
           home.packages = with pkgs; [
             nixcasks.slack
+            # Seems to be broken
+            # nixcasks.docker
             jetbrains-mono
             (pkgs.texlive.combine {
               inherit (pkgs.texlive) scheme-basic
@@ -462,11 +504,6 @@
               killall
               lldb
               docker-compose
-              (pkgs.texlive.combine {
-                inherit (pkgs.texlive) scheme-basic
-                  dvisvgm dvipng
-                  wrapfig amsmath ulem hyperref capt-of;
-              })
             ];
         
             services.ssh-agent.enable = true;
@@ -488,6 +525,11 @@
             jetbrains-mono
             source-sans
             source-serif
+            (pkgs.texlive.combine {
+              inherit (pkgs.texlive) scheme-basic
+                dvisvgm dvipng
+                wrapfig amsmath ulem hyperref capt-of;
+            })
           
             gnome.dconf-editor
             gnomeExtensions.pop-shell
@@ -671,13 +713,23 @@
             };
           };
         };
+        wireless = ({ config, ... }: 
+        
+          {
+            age.secrets.wireless.file = ./secrets/wireless.age;
+            networking.wireless = {
+              enable = true;
+              environmentFile = config.age.secrets.wireless.path;
+              networks."The Shire".psk = "@THE_SHIRE_PSK@";
+            };
+          });
         tailscale-autoconnect = { config, lib, pkgs, ... }:
         
         with lib; let
-          cfg = config.services.tailscaleAutoconnect;
+          cfg = config.services.tailscaleAutoConnect;
         in {
-          options.services.tailscaleAutoconnect = {
-            enable = mkEnableOption "tailscaleAutoconnect";
+          options.services.tailscaleAutoConnect = {
+            enable = mkEnableOption "tailscaleAutoConnect";
             authKeyFile = mkOption {
               type = types.str;
               description = "The authkey to use for authentication with Tailscale";
@@ -776,6 +828,15 @@
             };
           };
         };
+        # let ssh = {
+          # kenobi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com";
+        # };
+        homeManagerNixOSModule = module: inputs:
+          {
+            imports = [ personal ];
+        
+            home-manager.users.${inputs.config.personal.userName} = (module inputs);
+          };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
             inherit package;
@@ -806,16 +867,29 @@
         modules = [ linuxHomeGraphical ];
       };
       nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
-        # system = "aarch64-linux";
-        system = "x86_64-darwin";
+        # crossSystem.config = "aarch64-unknown-linux-gnu";
         modules = [
-          share1
+          raspberryPi4
+          wireless
+          share
+          {
+            networking.hostName = "share1";
+          }
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
           {
-            nixpkgs.config.allowUnsupportedSystem = true;
-            nixpkgs.hostPlatform.system = "aarch64-linux";
-            nixpkgs.buildPlatform.system = "x86_64-darwin";
-            nixpkgs.crossSystem.system = "aarch64-linux";
+            sdImage.compressImage = false;
+      
+            # nixpkgs.pkgs = nixpkgs.legacyPackages.x86_64-darwin.pkgsCross.aarch64-multiplatform;
+      
+            # nixpkgs.config.allowUnsupportedSystem = true;
+            # nixpkgs.crossSystem.system = "aarch64-linux";
+            # nixpkgs.localPlatform.system = 
+            # nixpkgs.hostPlatform = {
+              # config = "aarch64-unknown-linux-gnu";
+              # system = "aarch64-linux";
+            # };
+            # nixpkgs.buildPlatform.system = "x86_64-darwin";
+            # nixpkgs.crossSystem.system = "aarch64-linux";
           }
         ];
       };
