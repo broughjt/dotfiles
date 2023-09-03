@@ -899,7 +899,7 @@
           ];
            extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
          };
-      nixosConfigurations.share1 = nixpkgs.legacyPackages.x86_64-darwin.pkgsCross.aarch64-multiplatform.nixos {
+      nixosConfigurations.share1 = nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch64-multiplatform.nixos {
         imports = [
           raspberryPi4
           wireless
