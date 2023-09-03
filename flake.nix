@@ -176,6 +176,7 @@
             imports = [
               (modulesPath + "/profiles/qemu-guest.nix")
               linuxSystem
+              tailscale-autoconnect
             ];
         
             boot = {
@@ -206,9 +207,23 @@
         
             nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
         
-            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [
-              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com"
-            ];
+            age.secrets.linode1-password.file = ./secrets/linode1-password.age;
+            users.mutableUsers = false;
+            users.users.${config.personal.userName} = {
+              passwordFile = config.age.secrets.linode1-password.path;
+              openssh.authorizedKeys.keys = [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com"
+              ];
+            };
+        
+            environment.systemPackages = [ pkgs.tailscale ];
+            
+            age.secrets.auth-key-linode1.file = ./secrets/auth-key-linode1.age;
+            services.tailscaleAutoConnect = {
+              enable = true;
+              authKeyFile = config.age.secrets.auth-key-linode1.path;
+              loginServer = "https://login.tailscale.com";
+            };
           });
         murph = ({ config, lib, modulesPath, pkgs, ... }:
           
