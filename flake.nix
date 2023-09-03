@@ -198,9 +198,8 @@
             };
             swapDevices = [ { device = "/dev/sdb"; } ];
         
-            networking.useDHCP = lib.mkDefault true;
             networking.usePredictableInterfaceNames = false;
-            networking.useDHCP = false; # Disable DHCP globally as we will not need it.
+            networking.useDHCP = false;
             networking.interfaces.eth0.useDHCP = true;
         
             time.timeZone = "UTC";
