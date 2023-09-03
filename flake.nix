@@ -899,8 +899,7 @@
            extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
          };
       nixosConfigurations.share1 = nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch64-multiplatform.nixos {
-        # crossSystem.config = "aarch64-unknown-linux-gnu";
-        modules = [
+        imports = [
           raspberryPi4
           wireless
           share
@@ -910,18 +909,6 @@
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
           {
             sdImage.compressImage = false;
-      
-            # nixpkgs.pkgs = nixpkgs.legacyPackages.x86_64-darwin.pkgsCross.aarch64-multiplatform;
-      
-            # nixpkgs.config.allowUnsupportedSystem = true;
-            # nixpkgs.crossSystem.system = "aarch64-linux";
-            # nixpkgs.localPlatform.system = 
-            # nixpkgs.hostPlatform = {
-              # config = "aarch64-unknown-linux-gnu";
-              # system = "aarch64-linux";
-            # };
-            # nixpkgs.buildPlatform.system = "x86_64-darwin";
-            # nixpkgs.crossSystem.system = "aarch64-linux";
           }
         ];
       };
