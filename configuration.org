@@ -1651,8 +1651,8 @@ homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration 
 nixosConfigurations.linode1 = nixpkgs.lib.nixosSystem {
   modules = [
     linode
-    home-manager.nixosModules.home-manager
-    (homeManagerNixOSModule linuxHomeHeadless)
+    # home-manager.nixosModules.home-manager
+    # (homeManagerNixOSModule linuxHomeHeadless)
     {
       networking.hostName = "linode1";
     }
@@ -1673,6 +1673,13 @@ nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activation
 See
 [[https://www.linode.com/docs/guides/install-nixos-on-linode/]]
 for setup.
+
+#+begin_src shell
+nixos-install -v --show-trace --flake github:broughjt/dotfiles#<machine>
+#+end_src
+
+The ~nixos-install~ command doesn't have a ~--refresh~ option, but you
+can call ~nix-collect-garbage -d~ to accomplish the same thing.
 * COMMENT Local variables
 # Local Variables:
 # eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)

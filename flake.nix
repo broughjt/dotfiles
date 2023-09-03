@@ -919,8 +919,8 @@
       nixosConfigurations.linode1 = nixpkgs.lib.nixosSystem {
         modules = [
           linode
-          home-manager.nixosModules.home-manager
-          (homeManagerNixOSModule linuxHomeHeadless)
+          # home-manager.nixosModules.home-manager
+          # (homeManagerNixOSModule linuxHomeHeadless)
           {
             networking.hostName = "linode1";
           }
