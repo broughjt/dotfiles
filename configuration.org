@@ -1688,9 +1688,52 @@ nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activation
 
 *** TODO Prolly you can make a variable and run this directly from here
 ** Linode
+Probably ignore all of this. Should try Hetzner or Digital Ocean using
+nixops or terraform.
 See
 [[https://www.linode.com/docs/guides/install-nixos-on-linode/]]
 for setup.
+
+I had to add ssh keys to my account, then you can ssh into the machine
+or the LISH thing to avoid having to use the weird GLISH thing. Worst
+case you have to enter GLISH, set a dummy password, and use ssh the
+rest of the time.
+
+The following will provision a new linode. The ~jq~ code assumes there
+aren't any in existence when it's run. I could sort by created and
+solve that problem, but ain't nobody got time for that right now.
+
+#+begin_src shell
+linode_id=$(nix run nixpkgs#linode-cli -- linodes create \
+  --backups_enabled false \
+  --booted true \
+  --label linode1 \
+  --private_ip false \
+  --region us-west \
+  --type g6-nanode-1 \
+  --json | jq .id)
+nix run nixpkgs#linode-cli -- linodes disk-create $id --label Installer --size 1024 --filesystem ext4
+sleep 10
+nix run nixpkgs#linode-cli -- linodes disk-create $id --label Swap --size 512 --filesystem swap
+sleep 10
+# 25600 (Maximum size for g6-nanode-1) - 1024 - 512
+nix run nixpkgs#linode-cli -- linodes disk-create $id --label NixOS --size 24064 --filesystem ext4
+sleep 10
+nix run nixpkgs#linode-cli -- linodes config-create $id \
+  --label Installer \
+  --kernel linode/direct-disk \
+  --devices.sda.disk-id 
+#+end_src
+
+Then create the disks:
+
+#+begin_src shell
+#+end_src
+
+Then create the two configuration profiles:
+
+#+begin_src 
+#+end_src
 
 #+begin_src shell
 nixos-install -v --show-trace --flake github:broughjt/dotfiles#<machine>
