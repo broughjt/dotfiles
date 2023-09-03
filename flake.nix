@@ -207,6 +207,8 @@
         
             nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
         
+            services.openssh.settings.PermitRootLogin = "yes";
+        
             # age.secrets.linode1-password.file = ./secrets/linode1-password.age;
             # users.mutableUsers = false;
             users.users.${config.personal.userName} = {
