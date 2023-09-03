@@ -209,10 +209,10 @@
         
             services.openssh.settings.PermitRootLogin = "yes";
         
-            age.secrets.linode1-password.file = ./secrets/linode1-password.age;
-            users.mutableUsers = false;
+            # age.secrets.linode1-password.file = ./secrets/linode1-password.age;
+            # users.mutableUsers = false;
             users.users.${config.personal.userName} = {
-              passwordFile = config.age.secrets.linode1-password.path;
+              # passwordFile = config.age.secrets.linode1-password.path;
               openssh.authorizedKeys.keys = [
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com"
               ];
