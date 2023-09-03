@@ -865,6 +865,22 @@
         };
         modules = [ linuxHomeGraphical ];
       };
+         darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
+           modules = [
+        darwinSystem
+       (inputs: { nixpkgs.hostPlatform = "x86_64-darwin"; })
+      ];
+         };
+         homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
+           pkgs = import nixpkgs {
+             system = "x86_64-darwin";
+             config.allowUnfree = true;
+           };
+           modules = [
+          darwinHome
+          ];
+           extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
+         };
       nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
         # crossSystem.config = "aarch64-unknown-linux-gnu";
         modules = [
@@ -900,22 +916,16 @@
         };
         modules = [ linuxHomeHeadless ];
       };
-         darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
-           modules = [
-        darwinSystem
-       (inputs: { nixpkgs.hostPlatform = "x86_64-darwin"; })
-      ];
-         };
-         homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
-           pkgs = import nixpkgs {
-             system = "x86_64-darwin";
-             config.allowUnfree = true;
-           };
-           modules = [
-          darwinHome
-          ];
-           extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
-         };
+      nixosConfigurations.linode1 = nixpkgs.lib.nixosSystem {
+        modules = [
+          linode
+          home-manager.nixosModules.home-manager
+          (homeManagerNixOSModule linuxHomeHeadless)
+          {
+            networking.hostName = "linode1";
+          }
+        ];
+      };
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
       formatter.x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.nixpkgs-fmt;
       templates.rust = {

@@ -76,8 +76,9 @@ which I'm actually decently happy with.
     in with modules; rec {
       nixosModules = modules;
       <<murph>>
-      <<share1>>
       <<kenobi>>
+      <<share1>>
+      <<linode1>>
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
       formatter.x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.nixpkgs-fmt;
       templates.rust = {
