@@ -898,7 +898,7 @@
           ];
            extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
          };
-      nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.share1 = nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch64-multiplatform.nixos {
         # crossSystem.config = "aarch64-unknown-linux-gnu";
         modules = [
           raspberryPi4
