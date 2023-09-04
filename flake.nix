@@ -975,7 +975,7 @@
         nixosSystem.config.system.build.sdImage;
       packages.aarch64-linux.share1Image = let
         nixosSystem = nixpkgs.lib.nixosSystem {
-          modules with nixosModules; [
+          modules = with nixosModules; [
             share1
             "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
             {
