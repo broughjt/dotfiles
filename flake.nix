@@ -973,7 +973,18 @@
         };
       in
         nixosSystem.config.system.build.sdImage;
-      packages.aarch64-linux.share1Image = nixosConfigurations.share1.config.system.build.sdImage;
+      packages.aarch64-linux.share1Image = let
+        nixosSystem = nixpkgs.lib.nixosSystem {
+          modules with nixosModules; [
+            share1
+            "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+            {
+              sdImage.compressImage = false;
+            }
+          ];
+        };
+      in
+        nixosSystem.config.system.build.sdImage;
       # packages.x86_64-linux.share1Image = let
       #   pkgs = nixpkgs.legacyPackages.x86_64-linux;
       #   pkgsAarch64 = pkgs.pkgsCross.aarch64-multiplatform;
