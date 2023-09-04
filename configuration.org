@@ -1720,7 +1720,7 @@ packages.aarch64-linux.share1Image = let
       share1
       "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
       {
-        sdImage.compressImage = false;
+        sdImage.compressImage = true;
       }
     ];
   };
@@ -1769,6 +1769,8 @@ nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activation
 
 *** TODO Prolly you can make a variable and run this directly from here
 ** Build Raspberry Pi 4 Image on macOS
+A journey.
+
 See [[https://github.com/LnL7/nix-docker]].
 See [[https://myme.no/posts/2022-12-01-nixos-on-raspberrypi.html#cross-compiling]]
 See [[https://artemis.sh/2023/06/06/cross-compile-nixos-for-great-good.html]]
@@ -1786,6 +1788,11 @@ nix build --show-trace -vv --builders 'ssh://nix-docker x86_64-linux' .#packages
 #+begin_src shell
 nix build --max-jobs 0 -vv --builders ssh://nix-docker .#packages.x86_64-linux.share1Image
 #+end_src
+
+Oh wait, that doesn't actually work and we need parallel builders
+hours later down the line?
+
+Dude are you serious? [[https://nixos.org/manual/nixpkgs/unstable/#sec-darwin-builder]]
 ** Linode
 Probably ignore all of this. Should try Hetzner or Digital Ocean using
 nixops or terraform.
