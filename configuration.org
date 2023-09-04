@@ -69,18 +69,17 @@ which I'm actually decently happy with.
   };
 
   outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay, agenix }:
-    let
-      modules = rec {
+    rec {
+      nixosModules = rec {
         <<modules>>
       };
-    in with modules; rec {
-      nixosModules = modules;
       <<murph>>
       <<kenobi>>
       <<share1>>
       <<linode1>>
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
-      formatter.x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.nixpkgs-fmt;
+      formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
+        system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
+      });
       templates.rust = {
         path = ./templates/rust;
         description = "Rust template";
@@ -93,7 +92,7 @@ which I'm actually decently happy with.
         path = ./templates/herbie;
         description = "Herbie template";
       };
-  };
+    };
 }
 #+end_src
 
@@ -103,7 +102,7 @@ which I'm actually decently happy with.
 :header-args: :noweb-ref modules
 :END:
 
-** Personal Information
+** Personal information
 #+begin_src nix
 personal = { config, lib, ... }:
 
@@ -214,7 +213,7 @@ linuxSystem = { config, pkgs, ... }:
   };
 #+end_src
 *** TODO Remove ssh password authentication
-** Raspberry Pi 4
+** Raspberry pi 4
 #+begin_src nix
 raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:
 
@@ -296,7 +295,6 @@ linode = ({ config, lib, pkgs, modulesPath, ... }:
       '';
       loader.grub.device = "nodev";
       loader.timeout = 10;
-      binfmt.emulatedSystems = [ "aarch64-linux" ];
     };
 
     fileSystems."/" = {
@@ -1016,6 +1014,31 @@ homeManagerNixOSModule = module: inputs:
     home-manager.users.${inputs.config.personal.userName} = (module inputs);
   };
 #+end_src
+** Syncthing
+#+begin_src nix
+syncthing = ({ config, pkgs, ... }:
+
+  {
+    imports = [ personal ];
+
+    services.syncthing = {
+      enable = true;
+      dataDir = config.users.users.${config.personal.userName}.home;
+      openDefaultPorts = true;
+      # TODO: Sync up with home manager xdg directories some how?
+      user = config.personal.userName;
+      guiAddress = "0.0.0.0:8384";
+      declarative = {
+        overrideDevices = true;
+        overrideFolders = true;
+        # devices = todo generate from personal.machines.all.syncthingIds - networking.hostName;
+        # folders = list devices should be folder, substract networking.hostName
+      };
+    };
+
+    users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
+  });
+#+end_src
 * Emacs
 ** Nix
 :PROPERTIES:
@@ -1023,6 +1046,9 @@ homeManagerNixOSModule = module: inputs:
 :END:
 
 *** Overlay
+This is not actually a NixOS module. I guess it doesn't matter for
+now.
+
 #+begin_src nix
 emacsOverlay = (pkgs: package:
   (pkgs.emacsWithPackagesFromUsePackage {
@@ -1595,43 +1621,51 @@ in
 ** ~kenobi~
 #+NAME: kenobi
 #+begin_src nix
-       darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
-         modules = [
-      darwinSystem
-     (inputs: { nixpkgs.hostPlatform = "x86_64-darwin"; })
-    ];
-       };
-       homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
-         pkgs = import nixpkgs {
-           system = "x86_64-darwin";
-           config.allowUnfree = true;
-         };
-         modules = [
-        darwinHome
-        ];
-         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
-       };
+darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
+  modules = with nixosModules; [
+    darwinSystem
+    { nixpkgs.hostPlatform = "x86_64-darwin"; }
+  ];
+};
+homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
+  pkgs = import nixpkgs {
+    system = "x86_64-darwin";
+    config.allowUnfree = true;
+  };
+  modules = with nixosModules; [
+    darwinHome
+    ({ config, ... }: {
+      programs.ssh.matchBlocks."nix-docker" = {
+        user = "root";
+        hostname = "127.0.0.1";
+        port = 3022;
+        identityFile = config.home.homeDirectory + "/.ssh/docker_rsa";
+      };
+    })
+  ];
+  extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
+};
 #+end_src
 ** ~murph~
 #+NAME: murph
 #+begin_src nix
 nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
   system = "aarch64-linux";
-  modules = [ murph ];
+  modules = [ nixosModules.murph ];
 };
 homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
   pkgs = import nixpkgs {
     system = "x86_64-linux";
     config.allowUnfree = true;
   };
-  modules = [ linuxHomeGraphical ];
+  modules = [ nixosModules.linuxHomeGraphical ];
 };
 #+end_src
 ** ~share1~
 #+NAME: share1
 #+begin_src nix
-nixosConfigurations.share1 = nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch64-multiplatform.nixos {
-  imports = [
+nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
+  modules = with nixosModules; [
     raspberryPi4
     wireless
     share
@@ -1641,29 +1675,31 @@ nixosConfigurations.share1 = nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch
     "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
     {
       sdImage.compressImage = false;
+
+      nixpkgs.config.allowUnsupportedSystem = true;
+      nixpkgs.hostPlatform.system = "x86_64-linux";
+      nixpkgs.buildPlatform.system = "aarch64-linux";
     }
   ];
 };
-images.share1 = nixosConfigurations.share1.config.system.build.sdImage;
+packages.x86_64-linux.share1Image = nixosConfigurations.share1.config.system.build.sdImage;
 homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration {
   pkgs = import nixpkgs {
     system = "aarch64-linux";
     config.allowUnfree = true;
   };
-  modules = [ linuxHomeHeadless ];
+  modules = with nixosModules; [ linuxHomeHeadless ];
 };
 #+end_src
 ** ~linode1~
 #+NAME: linode1
 #+begin_src nix
 nixosConfigurations.linode1 = nixpkgs.lib.nixosSystem {
-  modules = [
+  modules = with nixosModules; [
     linode
     # home-manager.nixosModules.home-manager
     # (homeManagerNixOSModule linuxHomeHeadless)
-    {
-      networking.hostName = "linode1";
-    }
+    { networking.hostName = "linode1"; }
   ];
 };
 #+end_src

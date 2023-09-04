@@ -33,8 +33,8 @@
   };
 
   outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay, agenix }:
-    let
-      modules = rec {
+    rec {
+      nixosModules = rec {
         personal = { config, lib, ... }:
         
           {
@@ -191,7 +191,6 @@
               '';
               loader.grub.device = "nodev";
               loader.timeout = 10;
-              binfmt.emulatedSystems = [ "aarch64-linux" ];
             };
         
             fileSystems."/" = {
@@ -854,6 +853,28 @@
         
             home-manager.users.${inputs.config.personal.userName} = (module inputs);
           };
+        syncthing = ({ config, pkgs, ... }:
+        
+          {
+            imports = [ personal ];
+        
+            services.syncthing = {
+              enable = true;
+              dataDir = config.users.users.${config.personal.userName}.home;
+              openDefaultPorts = true;
+              # TODO: Sync up with home manager xdg directories some how?
+              user = config.personal.userName;
+              guiAddress = "0.0.0.0:8384";
+              declarative = {
+                overrideDevices = true;
+                overrideFolders = true;
+                # devices = todo generate from personal.machines.all.syncthingIds - networking.hostName;
+                # folders = list devices should be folder, substract networking.hostName
+              };
+            };
+        
+            users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
+          });
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
             inherit package;
@@ -870,37 +891,43 @@
             programs.emacs.enable = true;
           };
       };
-    in with modules; rec {
-      nixosModules = modules;
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
-        modules = [ murph ];
+        modules = [ nixosModules.murph ];
       };
       homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
           system = "x86_64-linux";
           config.allowUnfree = true;
         };
-        modules = [ linuxHomeGraphical ];
+        modules = [ nixosModules.linuxHomeGraphical ];
       };
-         darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
-           modules = [
-        darwinSystem
-       (inputs: { nixpkgs.hostPlatform = "x86_64-darwin"; })
-      ];
-         };
-         homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
-           pkgs = import nixpkgs {
-             system = "x86_64-darwin";
-             config.allowUnfree = true;
-           };
-           modules = [
+      darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
+        modules = with nixosModules; [
+          darwinSystem
+          { nixpkgs.hostPlatform = "x86_64-darwin"; }
+        ];
+      };
+      homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          system = "x86_64-darwin";
+          config.allowUnfree = true;
+        };
+        modules = with nixosModules; [
           darwinHome
-          ];
-           extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
-         };
-      nixosConfigurations.share1 = nixpkgs.legacyPackages.x86_64-linux.pkgsCross.aarch64-multiplatform.nixos {
-        imports = [
+          ({ config, ... }: {
+            programs.ssh.matchBlocks."nix-docker" = {
+              user = "root";
+              hostname = "127.0.0.1";
+              port = 3022;
+              identityFile = config.home.homeDirectory + "/.ssh/docker_rsa";
+            };
+          })
+        ];
+        extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
+      };
+      nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
+        modules = with nixosModules; [
           raspberryPi4
           wireless
           share
@@ -910,29 +937,32 @@
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
           {
             sdImage.compressImage = false;
+      
+            nixpkgs.config.allowUnsupportedSystem = true;
+            nixpkgs.hostPlatform.system = "x86_64-linux";
+            nixpkgs.buildPlatform.system = "aarch64-linux";
           }
         ];
       };
-      images.share1 = nixosConfigurations.share1.config.system.build.sdImage;
+      packages.x86_64-linux.share1Image = nixosConfigurations.share1.config.system.build.sdImage;
       homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
           system = "aarch64-linux";
           config.allowUnfree = true;
         };
-        modules = [ linuxHomeHeadless ];
+        modules = with nixosModules; [ linuxHomeHeadless ];
       };
       nixosConfigurations.linode1 = nixpkgs.lib.nixosSystem {
-        modules = [
+        modules = with nixosModules; [
           linode
           # home-manager.nixosModules.home-manager
           # (homeManagerNixOSModule linuxHomeHeadless)
-          {
-            networking.hostName = "linode1";
-          }
+          { networking.hostName = "linode1"; }
         ];
       };
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
-      formatter.x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.nixpkgs-fmt;
+      formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
+        system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
+      });
       templates.rust = {
         path = ./templates/rust;
         description = "Rust template";
@@ -945,5 +975,5 @@
         path = ./templates/herbie;
         description = "Herbie template";
       };
-  };
+    };
 }
