@@ -272,6 +272,22 @@ share = ({ config, pkgs, ... }:
     };
   });
 #+end_src
+** ~share1~
+#+begin_src nix
+share1 = ({ config, pkgs, ... }:
+
+  {
+    imports = [
+      raspberryPi4
+      wireless
+      share
+    ];
+
+    networking.hostName = "share1";
+
+    nixpkgs.hostPlatform = "aarch64-linux";
+  });
+#+end_src
 ** Linode
 #+begin_src nix
 linode = ({ config, lib, pkgs, modulesPath, ... }:
@@ -295,6 +311,7 @@ linode = ({ config, lib, pkgs, modulesPath, ... }:
       '';
       loader.grub.device = "nodev";
       loader.timeout = 10;
+      binfmt.emulatedSystems = [ "aarch64-linux" ];
     };
 
     fileSystems."/" = {
@@ -1624,7 +1641,9 @@ in
 darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
   modules = with nixosModules; [
     darwinSystem
-    { nixpkgs.hostPlatform = "x86_64-darwin"; }
+    {
+      nixpkgs.hostPlatform = "x86_64-darwin";
+    }
   ];
 };
 homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
@@ -1665,24 +1684,49 @@ homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
 #+NAME: share1
 #+begin_src nix
 nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
-  modules = with nixosModules; [
-    raspberryPi4
-    wireless
-    share
-    {
-      networking.hostName = "share1";
-    }
-    "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
-    {
-      sdImage.compressImage = false;
-
-      nixpkgs.config.allowUnsupportedSystem = true;
-      nixpkgs.hostPlatform.system = "x86_64-linux";
-      nixpkgs.buildPlatform.system = "aarch64-linux";
-    }
-  ];
+  modules = with nixosModules; [ share1 ];
 };
-packages.x86_64-linux.share1Image = nixosConfigurations.share1.config.system.build.sdImage;
+# packages.x86_64-linux.share1Image = let
+  # nixosSystem = nixpkgs.lib.nixosSystem {
+    # modules = with nixosModules; [
+      # share1
+      # "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+      # {
+        # sdImage.compressImage = false;
+       #  
+        # nixpkgs.buildPlatform = "x86_64-linux";
+      # }
+    # ];
+  # };
+# in
+  # nixosSystem.config.system.build.sdImage;
+packages.x86_64-linux.share1Image = let
+  pkgs = nixpkgs.legacyPackages.x86_64-linux;
+  pkgsCross = pkgs.pkgsCross.aarch64-multiplatform;
+  nixosSystem = pkgsCross.nixos {
+    imports = with nixosModules; [
+      share1
+      "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+      {
+        sdImage.compressImage = false;
+      }
+    ];
+  };
+in
+  nixosSystem.config.system.build.sdImage;
+packages.aarch64-linux.share1Image = nixosConfigurations.share1.config.system.build.sdImage;
+# packages.x86_64-linux.share1Image = let
+#   pkgs = nixpkgs.legacyPackages.x86_64-linux;
+#   pkgsAarch64 = pkgs.pkgsCross.aarch64-multiplatform;
+#   nixosSystem = pkgsAarch64.nixos {
+#     imports = with nixosModules; [
+#       "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+#       share1
+#       { sdImage.compressImage = false; }
+#     ];
+#   };
+# in
+#   nixosSystem.config.system.build.sdImage;
 homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration {
   pkgs = import nixpkgs {
     system = "aarch64-linux";
@@ -1713,6 +1757,24 @@ nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activation
 #+end_src
 
 *** TODO Prolly you can make a variable and run this directly from here
+** Build Raspberry Pi 4 Image on macOS
+See [[https://github.com/LnL7/nix-docker]].
+See [[https://myme.no/posts/2022-12-01-nixos-on-raspberrypi.html#cross-compiling]]
+See [[https://artemis.sh/2023/06/06/cross-compile-nixos-for-great-good.html]]
+
+To get the docker container running:
+
+#+begin_src shell
+docker run --name nix-docker -d -p 3022:22 lnl7/nix:ssh
+#+end_src
+
+#+begin_src shell
+nix build --show-trace -vv --builders 'ssh://nix-docker x86_64-linux' .#packages.x86_64-linux.share1Image
+#+end_src
+
+#+begin_src shell
+nix build --max-jobs 0 -vv --builders ssh://nix-docker .#packages.x86_64-linux.share1Image
+#+end_src
 ** Linode
 Probably ignore all of this. Should try Hetzner or Digital Ocean using
 nixops or terraform.

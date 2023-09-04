@@ -170,6 +170,19 @@
               guiAddress = "0.0.0.0:8384";
             };
           });
+        share1 = ({ config, pkgs, ... }:
+        
+          {
+            imports = [
+              raspberryPi4
+              wireless
+              share
+            ];
+        
+            networking.hostName = "share1";
+        
+            nixpkgs.hostPlatform = "aarch64-linux";
+          });
         linode = ({ config, lib, pkgs, modulesPath, ... }:
         
           {
@@ -191,6 +204,7 @@
               '';
               loader.grub.device = "nodev";
               loader.timeout = 10;
+              binfmt.emulatedSystems = [ "aarch64-linux" ];
             };
         
             fileSystems."/" = {
@@ -905,7 +919,9 @@
       darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
         modules = with nixosModules; [
           darwinSystem
-          { nixpkgs.hostPlatform = "x86_64-darwin"; }
+          {
+            nixpkgs.hostPlatform = "x86_64-darwin";
+          }
         ];
       };
       homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
@@ -927,24 +943,49 @@
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
       nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
-        modules = with nixosModules; [
-          raspberryPi4
-          wireless
-          share
-          {
-            networking.hostName = "share1";
-          }
-          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64-installer.nix"
-          {
-            sdImage.compressImage = false;
-      
-            nixpkgs.config.allowUnsupportedSystem = true;
-            nixpkgs.hostPlatform.system = "x86_64-linux";
-            nixpkgs.buildPlatform.system = "aarch64-linux";
-          }
-        ];
+        modules = with nixosModules; [ share1 ];
       };
-      packages.x86_64-linux.share1Image = nixosConfigurations.share1.config.system.build.sdImage;
+      # packages.x86_64-linux.share1Image = let
+        # nixosSystem = nixpkgs.lib.nixosSystem {
+          # modules = with nixosModules; [
+            # share1
+            # "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+            # {
+              # sdImage.compressImage = false;
+             #  
+              # nixpkgs.buildPlatform = "x86_64-linux";
+            # }
+          # ];
+        # };
+      # in
+        # nixosSystem.config.system.build.sdImage;
+      packages.x86_64-linux.share1Image = let
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        pkgsCross = pkgs.pkgsCross.aarch64-multiplatform;
+        nixosSystem = pkgsCross.nixos {
+          imports = with nixosModules; [
+            share1
+            "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+            {
+              sdImage.compressImage = false;
+            }
+          ];
+        };
+      in
+        nixosSystem.config.system.build.sdImage;
+      packages.aarch64-linux.share1Image = nixosConfigurations.share1.config.system.build.sdImage;
+      # packages.x86_64-linux.share1Image = let
+      #   pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      #   pkgsAarch64 = pkgs.pkgsCross.aarch64-multiplatform;
+      #   nixosSystem = pkgsAarch64.nixos {
+      #     imports = with nixosModules; [
+      #       "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+      #       share1
+      #       { sdImage.compressImage = false; }
+      #     ];
+      #   };
+      # in
+      #   nixosSystem.config.system.build.sdImage;
       homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
           system = "aarch64-linux";
