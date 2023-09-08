@@ -95,7 +95,7 @@
               users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
         
               homebrew.enable = true;
-              homebrew.casks = [ "spotify" "zoom" "docker" ];
+              homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
         
               services.tailscale.enable = true;
             };
