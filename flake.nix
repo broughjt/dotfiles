@@ -1027,5 +1027,9 @@
         path = ./templates/herbie;
         description = "Herbie template";
       };
+      templates.coq = {
+        path = ./templates/coq;
+        description = "Coq template";
+      };
     };
 }

@@ -80,18 +80,7 @@ which I'm actually decently happy with.
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });
-      templates.rust = {
-        path = ./templates/rust;
-        description = "Rust template";
-      };
-      templates.python = {
-        path = ./templates/python;
-        description = "Python template";
-      };
-      templates.herbie = {
-        path = ./templates/herbie;
-        description = "Herbie template";
-      };
+      <<templates>>
     };
 }
 #+end_src
@@ -1634,6 +1623,61 @@ in
 }
 #+end_src
 ** TODO Figure out some way to deduplicate ssh keys across configuration
+* Templates
+:PROPERTIES:
+:header-args: :noweb-ref templates
+:END:
+
+** Rust
+#+begin_src nix
+templates.rust = {
+  path = ./templates/rust;
+  description = "Rust template";
+};
+#+end_src
+
+** Python
+#+begin_src nix
+templates.python = {
+  path = ./templates/python;
+  description = "Python template";
+};
+#+end_src
+
+** Herbie
+[[https://github.com/herbie-fp/herbie]]
+
+#+begin_src nix
+templates.herbie = {
+  path = ./templates/herbie;
+  description = "Herbie template";
+};
+#+end_src
+
+** Coq
+After ~nix flake init~-ing, you'll want to create a ~_CoqProject~
+file, containing the line
+
+#+begin_src text :noweb-ref no
+-Q . <namespace>
+#+end_src
+
+where ~<namespace>~ is the name of whatever is going on with modules
+and packages in Coq. Then you'll want to run
+
+#+begin_src shell :noweb-ref no
+coq_makefile -f _CoqProject *.v -o Makefile
+#+end_src
+
+Then you can ~make~ and ~make clean~. I got this from reading Software
+Foundations, specifically from the beginning of the [[https://softwarefoundations.cis.upenn.edu/lf-current/Induction.html][chapter on induction]].
+
+#+begin_src nix
+templates.coq = {
+  path = ./templates/coq;
+  description = "Coq template";
+};
+#+end_src
 * Systems
 ** ~kenobi~
 #+NAME: kenobi
