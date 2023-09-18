@@ -25,7 +25,7 @@ hilarious); I also made my first pass through /How to Take Smart
 Notes/ by Sönke Ahrens this summer, and am therefore obligated to try
 becoming an org-roam cultist as well.
 
-I tried the whole [[https://nixos.wiki/wiki/Import_From_Derivation][IFD]] thing, and back in the git history, there was an
+I tried the whole [[https://nixos.wiki/wiki/Import_From_Derivation][IFD]] thing, and back in the git history there is an
 attempt at a tiny flake that had just enough to tangle this org file,
 build the generated flake as a derivation, and evaluate that
 derivation by importing it, but I can't yet bend spoons with my nix
