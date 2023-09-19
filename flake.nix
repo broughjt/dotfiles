@@ -121,11 +121,11 @@
         
           {
             imports = [
-              (modulesPath + "/installer/scan/not-detected.nix")
               linuxSystem
             ];
         
             boot = {
+              kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
               initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
               loader = {
                 grub.enable = false;
@@ -142,10 +142,13 @@
               };
             };
         
-            powerManagement.enable = true;
-            powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
+            networking.wireless = {
+              enable = true;
+              interfaces = [ "wlan0" ];
+            };
         
-            # nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+            powerManagement.enable = true;
+            powerManagement.cpuFreqGovernor = "ondemand";
           });
         share = ({ config, pkgs, ... }:
           
