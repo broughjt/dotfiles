@@ -385,7 +385,7 @@
             home.stateVersion = "23.05";
             home.packages = with pkgs; [
               pkgs.agenix
-              exa
+              eza
               jq
               ripgrep
                 
