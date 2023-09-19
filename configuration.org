@@ -190,6 +190,8 @@ linuxSystem = { config, pkgs, ... }:
 
     system.stateVersion = "23.05";
 
+    hardware.enableRedistributableFirmware = true;
+
     users.users.${config.personal.userName} = {
       home = "/home/${config.personal.userName}";
       extraGroups = [ "docker" "wheel" ];
@@ -219,7 +221,6 @@ raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:
         generic-extlinux-compatible.enable = true;
       };
     };
-    hardware.enableRedistributableFirmware = true;
 
     fileSystems = {
       "/" = {
@@ -347,7 +348,6 @@ murph = ({ config, lib, modulesPath, pkgs, ... }:
   
   {
     imports = [
-      (modulesPath + "/installer/scan/not-detected.nix")
       linuxSystem
     ];
     
@@ -468,7 +468,7 @@ murph = ({ config, lib, modulesPath, pkgs, ... }:
       settings.PasswordAuthentication = true;
       settings.KbdInteractiveAuthentication = true;
     };
-
+    
     services.tailscale.enable = true;
     
     users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];

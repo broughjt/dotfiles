@@ -107,6 +107,8 @@
         
             system.stateVersion = "23.05";
         
+            hardware.enableRedistributableFirmware = true;
+        
             users.users.${config.personal.userName} = {
               home = "/home/${config.personal.userName}";
               extraGroups = [ "docker" "wheel" ];
@@ -132,7 +134,6 @@
                 generic-extlinux-compatible.enable = true;
               };
             };
-            hardware.enableRedistributableFirmware = true;
         
             fileSystems = {
               "/" = {
@@ -248,7 +249,6 @@
           
           {
             imports = [
-              (modulesPath + "/installer/scan/not-detected.nix")
               linuxSystem
             ];
             
@@ -369,7 +369,7 @@
               settings.PasswordAuthentication = true;
               settings.KbdInteractiveAuthentication = true;
             };
-        
+            
             services.tailscale.enable = true;
             
             users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
