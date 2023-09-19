@@ -2,6 +2,7 @@
 #+date: <2023-08-15 Tue>
 #+author: Jackson Brough
 
+* TODO [[https://terranix.org/documentation/getting-startet-with-nix-flakes/]]
 * "Are these your configuration files, Larry?"
 
 This has been my experience with Emacs: I would re-clone my ~.emacs.d~
