@@ -498,7 +498,8 @@
               UniversalSearchEnabled = false;
               AutoFillFromAddressBook = false;
               AutoFillPasswords = false;
-              IncludeDevelopMenu = false;
+              IncludeDevelopMenu = true;
+              SandboxBroker.ShowDevelopMenu = true;
               AutoFillCreditCardData = false;
               AutoFillMiscellaneousForms = false;
               ShowFavoritesBar = false;
