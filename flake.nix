@@ -957,6 +957,21 @@
       nixosConfigurations.hetzner1 = nixpkgs.lib.nixosSystem {
         modules = [ nixosModules.hetzner1 ];
       };
+      nixosConfigurations.raspberryPi4Image = nixpkgs.lib.nixosSystem {
+        modules = [
+          raspberryPi4
+          {
+            networking.hostName = "share1";
+            # networking.wireless.networks."TheShire".psk = "<the shire password>";
+      
+            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
+            users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
+      
+            nixpkgs.hostPlatform = "aarch64-linux";
+          }
+        ];
+      };
+      packages.aarch64.raspberryPi4Image = nixosConfigurations.raspberryPi4Image.config.system.build.sdImage;
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });

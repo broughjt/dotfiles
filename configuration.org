@@ -78,6 +78,7 @@ which I'm actually decently happy with.
       <<kenobi>>
       <<share1>>
       <<hetzner1>>
+      <<raspberryPi4Image>>
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });
@@ -1742,6 +1743,25 @@ homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
 nixosConfigurations.hetzner1 = nixpkgs.lib.nixosSystem {
   modules = [ nixosModules.hetzner1 ];
 };
+#+end_src
+** Raspberry pi 4 image
+#+NAME: raspberryPi4Image
+#+begin_src nix
+nixosConfigurations.raspberryPi4Image = nixpkgs.lib.nixosSystem {
+  modules = [
+    raspberryPi4
+    {
+      networking.hostName = "share1";
+      # networking.wireless.networks."TheShire".psk = "<the shire password>";
+
+      users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
+      users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
+
+      nixpkgs.hostPlatform = "aarch64-linux";
+    }
+  ];
+};
+packages.aarch64.raspberryPi4Image = nixosConfigurations.raspberryPi4Image.config.system.build.sdImage;
 #+end_src
 ** TODO [[https://myme.no/posts/2022-12-01-nixos-on-raspberrypi.html]] How does this work?
 ** TODO Make syncthing configuration entirely declarative, have a module and a list of encrypted ids
