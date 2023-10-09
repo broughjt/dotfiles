@@ -212,7 +212,7 @@
               fsType = "ext4";
             };
           });
-        hetzner1 = ({ config, ... }:
+        hetzner1 = ({ config, lib, ... }:
         
           {
             imports = [ hetzner ];
@@ -221,19 +221,34 @@
               device = "/dev/disk/by-uuid/77CF-345D"; fsType = "vfat";
             };
         
-            networking.hostName = "hetzner1";
-            systemd.network.enable = true;
-            systemd.network.networks."10-wan" = {
-              matchConfig.Name = "enp1s0"; # either ens3 (amd64) or enp1s0 (arm64)
-              networkConfig.DHCP = "ipv4";
-              address = [
-                # replace this address with the one assigned to your instance
-                "2a01:4f9:c012:9c1b::1/64"
-              ];
-              routes = [
-                { routeConfig.Gateway = "fe80::1"; }
-              ];
+            networking = {
+              hostName = "hetzner1";
+              nameservers = [ "8.8.8.8" ];
+              defaultGateway = "172.31.1.1";
+              defaultGateway6 = {
+                address = "fe80::1";
+                interface = "eth0";
+              };
+              dhcpcd.enable = false;
+              usePredictableInterfaceNames = lib.mkForce false;
+              interfaces = {
+                eth0 = {
+                  ipv4.addresses = [
+                    { address="65.21.158.247"; prefixLength=32; }
+                  ];
+                  ipv6.addresses = [
+                    { address="2a01:4f9:c012:9c1b::1"; prefixLength=64; }
+                    { address="fe80::9400:2ff:fe9b:f68d"; prefixLength=64; }
+                  ];
+                  ipv4.routes = [ { address = "172.31.1.1"; prefixLength = 32; } ];
+                  ipv6.routes = [ { address = "fe80::1"; prefixLength = 128; } ];
+                };
+                
+              };
             };
+            services.udev.extraRules = ''
+              ATTR{address}=="96:00:02:9b:f6:8d", NAME="eth0"
+            '';
         
             users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
             users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
