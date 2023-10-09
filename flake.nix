@@ -187,63 +187,58 @@
         
             nixpkgs.hostPlatform = "aarch64-linux";
           });
-        linode = ({ config, lib, pkgs, modulesPath, ... }:
+        hetzner = ({ config, lib, pkgs, modulesPath, ... }:
         
           {
             imports = [
               (modulesPath + "/profiles/qemu-guest.nix")
               linuxSystem
-              tailscale-autoconnect
             ];
         
             boot = {
-              initrd.availableKernelModules = [ "virtio_pci" "virtio_scsi" "ahci" "sd_mod" ];
-              kernelParams = [ "console=ttyS0,19200n8" ];
-              loader.grub.enable = true;
-              loader.grub.forceInstall = true;
-              loader.grub.extraConfig = ''
-                serial --speed=19200 --unit=0 --word=8 --parity=no --stop=1;
-                terminal_input serial;
-                terminal_output serial
-              '';
-              loader.grub.device = "nodev";
-              loader.timeout = 10;
-              binfmt.emulatedSystems = [ "aarch64-linux" ];
+              cleanTmpDir = true;
+              loader.grub = {
+                efiSupport = true;
+                efiInstallAsRemovable = true;
+                device = "nodev";
+              };
+              initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "xen_blkfront" ];
+              initrd.kernelModules = [ "nvme" ];
             };
+            zramSwap.enable = true;
         
             fileSystems."/" = {
-              device = "/dev/sda";
+              device = "/dev/sda1";
               fsType = "ext4";
             };
-            swapDevices = [ { device = "/dev/sdb"; } ];
+          });
+        hetzner1 = ({ config, ... }:
         
-            networking.usePredictableInterfaceNames = false;
-            networking.useDHCP = false;
-            networking.interfaces.eth0.useDHCP = true;
+          {
+            imports = [ hetzner ];
         
-            time.timeZone = "UTC";
+            fileSystems."/boot" = {
+              device = "/dev/disk/by-uuid/77CF-345D"; fsType = "vfat";
+            };
         
-            nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-        
-            services.openssh.settings.PermitRootLogin = "yes";
-        
-            # age.secrets.linode1-password.file = ./secrets/linode1-password.age;
-            # users.mutableUsers = false;
-            users.users.${config.personal.userName} = {
-              # passwordFile = config.age.secrets.linode1-password.path;
-              openssh.authorizedKeys.keys = [
-                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com"
+            networking.hostName = "hetzner1";
+            systemd.network.enable = true;
+            systemd.network.networks."10-wan" = {
+              matchConfig.Name = "enp1s0"; # either ens3 (amd64) or enp1s0 (arm64)
+              networkConfig.DHCP = "ipv4";
+              address = [
+                # replace this address with the one assigned to your instance
+                "2a01:4f9:c012:9c1b::1/64"
+              ];
+              routes = [
+                { routeConfig.Gateway = "fe80::1"; }
               ];
             };
         
-            environment.systemPackages = [ pkgs.tailscale ];
-            
-            age.secrets.auth-key-linode1.file = ./secrets/auth-key-linode1.age;
-            services.tailscaleAutoConnect = {
-              enable = true;
-              authKeyFile = config.age.secrets.auth-key-linode1.path;
-              loginServer = "https://login.tailscale.com";
-            };
+            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
+            users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
+        
+            nixpkgs.hostPlatform = "aarch64-linux";
           });
         murph = ({ config, lib, modulesPath, pkgs, ... }:
           
@@ -862,9 +857,6 @@
             };
           };
         };
-        # let ssh = {
-          # kenobi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com";
-        # };
         homeManagerNixOSModule = module: inputs:
           {
             imports = [ personal ];
@@ -946,76 +938,8 @@
         ];
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
-      nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
-        modules = with nixosModules; [ share1 ];
-      };
-      # packages.x86_64-linux.share1Image = let
-        # nixosSystem = nixpkgs.lib.nixosSystem {
-          # modules = with nixosModules; [
-            # share1
-            # "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-            # {
-              # sdImage.compressImage = false;
-             #  
-              # nixpkgs.buildPlatform = "x86_64-linux";
-            # }
-          # ];
-        # };
-      # in
-        # nixosSystem.config.system.build.sdImage;
-      packages.x86_64-linux.share1Image = let
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        pkgsCross = pkgs.pkgsCross.aarch64-multiplatform;
-        nixosSystem = pkgsCross.nixos {
-          imports = with nixosModules; [
-            share1
-            "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-            {
-              sdImage.compressImage = false;
-            }
-          ];
-        };
-      in
-        nixosSystem.config.system.build.sdImage;
-      packages.aarch64-linux.share1Image = let
-        nixosSystem = nixpkgs.lib.nixosSystem {
-          modules = with nixosModules; [
-            share1
-            "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-            {
-              sdImage.compressImage = true;
-            }
-          ];
-        };
-      in
-        nixosSystem.config.system.build.sdImage;
-      # packages.x86_64-linux.share1Image = let
-      #   pkgs = nixpkgs.legacyPackages.x86_64-linux;
-      #   pkgsAarch64 = pkgs.pkgsCross.aarch64-multiplatform;
-      #   nixosSystem = pkgsAarch64.nixos {
-      #     imports = with nixosModules; [
-      #       "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-      #       share1
-      #       { sdImage.compressImage = false; }
-      #     ];
-      #   };
-      # in
-      #   nixosSystem.config.system.build.sdImage;
-      homeConfigurations."jackson@share1" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "aarch64-linux";
-          config.allowUnfree = true;
-        };
-        modules = with nixosModules; [ linuxHomeHeadless ];
-      };
-      nixosConfigurations.linode1 = nixpkgs.lib.nixosSystem {
-        modules = with nixosModules; [
-          linode
-          # home-manager.nixosModules.home-manager
-          # (homeManagerNixOSModule linuxHomeHeadless)
-          { networking.hostName = "linode1"; }
-        ];
-      };
+      
+      
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });
