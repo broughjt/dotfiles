@@ -196,7 +196,7 @@
             ];
         
             boot = {
-              cleanTmpDir = true;
+              tmp.cleanOnBoot = true;
               loader.grub = {
                 efiSupport = true;
                 efiInstallAsRemovable = true;
@@ -954,7 +954,9 @@
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
       
-      
+      nixosConfigurations.hetzner1 = nixpkgs.lib.nixosSystem {
+        modules = [ nixosModules.hetzner1 ];
+      };
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });

@@ -77,7 +77,7 @@ which I'm actually decently happy with.
       <<murph>>
       <<kenobi>>
       <<share1>>
-      <<linode1>>
+      <<hetzner1>>
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });
@@ -293,7 +293,7 @@ hetzner = ({ config, lib, pkgs, modulesPath, ... }:
     ];
 
     boot = {
-      cleanTmpDir = true;
+      tmp.cleanOnBoot = true;
       loader.grub = {
         efiSupport = true;
         efiInstallAsRemovable = true;
@@ -1737,9 +1737,10 @@ homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
 };
 #+end_src
 ** ~hetzner1~
+#+NAME: hetzner1
 #+begin_src nix
 nixosConfigurations.hetzner1 = nixpkgs.lib.nixosSystem {
-  modules = with nixosModules; [ heztner1 ];
+  modules = [ nixosModules.hetzner1 ];
 };
 #+end_src
 ** TODO [[https://myme.no/posts/2022-12-01-nixos-on-raspberrypi.html]] How does this work?
