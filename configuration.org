@@ -1608,12 +1608,12 @@ See https://coredumped.dev/2020/01/04/native-shell-completion-in-emacs/
 *** TODO Try disabling flymake and flycheck when using eglot, maybe slow
 https://www.reddit.com/r/emacs/comments/10w30uj/any_good_tips_to_speed_up_eglotpyright_setup/
 * Secrets
-At this point in my life I've decided that I don't understand ssh
+At this point in my life, I've decided that I don't understand ssh
 keys. I've come off Mount Stupid and am in the Valley of Despair. From
 this [[https://superuser.com/questions/189355/is-it-ok-to-share-private-key-file-between-multiple-computers-services][stack exchange post]] and other things I've read, my best guess is
 that I am *NOT* supposed to have some user key who's private key is
 on multiple computers. That would be bad. I should instead have one
-key per machine, and it there should only be one copy anywhere.
+key per machine, and there should only be one copy anywhere.
 
 #+begin_src nix :tangle secrets/secrets.nix
 let
