@@ -1747,6 +1747,13 @@ nixosConfigurations.raspberryPi4Image = nixpkgs.lib.nixosSystem {
   ];
 };
 packages.aarch64-linux.raspberryPi4Image = nixosConfigurations.raspberryPi4Image.config.system.build.sdImage;
+nixosConfigurations.share1Image = nixpkgs.lib.nixosSystem {
+  modules = [
+    nixosModules.share1
+    "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+  ];
+};
+packages.aarch64-linux.share1Image = nixosConfigurations.raspberryPi4Image.config.system.build.sdImage;
 #+end_src
 ** TODO Get rid of extra ~allowUnfree~s
 * Commands
