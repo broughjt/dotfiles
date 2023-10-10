@@ -973,7 +973,7 @@
           "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
         ];
       };
-      packages.aarch64-linux.share1Image = nixosConfigurations.raspberryPi4Image.config.system.build.sdImage;
+      packages.aarch64-linux.share1Image = nixosConfigurations.share1Image.config.system.build.sdImage;
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });
