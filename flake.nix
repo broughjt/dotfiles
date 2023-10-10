@@ -879,7 +879,7 @@
               enable = true;
               dataDir = config.users.users.${config.personal.userName}.home;
               openDefaultPorts = true;
-              # TODO: Sync up with home manager xdg directories some how?
+              # TODO: Sync up with home manager xdg directories somehow?
               user = config.personal.userName;
               guiAddress = "0.0.0.0:8384";
               declarative = {

@@ -1025,7 +1025,7 @@ syncthing = ({ config, pkgs, ... }:
       enable = true;
       dataDir = config.users.users.${config.personal.userName}.home;
       openDefaultPorts = true;
-      # TODO: Sync up with home manager xdg directories some how?
+      # TODO: Sync up with home manager xdg directories somehow?
       user = config.personal.userName;
       guiAddress = "0.0.0.0:8384";
       declarative = {
@@ -1756,6 +1756,13 @@ nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activation
 #+end_src
 
 *** TODO Prolly you can make a variable and run this directly from here
+** Raspberry Pi Serial Console
+See
+[[https://www.jeffgeerling.com/blog/2021/attaching-raspberry-pis-serial-console-uart-debugging]].
+
+#+begin_src shell
+screen /dev/tty.usbserial-1420 115200
+#+end_src
 * COMMENT Local variables
 # Local Variables:
 # eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
