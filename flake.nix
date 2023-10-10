@@ -113,7 +113,10 @@
             ];
         
             boot = {
-              kernelParams = [ "console=ttyS1,115200n8" ];
+              kernelParams = [
+                "console=ttyS0,115200"
+                "console=tty1"
+              ];
               initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
               loader = {
                 grub.enable = false;
