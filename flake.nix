@@ -974,7 +974,7 @@
           ({ config, ... }: {
             users.users.${config.personal.userName}.initialPassword = "password";
             users.users.root.initialPassword = "password";
-          }
+          })
         ];
       };
       packages.aarch64-linux.share1Image = nixosConfigurations.share1Image.config.system.build.sdImage;
