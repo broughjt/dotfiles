@@ -42,6 +42,10 @@
               userName = lib.mkOption { type = lib.types.str; default = "jackson"; };
               fullName = lib.mkOption { type = lib.types.str; default = "Jackson Brough"; };
               email = lib.mkOption { type = lib.types.str; default = "jacksontbrough@gmail.com"; };
+              machines = {
+                kenobi = lib.mkOption { type = lib.types.str; default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com"; };
+                share1 = lib.mkOption { type = lib.types.str; default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvxlv9Oa/tRPLdXqeYxNAuS0V6com5sHqzVZSJ2AYnc+D3JkgpUyayaLOq16qdLGMh7ojLKc5+jk0qBekns/iSqT1MRE5//U5RqHcy6P85Z+JDxuILMRfAn+ub820zjN9kODjKsYHLS2V8xE15R8lWA16SK6OtU3PxdwfL0+Ulxf+ixljyJzSiD7bteIZDg80xmeRaI2FCrXGkh/rLroSHP48ukJ//K+DIR/BZjG6jQERbxkAwsdBTgqwzn3FlQvduo4rkEPrTFxserZxZanMuRRkyJ8O623e2Gs9gPJqsqUGxStBYXLpANcPr24b1PDPqKubJAp3R5QuUFbd8ZD326dziw9GTkAghVcyHjzN2qiPear8xr3FyGtUlHL+6tCnImklZfXg/KF0vlHUk/GAQ5xfV5zft/PvHzMFNdottWKbQ5nIJpOS+gG7HtfuNTDnAlnabtmLVcr2xgbzJwLmdCl8ZFmNkkpfQqWGD60pGC9WL3lSy9SkKVYlCjMO8k7s= jackson@share1"; };
+              };
               repositoriesDirectory = lib.mkOption {
                 type = lib.types.str; 
                 default = "${config.home.homeDirectory}/repositories";
@@ -81,24 +85,6 @@
             programs.fish.enable = true;
         
             users.users.${config.personal.userName}.shell = pkgs.fish;
-          };
-        darwinSystem = { config, pkgs, ... }:
-        
-          {
-            imports = [ system ];
-        
-            config = {
-              services.nix-daemon.enable = true;
-              system.configurationRevision = self.rev or self.dirtyRev or null;
-              system.stateVersion = 4;
-        
-              users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
-        
-              homebrew.enable = true;
-              homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
-        
-              services.tailscale.enable = true;
-            };
           };
         linuxSystem = { config, pkgs, ... }:
         
@@ -166,12 +152,12 @@
               loginServer = "https://login.tailscale.com";
             };
             
-            services.syncthing = {
-              enable = true;
-              user = config.personal.userName;
-              dataDir = config.users.users.${config.personal.userName}.home;
-              guiAddress = "0.0.0.0:8384";
-            };
+            # services.syncthing = {
+              # enable = true;
+              # user = config.personal.userName;
+              # dataDir = config.users.users.${config.personal.userName}.home;
+              # guiAddress = "0.0.0.0:8384";
+            # };
           });
         share1 = ({ config, pkgs, ... }:
         
@@ -183,6 +169,11 @@
             ];
         
             networking.hostName = "share1";
+        
+            users.users = {
+              ${config.personal.userName}.openssh.authorizedKeys.keys = [ config.personal.machines.kenobi ];
+              root.openssh.authorizedKeys.keys = [ config.personal.machines.kenobi ];
+            };
         
             nixpkgs.hostPlatform = "aarch64-linux";
           });
@@ -764,6 +755,7 @@
               enable = true;
               environmentFile = config.age.secrets.wireless.path;
               networks."The Shire".psk = "@THE_SHIRE_PSK@";
+              networks."DudeCave".psk = "@DUDE_CAVE_PSK@";
             };
           });
         tailscale-autoconnect = { config, lib, pkgs, ... }:
@@ -915,17 +907,6 @@
             programs.emacs.enable = true;
           };
       };
-      nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        modules = [ nixosModules.murph ];
-      };
-      homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "x86_64-linux";
-          config.allowUnfree = true;
-        };
-        modules = [ nixosModules.linuxHomeGraphical ];
-      };
       darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
         modules = with nixosModules; [
           darwinSystem
@@ -952,7 +933,20 @@
         ];
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
-      
+      nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        modules = [ nixosModules.murph ];
+      };
+      homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfree = true;
+        };
+        modules = [ nixosModules.linuxHomeGraphical ];
+      };
+      nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
+        modules = [ nixosModules.share1 ];
+      };
       nixosConfigurations.hetzner1 = nixpkgs.lib.nixosSystem {
         modules = [ nixosModules.hetzner1 ];
       };

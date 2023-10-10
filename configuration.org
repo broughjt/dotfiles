@@ -2,7 +2,6 @@
 #+date: <2023-08-15 Tue>
 #+author: Jackson Brough
 
-* TODO [[https://terranix.org/documentation/getting-startet-with-nix-flakes/]]
 * "Are these your configuration files, Larry?"
 
 This has been my experience with Emacs: I would re-clone my ~.emacs.d~
@@ -74,11 +73,7 @@ which I'm actually decently happy with.
       nixosModules = rec {
         <<modules>>
       };
-      <<murph>>
-      <<kenobi>>
-      <<share1>>
-      <<hetzner1>>
-      <<raspberryPi4Image>>
+      <<systems>>
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });
@@ -86,8 +81,6 @@ which I'm actually decently happy with.
     };
 }
 #+end_src
-
-** TODO Could tangle the templates too
 * Modules
 :PROPERTIES:
 :header-args: :noweb-ref modules
@@ -102,6 +95,10 @@ personal = { config, lib, ... }:
       userName = lib.mkOption { type = lib.types.str; default = "jackson"; };
       fullName = lib.mkOption { type = lib.types.str; default = "Jackson Brough"; };
       email = lib.mkOption { type = lib.types.str; default = "jacksontbrough@gmail.com"; };
+      machines = {
+        kenobi = lib.mkOption { type = lib.types.str; default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com"; };
+        share1 = lib.mkOption { type = lib.types.str; default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvxlv9Oa/tRPLdXqeYxNAuS0V6com5sHqzVZSJ2AYnc+D3JkgpUyayaLOq16qdLGMh7ojLKc5+jk0qBekns/iSqT1MRE5//U5RqHcy6P85Z+JDxuILMRfAn+ub820zjN9kODjKsYHLS2V8xE15R8lWA16SK6OtU3PxdwfL0+Ulxf+ixljyJzSiD7bteIZDg80xmeRaI2FCrXGkh/rLroSHP48ukJ//K+DIR/BZjG6jQERbxkAwsdBTgqwzn3FlQvduo4rkEPrTFxserZxZanMuRRkyJ8O623e2Gs9gPJqsqUGxStBYXLpANcPr24b1PDPqKubJAp3R5QuUFbd8ZD326dziw9GTkAghVcyHjzN2qiPear8xr3FyGtUlHL+6tCnImklZfXg/KF0vlHUk/GAQ5xfV5zft/PvHzMFNdottWKbQ5nIJpOS+gG7HtfuNTDnAlnabtmLVcr2xgbzJwLmdCl8ZFmNkkpfQqWGD60pGC9WL3lSy9SkKVYlCjMO8k7s= jackson@share1"; };
+      };
       repositoriesDirectory = lib.mkOption {
         type = lib.types.str; 
         default = "${config.home.homeDirectory}/repositories";
@@ -161,28 +158,6 @@ system = { config, pkgs, ... }:
   };
 #+end_src
 *** TODO Try nushell?
-*** TODO Turn off mutable users and use agenix for password
-** Darwin system
-#+begin_src nix
-darwinSystem = { config, pkgs, ... }:
-
-  {
-    imports = [ system ];
-
-    config = {
-      services.nix-daemon.enable = true;
-      system.configurationRevision = self.rev or self.dirtyRev or null;
-      system.stateVersion = 4;
-
-      users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
-
-      homebrew.enable = true;
-      homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
-
-      services.tailscale.enable = true;
-    };
-  };
-#+end_src
 ** Linux system
 #+begin_src nix
 linuxSystem = { config, pkgs, ... }:
@@ -258,12 +233,12 @@ share = ({ config, pkgs, ... }:
       loginServer = "https://login.tailscale.com";
     };
     
-    services.syncthing = {
-      enable = true;
-      user = config.personal.userName;
-      dataDir = config.users.users.${config.personal.userName}.home;
-      guiAddress = "0.0.0.0:8384";
-    };
+    # services.syncthing = {
+      # enable = true;
+      # user = config.personal.userName;
+      # dataDir = config.users.users.${config.personal.userName}.home;
+      # guiAddress = "0.0.0.0:8384";
+    # };
   });
 #+end_src
 ** ~share1~
@@ -278,6 +253,11 @@ share1 = ({ config, pkgs, ... }:
     ];
 
     networking.hostName = "share1";
+
+    users.users = {
+      ${config.personal.userName}.openssh.authorizedKeys.keys = [ config.personal.machines.kenobi ];
+      root.openssh.authorizedKeys.keys = [ config.personal.machines.kenobi ];
+    };
 
     nixpkgs.hostPlatform = "aarch64-linux";
   });
@@ -912,6 +892,7 @@ wireless = ({ config, ... }:
       enable = true;
       environmentFile = config.age.secrets.wireless.path;
       networks."The Shire".psk = "@THE_SHIRE_PSK@";
+      networks."DudeCave".psk = "@DUDE_CAVE_PSK@";
     };
   });
 #+end_src
@@ -1626,15 +1607,13 @@ key per machine, and there should only be one copy anywhere.
 let
   kenobi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com";
   linode1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJW41FXloY8w4tjYHbnfsopvpc8USCoSDsRKlInYbJkh root@linode1";
+  share1 = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvxlv9Oa/tRPLdXqeYxNAuS0V6com5sHqzVZSJ2AYnc+D3JkgpUyayaLOq16qdLGMh7ojLKc5+jk0qBekns/iSqT1MRE5//U5RqHcy6P85Z+JDxuILMRfAn+ub820zjN9kODjKsYHLS2V8xE15R8lWA16SK6OtU3PxdwfL0+Ulxf+ixljyJzSiD7bteIZDg80xmeRaI2FCrXGkh/rLroSHP48ukJ//K+DIR/BZjG6jQERbxkAwsdBTgqwzn3FlQvduo4rkEPrTFxserZxZanMuRRkyJ8O623e2Gs9gPJqsqUGxStBYXLpANcPr24b1PDPqKubJAp3R5QuUFbd8ZD326dziw9GTkAghVcyHjzN2qiPear8xr3FyGtUlHL+6tCnImklZfXg/KF0vlHUk/GAQ5xfV5zft/PvHzMFNdottWKbQ5nIJpOS+gG7HtfuNTDnAlnabtmLVcr2xgbzJwLmdCl8ZFmNkkpfQqWGD60pGC9WL3lSy9SkKVYlCjMO8k7s= jackson@share1";
 in
 {
-  "share1-auth-key1.age".publicKeys = [ kenobi ];
-  "auth-key-linode1.age".publicKeys = [ kenobi linode1 ];
-  "linode1-password.age".publicKeys = [ kenobi linode1 ];
-  "wireless.age".publicKeys = [ kenobi ];
+  "share1-auth-key1.age".publicKeys = [ kenobi share1 ];
+  "wireless.age".publicKeys = [ kenobi share1 ];
 }
 #+end_src
-** TODO Figure out some way to deduplicate ssh keys across configuration
 * Templates
 :PROPERTIES:
 :header-args: :noweb-ref templates
@@ -1691,8 +1670,11 @@ templates.coq = {
 };
 #+end_src
 * Systems
+:PROPERTIES:
+:header-args: :noweb-ref systems
+:END:
+
 ** ~kenobi~
-#+NAME: kenobi
 #+begin_src nix
 darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
   modules = with nixosModules; [
@@ -1722,7 +1704,6 @@ homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration 
 };
 #+end_src
 ** ~murph~
-#+NAME: murph
 #+begin_src nix
 nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
   system = "aarch64-linux";
@@ -1736,15 +1717,19 @@ homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
   modules = [ nixosModules.linuxHomeGraphical ];
 };
 #+end_src
+** ~share1~
+#+begin_src nix
+nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
+  modules = [ nixosModules.share1 ];
+};
+#+end_src
 ** ~hetzner1~
-#+NAME: hetzner1
 #+begin_src nix
 nixosConfigurations.hetzner1 = nixpkgs.lib.nixosSystem {
   modules = [ nixosModules.hetzner1 ];
 };
 #+end_src
 ** Raspberry pi 4 image
-#+NAME: raspberryPi4Image
 #+begin_src nix
 nixosConfigurations.raspberryPi4Image = nixpkgs.lib.nixosSystem {
   modules = [
@@ -1763,8 +1748,6 @@ nixosConfigurations.raspberryPi4Image = nixpkgs.lib.nixosSystem {
 };
 packages.aarch64-linux.raspberryPi4Image = nixosConfigurations.raspberryPi4Image.config.system.build.sdImage;
 #+end_src
-** TODO [[https://myme.no/posts/2022-12-01-nixos-on-raspberrypi.html]] How does this work?
-** TODO Make syncthing configuration entirely declarative, have a module and a list of encrypted ids
 ** TODO Get rid of extra ~allowUnfree~s
 * Commands
 ** Running ~home-manager switch~ without Home Manager 
@@ -1773,85 +1756,6 @@ nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activation
 #+end_src
 
 *** TODO Prolly you can make a variable and run this directly from here
-** Build Raspberry Pi 4 Image on macOS
-A journey.
-
-See [[https://github.com/LnL7/nix-docker]].
-See [[https://myme.no/posts/2022-12-01-nixos-on-raspberrypi.html#cross-compiling]]
-See [[https://artemis.sh/2023/06/06/cross-compile-nixos-for-great-good.html]]
-
-To get the docker container running:
-
-#+begin_src shell
-docker run --name nix-docker -d -p 3022:22 lnl7/nix:ssh
-#+end_src
-
-#+begin_src shell
-nix build --show-trace -vv --builders 'ssh://nix-docker x86_64-linux' .#packages.x86_64-linux.share1Image
-#+end_src
-
-#+begin_src shell
-nix build --max-jobs 0 -vv --builders ssh://nix-docker .#packages.x86_64-linux.share1Image
-#+end_src
-
-Oh wait, that doesn't actually work and we need parallel builders
-hours later down the line?
-
-Dude are you serious? [[https://nixos.org/manual/nixpkgs/unstable/#sec-darwin-builder]]
-** Linode
-Probably ignore all of this. Should try Hetzner or Digital Ocean using
-nixops or terraform.
-See
-[[https://www.linode.com/docs/guides/install-nixos-on-linode/]]
-for setup.
-
-I had to add ssh keys to my account, then you can ssh into the machine
-or the LISH thing to avoid having to use the weird GLISH thing. Worst
-case you have to enter GLISH, set a dummy password, and use ssh the
-rest of the time.
-
-The following will provision a new linode. The ~jq~ code assumes there
-aren't any in existence when it's run. I could sort by created and
-solve that problem, but ain't nobody got time for that right now.
-
-#+begin_src shell
-linode_id=$(nix run nixpkgs#linode-cli -- linodes create \
-  --backups_enabled false \
-  --booted true \
-  --label linode1 \
-  --private_ip false \
-  --region us-west \
-  --type g6-nanode-1 \
-  --json | jq .id)
-nix run nixpkgs#linode-cli -- linodes disk-create $id --label Installer --size 1024 --filesystem ext4
-sleep 10
-nix run nixpkgs#linode-cli -- linodes disk-create $id --label Swap --size 512 --filesystem swap
-sleep 10
-# 25600 (Maximum size for g6-nanode-1) - 1024 - 512
-nix run nixpkgs#linode-cli -- linodes disk-create $id --label NixOS --size 24064 --filesystem ext4
-sleep 10
-nix run nixpkgs#linode-cli -- linodes config-create $id \
-  --label Installer \
-  --kernel linode/direct-disk \
-  --devices.sda.disk-id 
-#+end_src
-
-Then create the disks:
-
-#+begin_src shell
-#+end_src
-
-Then create the two configuration profiles:
-
-#+begin_src 
-#+end_src
-
-#+begin_src shell
-nixos-install -v --show-trace --flake github:broughjt/dotfiles#<machine>
-#+end_src
-
-The ~nixos-install~ command doesn't have a ~--refresh~ option, but you
-can call ~nix-collect-garbage -d~ to accomplish the same thing.
 * COMMENT Local variables
 # Local Variables:
 # eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
