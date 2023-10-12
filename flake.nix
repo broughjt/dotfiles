@@ -195,6 +195,28 @@
               };
             };
             users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
+        
+            services.nginx = {
+              enable = true;
+              additionalModules = with pkgs.nginxModules; [ dav ];
+              virtualHosts.localhost = {
+                enableACME = true;
+                forceSSL = true;
+                root = config.services.syncthing.dataDir + "/share";
+                extraConfig = ''
+                  dav_methods PUT DELETE MKCOL COPY MOVE;
+                  dav_ext_methods PROPFIND OPTIONS;
+                  dav_access user:rw group:rw all:r;
+                  client_max_body_size 0;
+                  create_full_put_path on;
+                  autoindex on;
+                '';
+              };
+            };
+            security.acme = {
+              acceptTerms = true;
+              defaults.email = config.personal.email;
+            };
           });
         share1 = ({ config, pkgs, ... }:
         
