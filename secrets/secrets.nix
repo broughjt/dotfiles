@@ -4,5 +4,6 @@ let
 in
 {
   "share1-auth-key1.age".publicKeys = [ kenobi share1 ];
+  "share1-nextcloud-admin-password.age".publicKeys = [ kenobi share1 ];
   "wireless.age".publicKeys = [ kenobi share1 ];
 }

@@ -52,6 +52,7 @@
                   share1 = {
                     ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpnGMEUElcwgnuHpBXQa4xotZrRdT6VC/7b9n5TykXZ root@share1";
                     syncthing = "CQ6ZTVZ-PWRWMW2-2BTFJ7V-XSMIHHU-VS4JIPD-HI3ALDJ-FH6HW5L-Z3WDIAX";
+                    hostName = "share1.tail662f8.ts.net";
                   };
                 };
               };
@@ -167,10 +168,8 @@
             
             environment.systemPackages = [ pkgs.tailscale ];
             
-            age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
             services.tailscaleAutoConnect = {
               enable = true;
-              authKeyFile = config.age.secrets.share1-auth-key1.path;
               loginServer = "https://login.tailscale.com";
             };
         
@@ -196,22 +195,14 @@
             };
             users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
         
-            services.nginx = {
+            services.nextcloud = {
               enable = true;
-              additionalModules = with pkgs.nginxModules; [ dav ];
-              virtualHosts.localhost = {
-                enableACME = true;
-                forceSSL = true;
-                root = config.services.syncthing.dataDir + "/share";
-                extraConfig = ''
-                  dav_methods PUT DELETE MKCOL COPY MOVE;
-                  dav_ext_methods PROPFIND OPTIONS;
-                  dav_access user:rw group:rw all:r;
-                  client_max_body_size 0;
-                  create_full_put_path on;
-                  autoindex on;
-                '';
-              };
+              package = pkgs.nextcloud27;
+              https = true;
+            };
+            services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
+              forceSSL = true;
+              enableACME = true;
             };
             security.acme = {
               acceptTerms = true;
@@ -232,6 +223,15 @@
             users.users = {
               ${config.personal.userName}.openssh.authorizedKeys.keys = [ config.personal.devices.kenobi.ssh ];
               root.openssh.authorizedKeys.keys = [ config.personal.devices.kenobi.ssh ];
+            };
+        
+            age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
+            services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
+        
+            age.secrets.share1-nextcloud-admin-password.file = ./secrets/share1-nextcloud-admin-password.age;
+            services.nextcloud = {
+              hostName = config.personal.devices.share1.hostName;
+              config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
             };
         
             nixpkgs.hostPlatform = "aarch64-linux";
