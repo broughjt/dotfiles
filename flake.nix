@@ -47,7 +47,7 @@
                 devices = {
                   kenobi = {
                     ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com";
-                    syncthing = "";
+                    syncthing = "7MDSHYK-QQSLKTX-LDA4VKP-EJASTEQ-V5JUGRT-ZRCNC7K-BFK6KQR-GAZ4JQV";
                   };
                   share1 = {
                     ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpnGMEUElcwgnuHpBXQa4xotZrRdT6VC/7b9n5TykXZ root@share1";
@@ -163,7 +163,6 @@
           {
             imports = [
               tailscale-autoconnect
-              syncthing
             ];
             
             environment.systemPackages = [ pkgs.tailscale ];
@@ -175,7 +174,26 @@
               loginServer = "https://login.tailscale.com";
             };
         
-            services.syncthing.dataDir = config.users.users.${config.personal.userName}.home;
+            services.syncthing = {
+              enable = true;
+              openDefaultPorts = true;
+              user = config.personal.userName;
+              dataDir = config.users.users.${config.personal.userName}.home;
+              guiAddress = "0.0.0.0:8384";
+              overrideDevices = true;
+              overrideFolders = true;
+              settings = {
+                devices = {
+                  "kenobi".id = config.personal.devices.kenobi.syncthing;
+                };
+                folders = {
+                  "share" = {
+                    path = config.services.syncthing.dataDir + "share";
+                    devices = [ "kenobi" ];
+                  };
+                };
+              };
+            };
             users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
           });
         share1 = ({ config, pkgs, ... }:
@@ -460,7 +478,7 @@
         darwinHome = { config, pkgs, nixcasks, lib, ... }:
         
         {
-          imports = [ home emacsConfiguration defaultSettings syncthing ];
+          imports = [ home emacsConfiguration defaultSettings ];
            
           nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
         
@@ -482,7 +500,7 @@
           programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
           home.sessionVariables.EDITOR = "emacsclient";
         
-          services.syncthing.dataDir = config.home.homeDirectory;
+          services.syncthing.enable = true;
         };
         defaultSettings = { config, lib, ... }:
         
@@ -627,7 +645,7 @@
             startWithUserSession = "graphical";
           };
         
-          services.syncthing.enable = true;
+          # services.syncthing.enable = true;
         };
         slackOverlay = { pkgs, ... }:
         
@@ -888,22 +906,6 @@
         
             home-manager.users.${inputs.config.personal.userName} = (module inputs);
           };
-        syncthing = ({ config, pkgs, ... }:
-        
-          {
-            services.syncthing = {
-              enable = true;
-              openDefaultPorts = true;
-              user = config.personal.userName;
-              guiAddress = "0.0.0.0:8384";
-              # declarative = {
-              #   overrideDevices = true;
-              #   overrideFolders = true;
-              #   # devices = todo generate from personal.devices.all.syncthingIds - networking.hostName;
-              #   # folders = list devices should be folder, substract networking.hostName
-              # };
-            };
-          });
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
             inherit package;
