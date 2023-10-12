@@ -35,7 +35,7 @@
   outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay, agenix }:
     rec {
       nixosModules = rec {
-        personal = { config, lib, ... }:
+        personal = { lib, ... }:
         
           {
             options.personal = lib.mkOption {
@@ -54,11 +54,17 @@
                     syncthing = "";
                   };
                 };
-                repositoriesDirectory = "${config.home.homeDirectory}/repositories";
-                localDirectory = "${config.home.homeDirectory}/local";
-                scratchDirectory = "${config.home.homeDirectory}/scratch";
-                shareDirectory = "${config.home.homeDirectory}/share";
               };
+            };
+          };
+        defaultDirectories = { config, lib, ... }:
+        
+          {
+            options.defaultDirectories = {
+              repositoriesDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/repositories"; };
+              localDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/local"; };
+              scratchDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/scratch"; };
+              shareDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/share"; };
             };
           };
         package-manager = { pkgs, ... }:
@@ -139,7 +145,7 @@
           {
             imports = [
               tailscale-autoconnect
-              syncthing
+              # syncthing
             ];
             
             environment.systemPackages = [ pkgs.tailscale ];
@@ -369,7 +375,7 @@
         home = { lib, config, pkgs, ... }:
         
           {
-            imports = [ personal ];
+            imports = [ personal defaultDirectories ];
         
             nixpkgs.overlays = [ agenix.overlays.default ];
         
@@ -424,7 +430,7 @@
               target = "gopass/config";
               text = ''
                 [mounts]
-                    path = ${config.personal.repositoriesDirectory}/passwords
+                    path = ${config.defaultDirectories.repositoriesDirectory}/passwords
                 [recipients]
                     hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
               '';
@@ -481,7 +487,7 @@
         
             # TODO: Change to ~/shared/pictures
             "com.apple.screencapture" = {
-              location = config.personal.scratchDirectory;
+              location = config.defaultDirectories.scratchDirectory;
             };
         
             "com.apple.Safari" = {
@@ -569,13 +575,13 @@
           
           xdg.userDirs = {
             createDirectories = true;
-            documents = config.personal.scratchDirectory;
-            download = config.personal.scratchDirectory;
-            music = "${config.personal.shareDirectory}/music";
-            pictures = "${config.personal.shareDirectory}/pictures";
-            publicShare = config.personal.scratchDirectory;
-            templates = config.personal.scratchDirectory;
-            videos = "${config.personal.shareDirectory}/videos";
+            documents = config.defaultDirectories.scratchDirectory;
+            download = config.defaultDirectories.scratchDirectory;
+            music = "${config.defaultDirectories.shareDirectory}/music";
+            pictures = "${config.defaultDirectories.shareDirectory}/pictures";
+            publicShare = config.defaultDirectories.scratchDirectory;
+            templates = config.defaultDirectories.scratchDirectory;
+            videos = "${config.defaultDirectories.shareDirectory}/videos";
           };
           
           fonts.fontconfig.enable = true;
