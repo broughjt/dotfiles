@@ -921,17 +921,7 @@
           system = "x86_64-darwin";
           config.allowUnfree = true;
         };
-        modules = with nixosModules; [
-          darwinHome
-          ({ config, ... }: {
-            programs.ssh.matchBlocks."nix-docker" = {
-              user = "root";
-              hostname = "127.0.0.1";
-              port = 3022;
-              identityFile = config.home.homeDirectory + "/.ssh/docker_rsa";
-            };
-          })
-        ];
+        modules = with nixosModules; [ darwinHome ];
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
@@ -951,22 +941,6 @@
       nixosConfigurations.hetzner1 = nixpkgs.lib.nixosSystem {
         modules = [ nixosModules.hetzner1 ];
       };
-      nixosConfigurations.raspberryPi4Image = nixpkgs.lib.nixosSystem {
-        modules = [
-          nixosModules.raspberryPi4
-          "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-          ({ config, ... }: {
-            networking.hostName = "share1";
-            # networking.wireless.networks."TheShire".psk = "<the shire password>";
-      
-            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [ config.personal.machines.kenobi ];
-            users.users.root.openssh.authorizedKeys.keys = [ config.personal.machines.kenobi ];
-      
-            nixpkgs.hostPlatform = "aarch64-linux";
-          })
-        ];
-      };
-      packages.aarch64-linux.raspberryPi4Image = nixosConfigurations.raspberryPi4Image.config.system.build.sdImage;
       nixosConfigurations.share1Image = nixpkgs.lib.nixosSystem {
         modules = [
           nixosModules.share1
