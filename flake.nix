@@ -45,8 +45,14 @@
                 fullName = "Jackson Brough";
                 email = "jacksontbrough@gmail.com";
                 devices = {
-                  kenobi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com";
-                  share1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpnGMEUElcwgnuHpBXQa4xotZrRdT6VC/7b9n5TykXZ root@share1";
+                  kenobi = {
+                    ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com";
+                    syncthing = "";
+                  };
+                  share1 = {
+                    ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpnGMEUElcwgnuHpBXQa4xotZrRdT6VC/7b9n5TykXZ root@share1";
+                    syncthing = "";
+                  };
                 };
                 repositoriesDirectory = "${config.home.homeDirectory}/repositories";
                 localDirectory = "${config.home.homeDirectory}/local";
@@ -133,6 +139,7 @@
           {
             imports = [
               tailscale-autoconnect
+              syncthing
             ];
             
             environment.systemPackages = [ pkgs.tailscale ];
@@ -143,13 +150,6 @@
               authKeyFile = config.age.secrets.share1-auth-key1.path;
               loginServer = "https://login.tailscale.com";
             };
-            
-            # services.syncthing = {
-              # enable = true;
-              # user = config.personal.userName;
-              # dataDir = config.users.users.${config.personal.userName}.home;
-              # guiAddress = "0.0.0.0:8384";
-            # };
           });
         share1 = ({ config, pkgs, ... }:
         
@@ -163,8 +163,8 @@
             networking.hostName = "share1";
         
             users.users = {
-              ${config.personal.userName}.openssh.authorizedKeys.keys = [ config.personal.devices.kenobi ];
-              root.openssh.authorizedKeys.keys = [ config.personal.devices.kenobi ];
+              ${config.personal.userName}.openssh.authorizedKeys.keys = [ config.personal.devices.kenobi.ssh ];
+              root.openssh.authorizedKeys.keys = [ config.personal.devices.kenobi.ssh ];
             };
         
             nixpkgs.hostPlatform = "aarch64-linux";
@@ -870,15 +870,15 @@
               enable = true;
               dataDir = config.users.users.${config.personal.userName}.home;
               openDefaultPorts = true;
-              # TODO: Sync up with home manager xdg directories somehow?
+              # TODO: Sync up with home manager xdg directories somehow? Later interpretation, assuming that this is in order to set the configDir option properly
               user = config.personal.userName;
               guiAddress = "0.0.0.0:8384";
-              declarative = {
-                overrideDevices = true;
-                overrideFolders = true;
-                # devices = todo generate from personal.devices.all.syncthingIds - networking.hostName;
-                # folders = list devices should be folder, substract networking.hostName
-              };
+              # declarative = {
+              #   overrideDevices = true;
+              #   overrideFolders = true;
+              #   # devices = todo generate from personal.devices.all.syncthingIds - networking.hostName;
+              #   # folders = list devices should be folder, substract networking.hostName
+              # };
             };
         
             users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
