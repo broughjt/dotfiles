@@ -145,7 +145,7 @@
           {
             imports = [
               tailscale-autoconnect
-              # syncthing
+              syncthing
             ];
             
             environment.systemPackages = [ pkgs.tailscale ];
@@ -870,8 +870,6 @@
         syncthing = ({ config, pkgs, ... }:
         
           {
-            imports = [ personal ];
-        
             services.syncthing = {
               enable = true;
               dataDir = config.users.users.${config.personal.userName}.home;
