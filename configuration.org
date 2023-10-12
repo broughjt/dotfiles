@@ -188,6 +188,27 @@ linuxSystem = { config, pkgs, ... }:
   };
 #+end_src
 *** TODO Remove ssh password authentication
+** Darwin system
+#+begin_src nix
+darwinSystem = { config, pkgs, ... }:
+
+  {
+    imports = [ system ];
+
+    config = {
+      services.nix-daemon.enable = true;
+      system.configurationRevision = self.rev or self.dirtyRev or null;
+      system.stateVersion = 4;
+
+      users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
+
+      homebrew.enable = true;
+      homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
+
+      services.tailscale.enable = true;
+    };
+  };
+#+end_src
 ** Raspberry pi 4
 #+begin_src nix
 raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:

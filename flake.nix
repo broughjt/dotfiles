@@ -108,6 +108,24 @@
         
             services.openssh.enable = true;
           };
+        darwinSystem = { config, pkgs, ... }:
+        
+          {
+            imports = [ system ];
+        
+            config = {
+              services.nix-daemon.enable = true;
+              system.configurationRevision = self.rev or self.dirtyRev or null;
+              system.stateVersion = 4;
+        
+              users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
+        
+              homebrew.enable = true;
+              homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
+        
+              services.tailscale.enable = true;
+            };
+          };
         raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:
         
           {
