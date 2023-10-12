@@ -51,7 +51,7 @@
                   };
                   share1 = {
                     ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpnGMEUElcwgnuHpBXQa4xotZrRdT6VC/7b9n5TykXZ root@share1";
-                    syncthing = "";
+                    syncthing = "CQ6ZTVZ-PWRWMW2-2BTFJ7V-XSMIHHU-VS4JIPD-HI3ALDJ-FH6HW5L-Z3WDIAX";
                   };
                 };
               };
@@ -156,6 +156,9 @@
               authKeyFile = config.age.secrets.share1-auth-key1.path;
               loginServer = "https://login.tailscale.com";
             };
+        
+            services.syncthing.dataDir = config.users.users.${config.personal.userName}.home;
+            users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
           });
         share1 = ({ config, pkgs, ... }:
         
@@ -439,7 +442,7 @@
         darwinHome = { config, pkgs, nixcasks, lib, ... }:
         
         {
-          imports = [ home emacsConfiguration defaultSettings ];
+          imports = [ home emacsConfiguration defaultSettings syncthing ];
            
           nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
         
@@ -461,7 +464,7 @@
           programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
           home.sessionVariables.EDITOR = "emacsclient";
         
-          services.syncthing.enable = true;
+          services.syncthing.dataDir = config.home.homeDirectory;
         };
         defaultSettings = { config, lib, ... }:
         
@@ -872,9 +875,7 @@
           {
             services.syncthing = {
               enable = true;
-              dataDir = config.users.users.${config.personal.userName}.home;
               openDefaultPorts = true;
-              # TODO: Sync up with home manager xdg directories somehow? Later interpretation, assuming that this is in order to set the configDir option properly
               user = config.personal.userName;
               guiAddress = "0.0.0.0:8384";
               # declarative = {
@@ -884,8 +885,6 @@
               #   # folders = list devices should be folder, substract networking.hostName
               # };
             };
-        
-            users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
           });
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
