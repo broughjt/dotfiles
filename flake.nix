@@ -755,7 +755,7 @@
             networking.wireless = {
               enable = true;
               environmentFile = config.age.secrets.wireless.path;
-              networks."The Shire".psk = "@THE_SHIRE_PSK@";
+              networks."TheShire".psk = "@THE_SHIRE_PSK@";
               networks."DudeCave".psk = "@DUDE_CAVE_PSK@";
             };
           });
