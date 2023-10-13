@@ -113,19 +113,17 @@
         
           {
             imports = [ system ];
-        
-            config = {
-              services.nix-daemon.enable = true;
-              system.configurationRevision = self.rev or self.dirtyRev or null;
-              system.stateVersion = 4;
-        
-              users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
-        
-              homebrew.enable = true;
-              homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
-        
-              services.tailscale.enable = true;
-            };
+            
+            services.nix-daemon.enable = true;
+            system.configurationRevision = self.rev or self.dirtyRev or null;
+            system.stateVersion = 4;
+            
+            users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
+            
+            homebrew.enable = true;
+            homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
+            
+            services.tailscale.enable = true;
           };
         raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:
         
@@ -200,7 +198,10 @@
               package = pkgs.nextcloud27;
               https = true;
             };
-            services.nginx.virtualHosts.${config.services.nextcloud.hostName}.forceSSL = true;
+            services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
+              forceSSL = true;
+              enableACME = true;
+            };
           });
         share1 = ({ config, pkgs, ... }:
         
@@ -230,13 +231,13 @@
               hostName = config.personal.devices.share1.hostName;
               config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
             };
-            services.nginx.virtualHosts.${config.services.nextcloud.hostName} = let
-              prefix = "${config.users.users.${config.personal.userName}.home}/local/";
-            in
-              {
-                sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
-                sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
-              };
+            # services.nginx.virtualHosts.${config.services.nextcloud.hostName} = let
+              # prefix = "${config.users.users.${config.personal.userName}.home}/local/";
+            # in
+              # {
+                # sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
+                # sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
+              # };
         
             nixpkgs.hostPlatform = "aarch64-linux";
           });
