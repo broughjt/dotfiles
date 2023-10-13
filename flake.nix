@@ -221,7 +221,11 @@
             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
             services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
         
-            age.secrets.share1-nextcloud-admin-password.file = ./secrets/share1-nextcloud-admin-password.age;
+            age.secrets.share1-nextcloud-admin-password = {
+              file = ./secrets/share1-nextcloud-admin-password.age;
+              owner = "nextcloud";
+              group = "nextcloud";
+            };
             services.nextcloud = {
               hostName = config.personal.devices.share1.hostName;
               config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
