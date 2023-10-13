@@ -195,17 +195,19 @@ darwinSystem = { config, pkgs, ... }:
 
   {
     imports = [ system ];
-    
-    services.nix-daemon.enable = true;
-    system.configurationRevision = self.rev or self.dirtyRev or null;
-    system.stateVersion = 4;
-    
-    users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
-    
-    homebrew.enable = true;
-    homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
-    
-    services.tailscale.enable = true;
+
+    config = {
+      services.nix-daemon.enable = true;
+      system.configurationRevision = self.rev or self.dirtyRev or null;
+      system.stateVersion = 4;
+
+      users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
+
+      homebrew.enable = true;
+      homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
+
+      services.tailscale.enable = true;
+    };
   };
 #+end_src
 ** Raspberry pi 4
@@ -288,10 +290,7 @@ share = ({ config, pkgs, ... }:
       package = pkgs.nextcloud27;
       https = true;
     };
-    services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
-      forceSSL = true;
-      enableACME = true;
-    };
+    services.nginx.virtualHosts.${config.services.nextcloud.hostName}.forceSSL = true;
   });
 #+end_src
 ** ~share1~
@@ -324,13 +323,13 @@ share1 = ({ config, pkgs, ... }:
       hostName = config.personal.devices.share1.hostName;
       config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
     };
-    # services.nginx.virtualHosts.${config.services.nextcloud.hostName} = let
-      # prefix = "${config.users.users.${config.personal.userName}.home}/local/";
-    # in
-      # {
-        # sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
-        # sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
-      # };
+    services.nginx.virtualHosts.${config.services.nextcloud.hostName} = let
+      prefix = "${config.users.users.${config.personal.userName}.home}/local/";
+    in
+      {
+        sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
+        sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
+      };
 
     nixpkgs.hostPlatform = "aarch64-linux";
   });
