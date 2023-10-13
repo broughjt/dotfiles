@@ -231,7 +231,7 @@
               config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
             };
             services.nginx.virtualHosts.${config.services.nextcloud.hostName} = let
-              prefix = "/etc/ssl/certs/";
+              prefix = "/etc/ssl/private/";
             in
               {
                 sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
