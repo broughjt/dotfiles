@@ -200,14 +200,7 @@
               package = pkgs.nextcloud27;
               https = true;
             };
-            services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
-              forceSSL = true;
-              enableACME = true;
-            };
-            security.acme = {
-              acceptTerms = true;
-              defaults.email = config.personal.email;
-            };
+            services.nginx.virtualHosts.${config.services.nextcloud.hostName}.forceSSL = true;
           });
         share1 = ({ config, pkgs, ... }:
         
@@ -233,6 +226,13 @@
               hostName = config.personal.devices.share1.hostName;
               config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
             };
+            services.nginx.virtualHosts.${config.services.nextcloud.hostName} = let
+              prefix = "${config.users.users.${config.personal.userName}.home}/local/";
+            in
+              {
+                sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
+                sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
+              };
         
             nixpkgs.hostPlatform = "aarch64-linux";
           });
