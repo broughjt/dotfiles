@@ -202,10 +202,6 @@
               forceSSL = true;
               enableACME = true;
             };
-            security.acme = {
-              acceptTerms = true;
-              defaults.email = config.personal.email;
-            };
           });
         share1 = ({ config, pkgs, ... }:
         

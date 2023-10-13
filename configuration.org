@@ -292,10 +292,6 @@ share = ({ config, pkgs, ... }:
       forceSSL = true;
       enableACME = true;
     };
-    security.acme = {
-      acceptTerms = true;
-      defaults.email = config.personal.email;
-    };
   });
 #+end_src
 ** ~share1~
