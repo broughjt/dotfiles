@@ -285,12 +285,26 @@ share = ({ config, pkgs, ... }:
     };
     users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
 
-    services.nextcloud = {
-      enable = true;
-      package = pkgs.nextcloud27;
-      https = true;
+    # services.nextcloud = {
+    #   enable = true;
+    #   package = pkgs.nextcloud27;
+    #   https = true;
+    # };
+    services.nginx = {
+      additionalModules = with pkgs.nginxModules; [ dav ];
+      virtualHosts.${config.services.nextcloud.hostName} = {
+        forceSSL = true;
+        root = config.services.syncthing.dataDir + "/share";
+        locations."/".extraConfig = ''
+          dav_methods PUT DELETE MKCOL COPY MOVE;
+          dav_ext_methods PROPFIND OPTIONS;
+          dav_access user:rw group:rw all:rw;
+
+          client_max_body_size 0;
+          create_full_put_path on;
+        '';
+      };
     };
-    services.nginx.virtualHosts.${config.services.nextcloud.hostName}.forceSSL = true;
   });
 #+end_src
 ** ~share1~
@@ -314,15 +328,15 @@ share1 = ({ config, pkgs, ... }:
     age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
     services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
 
-    age.secrets.share1-nextcloud-admin-password = {
-      file = ./secrets/share1-nextcloud-admin-password.age;
-      owner = "nextcloud";
-      group = "nextcloud";
-    };
-    services.nextcloud = {
-      hostName = config.personal.devices.share1.hostName;
-      config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
-    };
+    # age.secrets.share1-nextcloud-admin-password = {
+    #   file = ./secrets/share1-nextcloud-admin-password.age;
+    #   owner = "nextcloud";
+    #   group = "nextcloud";
+    # };
+    # services.nextcloud = {
+    #   hostName = config.personal.devices.share1.hostName;
+    #   config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
+    # };
     services.nginx.virtualHosts.${config.services.nextcloud.hostName} = let
       prefix = "/etc/ssl/certs/";
     in
