@@ -1347,7 +1347,16 @@ ends and these two start.
 #+end_src
 *** Debugging
 #+begin_src elisp
-
+(use-package dap-mode
+  :after lsp-mode
+  :commands dap-debug
+  :hook ((python-mode . dap-ui-mode)
+	 (python-mode . dap-mode))
+  :config
+  (eval-when-compile
+    (require 'cl))
+  (require 'dap-python)
+  (require 'dap-lldb))
 #+end_src
 
 *** Themes
