@@ -122,7 +122,7 @@
               users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
         
               homebrew.enable = true;
-              homebrew.casks = [ "spotify" "zoom" "docker" "discord" ];
+              homebrew.casks = [ "slack" "spotify" "zoom" "docker" "discord" ];
         
               services.tailscale.enable = true;
             };
@@ -524,18 +524,23 @@
         
           home.homeDirectory = "/Users/${config.personal.userName}";
           home.packages = with pkgs; [
-            nixcasks.slack
+            # Seems to be broken
+            # nixcasks.slack
             # Seems to be broken
             # nixcasks.docker
             jetbrains-mono
             (pkgs.texlive.combine {
               inherit (pkgs.texlive) scheme-basic
                 dvisvgm dvipng
-                wrapfig amsmath ulem hyperref capt-of;
+                wrapfig amsmath ulem hyperref capt-of
+                bussproofs;
             })
           ];
         
-          programs.fish.interactiveShellInit = "eval (brew shellenv)";
+          programs.fish = {
+            interactiveShellInit = "eval (brew shellenv)";
+            functions.pman = "mandoc -T pdf (man -w $argv) | open -fa Preview";
+          };
         
           programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
           home.sessionVariables.EDITOR = "emacsclient";
@@ -639,7 +644,8 @@
             (pkgs.texlive.combine {
               inherit (pkgs.texlive) scheme-basic
                 dvisvgm dvipng
-                wrapfig amsmath ulem hyperref capt-of;
+                wrapfig amsmath ulem hyperref capt-of
+                bussproofs;
             })
           
             gnome.dconf-editor
