@@ -137,6 +137,8 @@
   :commands dap-debug
   :hook ((python-mode . dap-ui-mode)
 	 (python-mode . dap-mode))
+  :custom
+  (dap-python-debugger 'debugpy)
   :config
   (eval-when-compile
     (require 'cl))
