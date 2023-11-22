@@ -199,7 +199,7 @@
                 folders = {
                   "share" = {
                     path = config.services.syncthing.dataDir + "/share";
-                    devices = [ "kenobi" ];
+                    devices = [ "kenobi" "jackson-broughs-iphone" ];
                   };
                 };
               };
