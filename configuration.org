@@ -1204,18 +1204,6 @@ of the emacs defaults that I've added since making the configuration
 literate. I'll just incrementally add stuff here as it becomes
 relevant to me.
 
-After reading the wonderful [[https://nixos.wiki/wiki/TexLive][texlive ~nixpkgs~ page]] (because seriously
-have you ever tried to install latex on any other machine ever?), and
-messing with org-mode preview settings to make it use svg[fn:2] but still
-ending up with frustrating square boxes, this setting... ended up
-having nothing to do with it: it was that I was typing
-~\begin{equation*}~ but only ~\end~. But still, there shall be no
-limit to the size of the images I can load with Emacs.
-
-#+begin_src elisp
-(setq max-image-size nil)
-#+end_src
-
 *** Evil mode
 #+begin_src elisp
 (use-package evil
@@ -1251,6 +1239,8 @@ Useful stuff:
           (python . t))
       org-latex-compiler "lualatex"
       org-latex-create-formula-image-program 'dvisvgm
+      org-preview-latex-image-directory temporary-file-directory
+      org-latex-packages-alist '(("" "bussproofs" t))
       org-startup-with-latex-preview t
       org-startup-with-inline-images t
       org-agenda-span 14)
@@ -1266,21 +1256,24 @@ Useful stuff:
   :custom
   (org-roam-v2-ack t)
   (org-directory "~/share/org")
-  (org-roam-directory "~/share/notes")
-  (org-roam-dailies-directory "daily/")
-  (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
-  (org-roam-dailies-capture-templates
-   '(("d" "default" entry
-      "* %?"
-      :target (file+head "%<%Y-%m-%d>.org"
-                         "#+title: %<%Y-%m-%d>\n\n"))))
+  (org-roam-directory "~/scratch/notes")
+  (org-cite-global-bibliography '("~/scratch/notes/citations.bib"))
+  ;; (org-roam-dailies-directory "daily/")
+  ;; (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
+  ;; (org-roam-dailies-capture-templates
+   ;; '(("d" "default" entry
+      ;; "* %?"
+      ;; :target (file+head "%<%Y-%m-%d>.org"
+                         ;; "#+title: %<%Y-%m-%d>\n\n"))))
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
-         ("C-c n t" . org-roam-dailies-capture-today)
-         ("C-c n a" . org-agenda)
-         ("C-c n b" . org-iswitchb))
+         ;; ("C-c n t" . org-roam-dailies-capture-today)
+         ;; ("C-c n a" . org-agenda)
+         ;; ("C-c n b" . org-iswitchb)
+         )
   :config
+  (require 'oc-basic)
   (org-roam-setup))
 #+end_src
 
@@ -1678,8 +1671,6 @@ yet. Switching keybindings wholesale is kinda hard!
 *** TODO Terminal emulator in emacs
 See https://coredumped.dev/2020/01/04/native-shell-completion-in-emacs/
 *** TODO Highlight center line to prevent unncessary ~zz~s
-*** TODO Debuggers
-**** TODO dap mode
 *** TODO Grammarly
 *** TODO Check out https://github.com/seagle0128/.emacs.d
 *** TODO Try disabling flymake and flycheck when using eglot, maybe slow

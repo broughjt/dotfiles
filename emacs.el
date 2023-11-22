@@ -35,8 +35,6 @@
 
 (setq-default indent-tabs-mode nil)
 
-(setq max-image-size nil)
-
 (use-package evil
  :init
  (setq evil-want-keybinding nil)
@@ -60,6 +58,8 @@
           (python . t))
       org-latex-compiler "lualatex"
       org-latex-create-formula-image-program 'dvisvgm
+      org-preview-latex-image-directory temporary-file-directory
+      org-latex-packages-alist '(("" "bussproofs" t))
       org-startup-with-latex-preview t
       org-startup-with-inline-images t
       org-agenda-span 14)
@@ -75,21 +75,24 @@
   :custom
   (org-roam-v2-ack t)
   (org-directory "~/share/org")
-  (org-roam-directory "~/share/notes")
-  (org-roam-dailies-directory "daily/")
-  (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
-  (org-roam-dailies-capture-templates
-   '(("d" "default" entry
-      "* %?"
-      :target (file+head "%<%Y-%m-%d>.org"
-                         "#+title: %<%Y-%m-%d>\n\n"))))
+  (org-roam-directory "~/scratch/notes")
+  (org-cite-global-bibliography '("~/scratch/notes/citations.bib"))
+  ;; (org-roam-dailies-directory "daily/")
+  ;; (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
+  ;; (org-roam-dailies-capture-templates
+   ;; '(("d" "default" entry
+      ;; "* %?"
+      ;; :target (file+head "%<%Y-%m-%d>.org"
+                         ;; "#+title: %<%Y-%m-%d>\n\n"))))
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
-         ("C-c n t" . org-roam-dailies-capture-today)
-         ("C-c n a" . org-agenda)
-         ("C-c n b" . org-iswitchb))
+         ;; ("C-c n t" . org-roam-dailies-capture-today)
+         ;; ("C-c n a" . org-agenda)
+         ;; ("C-c n b" . org-iswitchb)
+         )
   :config
+  (require 'oc-basic)
   (org-roam-setup))
 
 (use-package vertico
