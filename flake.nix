@@ -195,15 +195,12 @@
             };
             users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
         
-            # services.nextcloud = {
-            #   enable = true;
-            #   package = pkgs.nextcloud27;
-            #   https = true;
-            # };
             services.nginx = {
+              enable = true;
               additionalModules = with pkgs.nginxModules; [ dav ];
-              virtualHosts.${config.services.nextcloud.hostName} = {
+              virtualHosts.${config.personal.devices.share1.hostName} = {
                 forceSSL = true;
+                enableACME = true;
                 root = config.services.syncthing.dataDir + "/share";
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
@@ -214,6 +211,10 @@
                   create_full_put_path on;
                 '';
               };
+            };
+            security.acme = {
+              acceptTerms = true;
+              defaults.email = config.personal.email;
             };
           });
         share1 = ({ config, pkgs, ... }:
@@ -235,221 +236,7 @@
             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
             services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
         
-            # age.secrets.share1-nextcloud-admin-password = {
-            #   file = ./secrets/share1-nextcloud-admin-password.age;
-            #   owner = "nextcloud";
-            #   group = "nextcloud";
-            # };
-            # services.nextcloud = {
-            #   hostName = config.personal.devices.share1.hostName;
-            #   config.adminpassFile = config.age.secrets.share1-nextcloud-admin-password.path;
-            # };
-            services.nginx.virtualHosts.${config.services.nextcloud.hostName} = let
-              prefix = "/etc/ssl/certs/";
-            in
-              {
-                sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
-                sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
-              };
-        
             nixpkgs.hostPlatform = "aarch64-linux";
-          });
-        hetzner = ({ config, lib, pkgs, modulesPath, ... }:
-        
-          {
-            imports = [
-              (modulesPath + "/profiles/qemu-guest.nix")
-              linuxSystem
-            ];
-        
-            boot = {
-              tmp.cleanOnBoot = true;
-              loader.grub = {
-                efiSupport = true;
-                efiInstallAsRemovable = true;
-                device = "nodev";
-              };
-              initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "xen_blkfront" ];
-              initrd.kernelModules = [ "nvme" ];
-            };
-            zramSwap.enable = true;
-        
-            fileSystems."/" = {
-              device = "/dev/sda1";
-              fsType = "ext4";
-            };
-          });
-        hetzner1 = ({ config, lib, ... }:
-        
-          {
-            imports = [ hetzner ];
-        
-            fileSystems."/boot" = {
-              device = "/dev/disk/by-uuid/77CF-345D"; fsType = "vfat";
-            };
-        
-            networking = {
-              hostName = "hetzner1";
-              nameservers = [ "8.8.8.8" ];
-              defaultGateway = "172.31.1.1";
-              defaultGateway6 = {
-                address = "fe80::1";
-                interface = "eth0";
-              };
-              dhcpcd.enable = false;
-              usePredictableInterfaceNames = lib.mkForce false;
-              interfaces = {
-                eth0 = {
-                  ipv4.addresses = [
-                    { address="65.21.158.247"; prefixLength=32; }
-                  ];
-                  ipv6.addresses = [
-                    { address="2a01:4f9:c012:9c1b::1"; prefixLength=64; }
-                    { address="fe80::9400:2ff:fe9b:f68d"; prefixLength=64; }
-                  ];
-                  ipv4.routes = [ { address = "172.31.1.1"; prefixLength = 32; } ];
-                  ipv6.routes = [ { address = "fe80::1"; prefixLength = 128; } ];
-                };
-                
-              };
-            };
-            services.udev.extraRules = ''
-              ATTR{address}=="96:00:02:9b:f6:8d", NAME="eth0"
-            '';
-        
-            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
-            users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com" ];
-        
-            nixpkgs.hostPlatform = "aarch64-linux";
-          });
-        murph = ({ config, lib, modulesPath, pkgs, ... }:
-          
-          {
-            imports = [
-              linuxSystem
-            ];
-            
-            boot = {
-              kernelModules = [ "kvm-intel" ];
-              kernelParams = [ "mem_sleep_default=deep" ];
-              loader.systemd-boot.enable = true;
-              loader.efi.canTouchEfiVariables = true;
-              initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
-              initrd.secrets = { "/crypto_keyfile.bin" = null; };
-            };
-            
-            fileSystems."/" =
-              {
-                device = "/dev/disk/by-uuid/5ab3b7b9-8ec3-4d65-848a-6c338e278219";
-                fsType = "ext4";
-              };
-            boot.initrd.luks.devices."luks-d2fca484-d24f-4d68-b08f-882533b0b987".device = "/dev/disk/by-uuid/d2fca484-d24f-4d68-b08f-882533b0b987";
-            fileSystems."/boot" =
-              {
-                device = "/dev/disk/by-uuid/990E-C2F5";
-                fsType = "vfat";
-              };
-            
-            networking.hostName = "murph";
-            networking.networkmanager.enable = true;
-            networking.useDHCP = lib.mkDefault true;
-            
-            powerManagement.enable = true;
-            powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
-            
-            hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-            
-            security.polkit.enable = true;
-            
-            security.rtkit.enable = true;
-            services.pipewire = {
-              enable = true;
-              alsa.enable = true;
-              alsa.support32Bit = true;
-              pulse.enable = true;
-            };
-            hardware.pulseaudio.enable = false;
-            hardware.bluetooth.enable = true;
-            services.blueman.enable = true;
-            
-            services.xserver = {
-              enable = true;
-              displayManager.gdm.enable = true;
-              displayManager.gdm.wayland = true;
-              desktopManager.gnome.enable = true;
-              videoDrivers = [ "nvidia" ];
-            };
-            environment.gnome.excludePackages = (with pkgs; [
-              gnome-photos
-              gnome-tour
-            ]) ++ (with pkgs.gnome; [
-              cheese
-              atomix
-              epiphany
-              evince
-              geary
-              gedit # @Conman
-              gnome-characters
-              gnome-music
-              hitori
-              iagno
-              tali
-              totem
-              gnome-calculator
-              gnome-calendar
-              gnome-clocks
-              gnome-contacts
-              gnome-maps
-              gnome-weather
-              # gnome-disk-image-mounter
-              # gnome-disks
-              # gnome-extensions
-              # gnome-extensions-app
-              # gnome-logs
-              # gnome-system-monitor
-              simple-scan
-            ]) ++ (with pkgs.gnome.apps; [
-              # TODO: Figure how to remove these
-              # gnome-connections
-              # gnome-help
-              # gnome-text-editor
-              # gnome-thumbnail-font
-            ]);
-            hardware.opengl = {
-              enable = true;
-              driSupport = true;
-              driSupport32Bit = true;
-            };
-            hardware.nvidia = {
-              modesetting.enable = true;
-              powerManagement.enable = true;
-            };
-            
-            time.timeZone = "America/Denver";
-            
-            i18n.defaultLocale = "en_US.UTF-8";
-            i18n.extraLocaleSettings = {
-              LC_ADDRESS = "en_US.UTF-8";
-              LC_IDENTIFICATION = "en_US.UTF-8";
-              LC_MEASUREMENT = "en_US.UTF-8";
-              LC_MONETARY = "en_US.UTF-8";
-              LC_NAME = "en_US.UTF-8";
-              LC_NUMERIC = "en_US.UTF-8";
-              LC_PAPER = "en_US.UTF-8";
-              LC_TELEPHONE = "en_US.UTF-8";
-              LC_TIME = "en_US.UTF-8";
-            };
-            
-            nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-            
-            services.openssh = {
-              settings.PasswordAuthentication = true;
-              settings.KbdInteractiveAuthentication = true;
-            };
-            
-            services.tailscale.enable = true;
-            
-            users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
           });
         home = { lib, config, pkgs, ... }:
         
@@ -984,22 +771,8 @@
         modules = with nixosModules; [ darwinHome ];
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
-      nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        modules = [ nixosModules.murph ];
-      };
-      homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "x86_64-linux";
-          config.allowUnfree = true;
-        };
-        modules = [ nixosModules.linuxHomeGraphical ];
-      };
       nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
         modules = [ nixosModules.share1 ];
-      };
-      nixosConfigurations.hetzner1 = nixpkgs.lib.nixosSystem {
-        modules = [ nixosModules.hetzner1 ];
       };
       nixosConfigurations.share1Image = nixpkgs.lib.nixosSystem {
         modules = [
