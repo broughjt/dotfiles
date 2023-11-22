@@ -198,9 +198,11 @@
             services.nginx = {
               enable = true;
               additionalModules = with pkgs.nginxModules; [ dav ];
+              # TODO: This should be a configuration option, not hardcoded to share1
               virtualHosts.${config.personal.devices.share1.hostName} = {
                 forceSSL = true;
-                enableACME = true;
+                # enableACME = true;
+                # Same here
                 root = config.services.syncthing.dataDir + "/share";
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
@@ -212,10 +214,10 @@
                 '';
               };
             };
-            security.acme = {
-              acceptTerms = true;
-              defaults.email = config.personal.email;
-            };
+            # security.acme = {
+              # acceptTerms = true;
+              # defaults.email = config.personal.email;
+            # };
           });
         share1 = ({ config, pkgs, ... }:
         
@@ -235,6 +237,13 @@
         
             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
             services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
+            services.nginx.virtualHosts.${config.personal.devices.share1.hostName} = let
+              prefix = "/etc/ssl/certs/";
+            in
+              {
+                sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
+                sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
+              };
         
             nixpkgs.hostPlatform = "aarch64-linux";
           });
