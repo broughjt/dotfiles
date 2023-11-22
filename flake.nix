@@ -54,6 +54,9 @@
                     syncthing = "CQ6ZTVZ-PWRWMW2-2BTFJ7V-XSMIHHU-VS4JIPD-HI3ALDJ-FH6HW5L-Z3WDIAX";
                     hostName = "share1.tail662f8.ts.net";
                   };
+                  jackson-broughs-iphone = {
+                    syncthing = "64BJT3J-XFGZYTG-TMJXAS5-4XACLPE-JUF6XHS-5G4DFYW-2QVAC4T-LLRKUAL";
+                  };
                 };
               };
             };
@@ -122,7 +125,14 @@
               users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
         
               homebrew.enable = true;
-              homebrew.casks = [ "slack" "spotify" "zoom" "docker" "discord" ];
+              homebrew.casks = [
+                "discord"
+                "docker"
+                "logseq"
+                "slack"
+                "spotify"
+                "zoom"
+              ];
         
               services.tailscale.enable = true;
             };
@@ -184,6 +194,7 @@
               settings = {
                 devices = {
                   "kenobi".id = config.personal.devices.kenobi.syncthing;
+                  "jackson-broughs-iphone".id = config.personal.devices.jackson-broughs-iphone.syncthing;
                 };
                 folders = {
                   "share" = {
