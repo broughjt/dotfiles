@@ -206,14 +206,15 @@
             };
             users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
         
-            age.secrets.webdav-user1 = {
-              file = ./secrets/webdav-user1.age;
-              mode = "770";
-              owner = "nginx";
-              group = "nginx";
-            };
+            # age.secrets.webdav-user1 = {
+              # file = ./secrets/webdav-user1.age;
+              # mode = "770";
+              # owner = "nginx";
+              # group = "nginx";
+            # };
             services.nginx = {
               enable = true;
+              user = config.personal.userName;
               additionalModules = with pkgs.nginxModules; [ dav ];
               # TODO: This should be a configuration option, not hardcoded to share1
               virtualHosts.${config.personal.devices.share1.hostName} = {
