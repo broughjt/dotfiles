@@ -184,7 +184,7 @@
             };
         
             services.syncthing = {
-              enable = false;
+              enable = true;
               openDefaultPorts = true;
               user = "nginx";
               dataDir = "/var/www";
