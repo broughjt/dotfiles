@@ -187,7 +187,8 @@
               enable = true;
               openDefaultPorts = true;
               user = "nginx";
-              dataDir = "/var/www/";
+              dataDir = users.users.${config.personal.userName}.home;
+              # dataDir = "/var/www";
               guiAddress = "0.0.0.0:8384";
               overrideDevices = true;
               overrideFolders = true;
