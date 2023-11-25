@@ -215,7 +215,7 @@
             services.nginx = {
               enable = true;
               user = config.personal.userName;
-              group = "nginx";
+              group = "nginx"
               additionalModules = with pkgs.nginxModules; [ dav ];
               # TODO: This should be a configuration option, not hardcoded to share1
               virtualHosts.${config.personal.devices.share1.hostName} = {
@@ -280,7 +280,7 @@
             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
             services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
             services.nginx.virtualHosts.${config.personal.devices.share1.hostName} = let
-              prefix = config.users.users.${config.personal.userName}.home + "/.local/share/nginx/";
+              prefix = "/etc/ssl/certs/";
             in
               {
                 sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
