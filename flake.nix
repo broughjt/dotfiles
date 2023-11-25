@@ -186,8 +186,8 @@
             services.syncthing = {
               enable = true;
               openDefaultPorts = true;
-              user = "nginx";
-              dataDir = "/var/www";
+              user = config.personal.userName;
+              dataDir = config.users.users.${config.personal.userName}.home;
               guiAddress = "0.0.0.0:8384";
               overrideDevices = true;
               overrideFolders = true;
@@ -198,7 +198,7 @@
                 };
                 folders = {
                   "share" = {
-                    path = "/var/www/share";
+                    path = "/home/jackson/share";
                     devices = [ "kenobi" "jackson-broughs-iphone" ];
                   };
                 };
@@ -208,11 +208,12 @@
         
             services.nginx = {
               enable = true;
+              user = config.personal.userName;
               additionalModules = with pkgs.nginxModules; [ dav ];
               virtualHosts.${config.personal.devices.share1.hostName} = {
                 forceSSL = true;
                 # TODO: Declaratively create this
-                root = "/var/www/share";
+                root = "/var/www/syncthing";
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
                   dav_ext_methods PROPFIND OPTIONS;
@@ -247,7 +248,7 @@
             };
             systemd.services.nginx.serviceConfig.ProtectHome = lib.mkForce false;
             systemd.services.nginx.serviceConfig.ProtectSystem = lib.mkForce false;
-            systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www/share" ];
+            systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/home/jackson" ];
         
         
             # age.secrets.webdav-user1 = {
