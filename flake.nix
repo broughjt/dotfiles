@@ -198,8 +198,8 @@
                 };
                 folders = {
                   "share" = {
-                    path = "/var/www/share";
                     devices = [ "kenobi" "jackson-broughs-iphone" ];
+                    path = "/var/www/share";
                   };
                 };
               };
@@ -248,7 +248,7 @@
             };
             systemd.services.nginx.serviceConfig.ProtectHome = lib.mkForce false;
             systemd.services.nginx.serviceConfig.ProtectSystem = lib.mkForce false;
-            systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/home/jackson" ];
+            systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www/" "/var/www/share" ];
         
         
             # age.secrets.webdav-user1 = {
