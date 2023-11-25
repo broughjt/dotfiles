@@ -221,7 +221,7 @@
                 # Same here
                 root = config.services.syncthing.dataDir + "/share";
                 # TODO: Same here
-                basicAuthFile = config.age.secrets.webdav-user1.path;
+                basicAuth.foo = "bar";
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
                   dav_ext_methods PROPFIND OPTIONS;
