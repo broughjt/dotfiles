@@ -206,15 +206,17 @@
             };
             users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
         
+            age.secrets.webdav-user1.file = ./secrets/webdav-user1.age;
             services.nginx = {
               enable = true;
               additionalModules = with pkgs.nginxModules; [ dav ];
               # TODO: This should be a configuration option, not hardcoded to share1
               virtualHosts.${config.personal.devices.share1.hostName} = {
                 forceSSL = true;
-                # enableACME = true;
                 # Same here
                 root = config.services.syncthing.dataDir + "/share";
+                # TODO: Same here
+                basicAuthFile = config.age.secrets.webdav-user1.path;
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
                   dav_ext_methods PROPFIND OPTIONS;
@@ -222,6 +224,28 @@
         
                   client_max_body_size 0;
                   create_full_put_path on;
+        
+                  if ($request_method = 'OPTIONS') {
+                      add_header 'Access-Control-Allow-Origin' '*';
+                      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+                      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+                      add_header 'Access-Control-Max-Age' 1728000;
+                      add_header 'Content-Type' 'text/plain; charset=utf-8';
+                      add_header 'Content-Length' 0;
+                      return 204;
+                  }
+                  if ($request_method = 'POST') {
+                      add_header 'Access-Control-Allow-Origin' '*' always;
+                      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+                      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+                      add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+                  }
+                  if ($request_method = 'GET') {
+                      add_header 'Access-Control-Allow-Origin' '*' always;
+                      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+                      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+                      add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+                  }
                 '';
               };
             };

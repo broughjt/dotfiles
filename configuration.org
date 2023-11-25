@@ -296,15 +296,17 @@ share = ({ config, pkgs, ... }:
     };
     users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
 
+    age.secrets.webdav-user1.file = ./secrets/webdav-user1.age;
     services.nginx = {
       enable = true;
       additionalModules = with pkgs.nginxModules; [ dav ];
       # TODO: This should be a configuration option, not hardcoded to share1
       virtualHosts.${config.personal.devices.share1.hostName} = {
         forceSSL = true;
-        # enableACME = true;
         # Same here
         root = config.services.syncthing.dataDir + "/share";
+        # TODO: Same here
+        basicAuthFile = config.age.secrets.webdav-user1.path;
         locations."/".extraConfig = ''
           dav_methods PUT DELETE MKCOL COPY MOVE;
           dav_ext_methods PROPFIND OPTIONS;
@@ -312,6 +314,28 @@ share = ({ config, pkgs, ... }:
 
           client_max_body_size 0;
           create_full_put_path on;
+
+          if ($request_method = 'OPTIONS') {
+              add_header 'Access-Control-Allow-Origin' '*';
+              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+              add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+              add_header 'Access-Control-Max-Age' 1728000;
+              add_header 'Content-Type' 'text/plain; charset=utf-8';
+              add_header 'Content-Length' 0;
+              return 204;
+          }
+          if ($request_method = 'POST') {
+              add_header 'Access-Control-Allow-Origin' '*' always;
+              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+              add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+              add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+          }
+          if ($request_method = 'GET') {
+              add_header 'Access-Control-Allow-Origin' '*' always;
+              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+              add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+              add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+          }
         '';
       };
     };
@@ -1054,10 +1078,15 @@ Useful stuff:
 (use-package org-roam
   :custom
   (org-roam-v2-ack t)
-  (org-directory "~/share/org")
-  (org-roam-directory "~/scratch/notes")
-  (org-cite-global-bibliography '("~/scratch/notes/citations.bib"))
-  ;; (org-roam-dailies-directory "daily/")
+  ;; (org-directory "~/share/org")
+  (org-roam-directory "~/share/notes")
+  (org-roam-dailies-directory "journals/")
+  (org-cite-global-bibliography '("~/share/notes/citations.bib"))
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?" :target
+      (file+head "pages/${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)))
   ;; (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
   ;; (org-roam-dailies-capture-templates
    ;; '(("d" "default" entry
@@ -1079,6 +1108,8 @@ Useful stuff:
 **** TODO Get ~use-package org~ working
 **** TODO Inject shareDirectory for notes directory
 **** TODO Figure out clocking
+**** TODO LogSeq linking stuff [[https://gist.github.com/zot/ddf1a89a567fea73bc3c8a209d48f527]]
+
 *** Completion
 Dude I just copied these hip packages from wherever I first saw them
 on the internet, I don't actually understand them. They look very pretty though.
@@ -1489,7 +1520,7 @@ let
 in
 {
   "share1-auth-key1.age".publicKeys = [ kenobi share1 ];
-  "share1-nextcloud-admin-password.age".publicKeys = [ kenobi share1 ];
+  "webdav-user1.age".publicKeys = [ kenobi share1 ];
   "wireless.age".publicKeys = [ kenobi share1 ];
 }
 #+end_src

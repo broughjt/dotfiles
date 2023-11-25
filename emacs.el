@@ -74,10 +74,15 @@
 (use-package org-roam
   :custom
   (org-roam-v2-ack t)
-  (org-directory "~/share/org")
-  (org-roam-directory "~/scratch/notes")
-  (org-cite-global-bibliography '("~/scratch/notes/citations.bib"))
-  ;; (org-roam-dailies-directory "daily/")
+  ;; (org-directory "~/share/org")
+  (org-roam-directory "~/share/notes")
+  (org-roam-dailies-directory "journals/")
+  (org-cite-global-bibliography '("~/share/notes/citations.bib"))
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?" :target
+      (file+head "pages/${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)))
   ;; (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
   ;; (org-roam-dailies-capture-templates
    ;; '(("d" "default" entry
