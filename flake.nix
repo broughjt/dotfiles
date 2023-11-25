@@ -187,7 +187,7 @@
               enable = true;
               openDefaultPorts = true;
               user = config.personal.userName;
-              dataDir = config.users.users.${config.personal.userName}.home;
+              dataDir = "/var/www/";
               guiAddress = "0.0.0.0:8384";
               overrideDevices = true;
               overrideFolders = true;
@@ -323,11 +323,17 @@
         
             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
             services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
+            age.secrets.webdav-user1 = {
+              file = ./secrets/webdav-user1.age;
+              mode = "770";
+              owner = "nginx";
+              group = "nginx";
+            };
             services.nginx.virtualHosts.${config.personal.devices.share1.hostName} = let
               prefix = "/etc/ssl/certs/";
             in
               {
-                basicAuth.foo = "bar";
+                basicAuthFile = config.age.secrets.webdav-user1.path;
                 sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
                 sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
               };
