@@ -186,8 +186,8 @@
             services.syncthing = {
               enable = true;
               openDefaultPorts = true;
-              user = config.personal.userName;
-              dataDir = config.users.users.${config.personal.userName}.home;
+              user = "nginx";
+              dataDir = "/var/www";
               guiAddress = "0.0.0.0:8384";
               overrideDevices = true;
               overrideFolders = true;
@@ -208,12 +208,12 @@
         
             services.nginx = {
               enable = true;
-              user = config.personal.userName;
+              user = "nginx";
               additionalModules = with pkgs.nginxModules; [ dav ];
               virtualHosts.${config.personal.devices.share1.hostName} = {
                 forceSSL = true;
                 # TODO: Declaratively create this
-                root = "/var/www/syncthing";
+                root = "/var/www/share";
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
                   dav_ext_methods PROPFIND OPTIONS;
