@@ -279,7 +279,7 @@
             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
             services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
             services.nginx.virtualHosts.${config.personal.devices.share1.hostName} = let
-              prefix = config.users.users.${config.personal.userName}.home + ".local/share/nginx/";
+              prefix = config.users.users.${config.personal.userName}.home + "/.local/share/nginx/";
             in
               {
                 sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
