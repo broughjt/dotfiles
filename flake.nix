@@ -208,9 +208,41 @@
         
             services.nginx = {
               enable = true;
+              additionalModules = with pkgs.nginxModules; [ dav ];
               virtualHosts.${config.personal.devices.share1.hostName} = {
                 forceSSL = true;
+                # TODO: Declaratively create this
                 root = "/var/www/share";
+                locations."/".extraConfig = ''
+                  dav_methods PUT DELETE MKCOL COPY MOVE;
+                  dav_ext_methods PROPFIND OPTIONS;
+                  dav_access user:rw group:rw all:rw;
+        
+                  client_max_body_size 0;
+                  create_full_put_path on;
+        
+                  if ($request_method = 'OPTIONS') {
+                      add_header 'Access-Control-Allow-Origin' '*';
+                      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+                      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+                      add_header 'Access-Control-Max-Age' 1728000;
+                      add_header 'Content-Type' 'text/plain; charset=utf-8';
+                      add_header 'Content-Length' 0;
+                      return 204;
+                  }
+                  if ($request_method = 'POST') {
+                      add_header 'Access-Control-Allow-Origin' '*' always;
+                      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+                      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+                      add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+                  }
+                  if ($request_method = 'GET') {
+                      add_header 'Access-Control-Allow-Origin' '*' always;
+                      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+                      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+                      add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+                  }
+                '';
               };
             };
         
@@ -291,6 +323,7 @@
               prefix = "/etc/ssl/certs/";
             in
               {
+                basicAuth.foo = "bar";
                 sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
                 sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
               };
