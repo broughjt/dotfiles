@@ -269,12 +269,12 @@
             home.stateVersion = "23.05";
             home.packages = with pkgs; [
               pkgs.agenix
-              eza
-              jq
-              ripgrep
-                
               direnv
+              eza
               gopass
+              jq
+              lldb
+              ripgrep
             ];
             programs.home-manager.enable = true;
           
@@ -425,7 +425,6 @@
             home.homeDirectory = "/home/${config.personal.userName}";
             home.packages = with pkgs; [
               killall
-              lldb
               docker-compose
             ];
         
