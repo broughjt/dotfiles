@@ -186,7 +186,7 @@
             services.syncthing = {
               enable = true;
               openDefaultPorts = true;
-              user = config.personal.userName;
+              user = "nginx";
               dataDir = "/var/www/";
               guiAddress = "0.0.0.0:8384";
               overrideDevices = true;
