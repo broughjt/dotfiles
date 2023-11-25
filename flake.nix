@@ -245,6 +245,10 @@
                 '';
               };
             };
+            systemd.services.nginx.serviceConfig.ProtectHome = lib.mkForce false;
+            systemd.services.nginx.serviceConfig.ProtectSystem = lib.mkForce false;
+            systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www/share" ];
+        
         
             # age.secrets.webdav-user1 = {
               # file = ./secrets/webdav-user1.age;
