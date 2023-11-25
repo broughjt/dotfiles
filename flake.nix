@@ -198,7 +198,7 @@
                 };
                 folders = {
                   "share" = {
-                    path = "/home/jackson/share";
+                    path = "/var/www/share";
                     devices = [ "kenobi" "jackson-broughs-iphone" ];
                   };
                 };
