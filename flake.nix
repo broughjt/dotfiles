@@ -204,7 +204,7 @@
                 };
               };
             };
-            users.users.${config.personal.userName}.extraGroups = [ "syncthing" ];
+            users.users.${config.personal.userName}.extraGroups = [ "syncthing" "nginx" ];
         
             # age.secrets.webdav-user1 = {
               # file = ./secrets/webdav-user1.age;
