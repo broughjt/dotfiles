@@ -169,7 +169,7 @@
             powerManagement.enable = true;
             powerManagement.cpuFreqGovernor = "ondemand";
           });
-        share = ({ config, pkgs, ... }:
+        share = ({ config, lib, pkgs, ... }:
           
           {
             imports = [
@@ -245,8 +245,8 @@
                 '';
               };
             };
-            systemd.services.nginx.serviceConfig.ProtectHome = false;
-            systemd.services.nginx.serviceConfig.ProtectSystem = false;
+            systemd.services.nginx.serviceConfig.ProtectHome = lib.mkForce false;
+            systemd.services.nginx.serviceConfig.ProtectSystem = lib.mkForce false;
             systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www/share" ];
         
         
