@@ -250,7 +250,6 @@
             systemd.services.nginx.serviceConfig.ProtectSystem = lib.mkForce false;
             systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www/" "/var/www/share" ];
         
-        
             # age.secrets.webdav-user1 = {
               # file = ./secrets/webdav-user1.age;
               # mode = "770";
@@ -334,7 +333,9 @@
               prefix = "/etc/ssl/certs/";
             in
               {
-                basicAuthFile = config.age.secrets.webdav-user1.path;
+                # basicAuthFile = config.age.secrets.webdav-user1.path;
+                # TODO: obviously change this
+                basicAuth.foo = "bar";
                 sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
                 sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
               };
