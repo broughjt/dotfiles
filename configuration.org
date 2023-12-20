@@ -211,6 +211,7 @@ darwinSystem = { config, pkgs, ... }:
         "discord"
         "docker"
         "logseq"
+        "microsoft-teams"
         "slack"
         "spotify"
         "zoom"
@@ -1004,13 +1005,39 @@ homeManagerNixOSModule = module: inputs:
 This is not actually a NixOS module. I guess it doesn't matter for
 now.
 
+I guess the lean4-mode package is not on MELPA, so I had to figure out
+how to add a custom emacs package using ~fetchFromGitHub~. Long story
+short: always check the Nix wiki entry before anything else. It'll
+usually shoot you straight. Here's what I used:
+
+- [[https://nixos.wiki/wiki/Emacs#Adding_packages_from_outside_ELPA_.2F_MELPA]]
+- [[https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/lean4-mode.20with.20nix-doom-emacs/near/291790287]]
+- https://github.com/NixOS/nixpkgs/issues/191128
+
 #+begin_src nix
 emacsOverlay = (pkgs: package:
   (pkgs.emacsWithPackagesFromUsePackage {
     inherit package;
     config = ./emacs.el;
     defaultInitFile = true;
-    extraEmacsPackages = epkgs: with epkgs; [ treesit-grammars.with-all-grammars ];
+    extraEmacsPackages = epkgs: with epkgs; [
+      treesit-grammars.with-all-grammars
+    ];
+    override = epkgs: epkgs // {
+      lean4-mode = epkgs.trivialBuild rec {
+        pname = "lean4-mode";
+        version = "1";
+        src = pkgs.fetchFromGitHub {
+          owner = "leanprover";
+          repo = "lean4-mode";
+          rev = "d1c936409ade7d93e67107243cbc0aa55cda7fd5";
+          sha256 = "1r2574fhay5sdy9biqhy908xk9ld1sfp6i9ax89c4z5qmnqmhgml";
+        };
+        propagatedUserEnvPkgs = with epkgs;
+          [ dash f flycheck magit-section lsp-mode s ];
+        buildInputs = propagatedUserEnvPkgs;
+      };
+    };
     alwaysEnsure = true;
   }));
 #+end_src
@@ -1295,6 +1322,12 @@ Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket
 
 #+begin_src elisp
 (use-package proof-general)
+#+end_src
+
+*** Lean 4
+#+begin_src elisp
+(use-package lean4-mode
+  :commands (lean4-mode))
 #+end_src
 
 *** Magit

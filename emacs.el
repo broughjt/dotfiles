@@ -180,6 +180,9 @@
 
 (use-package proof-general)
 
+(use-package lean4-mode
+  :commands (lean4-mode))
+
 (use-package magit)
 
 ;; (comment (use-package ryo-modal

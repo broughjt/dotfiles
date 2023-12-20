@@ -129,6 +129,7 @@
                 "discord"
                 "docker"
                 "logseq"
+                "microsoft-teams"
                 "slack"
                 "spotify"
                 "zoom"
@@ -847,7 +848,24 @@
             inherit package;
             config = ./emacs.el;
             defaultInitFile = true;
-            extraEmacsPackages = epkgs: with epkgs; [ treesit-grammars.with-all-grammars ];
+            extraEmacsPackages = epkgs: with epkgs; [
+              treesit-grammars.with-all-grammars
+            ];
+            override = epkgs: epkgs // {
+              lean4-mode = epkgs.trivialBuild rec {
+                pname = "lean4-mode";
+                version = "1";
+                src = pkgs.fetchFromGitHub {
+                  owner = "leanprover";
+                  repo = "lean4-mode";
+                  rev = "d1c936409ade7d93e67107243cbc0aa55cda7fd5";
+                  sha256 = "1r2574fhay5sdy9biqhy908xk9ld1sfp6i9ax89c4z5qmnqmhgml";
+                };
+                propagatedUserEnvPkgs = with epkgs;
+                  [ dash f flycheck magit-section lsp-mode s ];
+                buildInputs = propagatedUserEnvPkgs;
+              };
+            };
             alwaysEnsure = true;
           }));
         emacsConfiguration = { pkgs, ... }:
