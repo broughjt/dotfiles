@@ -1026,12 +1026,12 @@ emacsOverlay = (pkgs: package:
     override = epkgs: epkgs // {
       lean4-mode = epkgs.trivialBuild rec {
         pname = "lean4-mode";
-        version = "1";
+        version = "2";
         src = pkgs.fetchFromGitHub {
-          owner = "leanprover";
+          owner = "akirak";
           repo = "lean4-mode";
-          rev = "d1c936409ade7d93e67107243cbc0aa55cda7fd5";
-          sha256 = "1r2574fhay5sdy9biqhy908xk9ld1sfp6i9ax89c4z5qmnqmhgml";
+          rev = "d5eb66d759eb1725b9e10737b1f1f400de024ea8";
+          sha256 = "mCyhZChwVEr3GYbL8VVvCXc3g8Ccw6//MnwI2h50lks=";
         };
         propagatedUserEnvPkgs = with epkgs;
           [ dash f flycheck magit-section lsp-mode s ];
@@ -1324,10 +1324,28 @@ Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket
 (use-package proof-general)
 #+end_src
 
-*** Lean 4
+*** Lean
+I got the specific fork of ~lean4-mode~ from a blogpost I found,
+[[https://jakob.space/blog/what-ive-learned-about-formal-methods.html#fn.2]]. Definitely
+worth looking the changes the fork has made, and maybe worth forking
+myself for better understanding and control.
+
+The hook for ~eglot-ensure~ also doesn't seem to be working upon first
+entering a file, so I have to run ~eglot~ by hand. Probably needs
+fixing somewhere.
+
 #+begin_src elisp
 (use-package lean4-mode
-  :commands (lean4-mode))
+  :hook
+  ((lean4-mode . eglot-ensure)
+   (lean4-mode . flymake-mode))
+  :config
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '(lean4-mode . ("lake" "serve"))))
+  :mode "\\.lean\\'"
+  ;; :commands (lean4-mode)
+  )
 #+end_src
 
 *** Magit

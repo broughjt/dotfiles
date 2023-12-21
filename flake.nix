@@ -854,12 +854,12 @@
             override = epkgs: epkgs // {
               lean4-mode = epkgs.trivialBuild rec {
                 pname = "lean4-mode";
-                version = "1";
+                version = "2";
                 src = pkgs.fetchFromGitHub {
-                  owner = "leanprover";
+                  owner = "akirak";
                   repo = "lean4-mode";
-                  rev = "d1c936409ade7d93e67107243cbc0aa55cda7fd5";
-                  sha256 = "1r2574fhay5sdy9biqhy908xk9ld1sfp6i9ax89c4z5qmnqmhgml";
+                  rev = "d5eb66d759eb1725b9e10737b1f1f400de024ea8";
+                  sha256 = "mCyhZChwVEr3GYbL8VVvCXc3g8Ccw6//MnwI2h50lks=";
                 };
                 propagatedUserEnvPkgs = with epkgs;
                   [ dash f flycheck magit-section lsp-mode s ];

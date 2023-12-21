@@ -181,7 +181,16 @@
 (use-package proof-general)
 
 (use-package lean4-mode
-  :commands (lean4-mode))
+  :hook
+  ((lean4-mode . eglot-ensure)
+   (lean4-mode . flymake-mode))
+  :config
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '(lean4-mode . ("lake" "serve"))))
+  :mode "\\.lean\\'"
+  ;; :commands (lean4-mode)
+  )
 
 (use-package magit)
 
