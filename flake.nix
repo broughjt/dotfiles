@@ -854,7 +854,7 @@
             override = epkgs: epkgs // {
               lean4-mode = epkgs.trivialBuild rec {
                 pname = "lean4-mode";
-                version = "2";
+                version = "3";
                 src = pkgs.fetchFromGitHub {
                   owner = "akirak";
                   repo = "lean4-mode";
@@ -864,6 +864,11 @@
                 propagatedUserEnvPkgs = with epkgs;
                   [ dash f flycheck magit-section lsp-mode s ];
                 buildInputs = propagatedUserEnvPkgs;
+                postInstall = ''
+                  DATADIR=$out/share/emacs/site-lisp/data
+                  mkdir $DATADIR
+                  install ./data/abbreviations.json $DATADIR
+                '';
               };
             };
             alwaysEnsure = true;
