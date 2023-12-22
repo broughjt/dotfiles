@@ -65,6 +65,9 @@
       org-agenda-span 14)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
+(use-package org-ql)
+(use-package org-roam-ql)
+
 (use-package org-modern
   :hook (org-mode . org-modern-mode))
 
@@ -74,7 +77,7 @@
 (use-package org-roam
   :custom
   (org-roam-v2-ack t)
-  ;; (org-directory "~/share/org")
+  (org-directory "~/share")
   (org-roam-directory "~/share/notes")
   (org-roam-dailies-directory "journals/")
   (org-cite-global-bibliography '("~/share/notes/citations.bib"))
