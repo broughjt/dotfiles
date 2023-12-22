@@ -353,12 +353,13 @@
             home.username = config.personal.userName;
             home.stateVersion = "23.05";
             home.packages = with pkgs; [
-              pkgs.agenix
               direnv
               eza
               gopass
+              ispell
               jq
               lldb
+              pkgs.agenix
               ripgrep
             ];
             programs.home-manager.enable = true;
