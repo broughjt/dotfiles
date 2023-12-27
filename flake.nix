@@ -355,6 +355,7 @@
             home.packages = with pkgs; [
               direnv
               eza
+              fd
               gopass
               ispell
               jq
