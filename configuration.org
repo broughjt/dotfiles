@@ -1139,6 +1139,11 @@ relevant to me.
 #+end_src
 
 **** TODO Figure out ~evil-want-keybinding~
+*** Dired
+- https://www.youtube.com/watch?v=L_4pLN0gXGI
+- Dired hide details mode
+- M-<p,n>! Searches back and forward in mini buffer search history!
+
 *** Org
 Still very much in the learning stage with org-mode.
 
@@ -1200,6 +1205,8 @@ Useful stuff:
   :config
   (require 'oc-basic)
   (org-roam-setup))
+
+(use-package org-gtd)
 #+end_src
 
 **** TODO Get ~use-package org~ working
@@ -1214,7 +1221,8 @@ on the internet, I don't actually understand them. They look very pretty though.
 #+begin_src elisp
 (use-package vertico
   :init
-  (vertico-mode))
+  (vertico-mode)
+  :hook ((rfn-eshadow-update-overlay . #'vertico-directory-tidy)))
 
 (use-package marginalia
   :init
@@ -1758,6 +1766,40 @@ See
 
 #+begin_src shell
 screen /dev/tty.usbserial-1420 115200
+#+end_src
+** Installing nix-darwin from scratch
+See [[https://github.com/LnL7/nix-darwin#flakes]].
+
+Step 1 is creating the flake (enabling the proper flags for stupid
+reasons nix is experimental):
+
+#+begin_src shell
+nix flake --extra-experimental-features nix-command --extra-experimental-features flakes init -t nix-darwin
+#+end_src
+
+Then run this command to install nix-darwin:
+
+#+begin_src shell
+nix run --extra-experimental-features nix-command --extra-experimental-features flakes nix-darwin -- switch --flake /path/to/flake.nix
+#+end_src
+
+** Adding new ssh keys to GitHub
+
+If you need to generated a new one, see
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent.
+
+Then run
+
+#+begin_src shell
+pbcopy < ~/.ssh/id_ed25519.pub
+#+end_src
+
+but substitute ~id_ed25519~ for the actual name of your public key file.
+
+To test connection,
+
+#+begin_src shell
+ssh -T git@github.com
 #+end_src
 * COMMENT Local variables
 # Local Variables:
