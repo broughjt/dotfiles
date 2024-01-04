@@ -103,9 +103,12 @@
   (require 'oc-basic)
   (org-roam-setup))
 
+(use-package org-gtd)
+
 (use-package vertico
   :init
-  (vertico-mode))
+  (vertico-mode)
+  :hook ((rfn-eshadow-update-overlay . #'vertico-directory-tidy)))
 
 (use-package marginalia
   :init
