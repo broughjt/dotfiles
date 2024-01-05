@@ -103,7 +103,23 @@
   (require 'oc-basic)
   (org-roam-setup))
 
-(use-package org-gtd)
+(use-package org-gtd
+  :after
+  org
+  :custom
+  (org-gtd-directory "~/share/org/gtd/")
+  (org-gtd-update-ack "3.0.0")
+  (org-edna-use-inheritance t)
+  :config
+  (org-edna-mode)
+  (org-gtd-mode)
+  :bind
+  (("C-c d c" . org-gtd-capture)
+   ("C-c d d" . (lambda (&optional GOTO)
+                  (interactive)
+                  (org-gtd-capture GOTO "i")))
+   :map org-gtd-clarify-map
+   ("C-c c" . org-gtd-organize)))
 
 (use-package vertico
   :init
