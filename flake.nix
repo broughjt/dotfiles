@@ -247,7 +247,7 @@
             };
             systemd.services.nginx.serviceConfig.ProtectHome = lib.mkForce false;
             systemd.services.nginx.serviceConfig.ProtectSystem = lib.mkForce false;
-            # systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www/" "/var/www/share" ];
+            systemd.services.nginx.serviceConfig.ReadWritePaths = [ config.services.syncthing.settings.folders."share".path ];
           });
         share1 = ({ config, pkgs, ... }:
         
