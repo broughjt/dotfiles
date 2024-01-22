@@ -188,7 +188,7 @@
               enable = true;
               openDefaultPorts = true;
               user = config.personal.userName;
-              # dataDir = "/var/www";
+              dataDir = config.users.users.${config.personal.userName}.home;
               guiAddress = "0.0.0.0:8384";
               overrideDevices = true;
               overrideFolders = true;
