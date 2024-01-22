@@ -209,7 +209,7 @@
         
             services.nginx = {
               enable = true;
-              user = config.user.users.${config.personal.userName};
+              user = config.personal.userName;
               additionalModules = with pkgs.nginxModules; [ dav ];
               virtualHosts.${config.personal.devices.share1.hostName} = {
                 # forceSSL = true;
