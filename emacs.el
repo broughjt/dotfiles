@@ -63,6 +63,8 @@
       org-startup-with-latex-preview t
       org-startup-with-inline-images t
       org-agenda-span 14)
+(plist-put org-format-latex-options :foreground nil)
+(plist-put org-format-latex-options :background nil)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
 (use-package org-ql)

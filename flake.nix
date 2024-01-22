@@ -187,8 +187,8 @@
             services.syncthing = {
               enable = true;
               openDefaultPorts = true;
-              user = "nginx";
-              dataDir = "/var/www";
+              user = config.personal.userName;
+              # dataDir = "/var/www";
               guiAddress = "0.0.0.0:8384";
               overrideDevices = true;
               overrideFolders = true;
@@ -200,7 +200,7 @@
                 folders = {
                   "share" = {
                     devices = [ "kenobi" "jackson-broughs-iphone" ];
-                    path = "/var/www/share";
+                    path = config.users.users.${config.personal.userName}.home + "/share";
                   };
                 };
               };
@@ -209,12 +209,10 @@
         
             services.nginx = {
               enable = true;
-              user = "nginx";
               additionalModules = with pkgs.nginxModules; [ dav ];
               virtualHosts.${config.personal.devices.share1.hostName} = {
                 forceSSL = true;
-                # TODO: Declaratively create this
-                root = "/var/www/share";
+                root = config.services.syncthing.settings.folders."share".path;
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
                   dav_ext_methods PROPFIND OPTIONS;
@@ -249,62 +247,7 @@
             };
             systemd.services.nginx.serviceConfig.ProtectHome = lib.mkForce false;
             systemd.services.nginx.serviceConfig.ProtectSystem = lib.mkForce false;
-            systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www/" "/var/www/share" ];
-        
-            # age.secrets.webdav-user1 = {
-              # file = ./secrets/webdav-user1.age;
-              # mode = "770";
-              # owner = "nginx";
-              # group = "nginx";
-            # };
-            # services.nginx = {
-            #   enable = true;
-            #   user = config.personal.userName;
-            #   group = "nginx";
-            #   additionalModules = with pkgs.nginxModules; [ dav ];
-            #   # TODO: This should be a configuration option, not hardcoded to share1
-            #   virtualHosts.${config.personal.devices.share1.hostName} = {
-            #     forceSSL = true;
-            #     # Same here
-            #     root = config.services.syncthing.dataDir + "/share";
-            #     # TODO: Same here
-            #     basicAuth.foo = "bar";
-            #     locations."/".extraConfig = ''
-            #       dav_methods PUT DELETE MKCOL COPY MOVE;
-            #       dav_ext_methods PROPFIND OPTIONS;
-            #       dav_access user:rw group:rw all:rw;
-        
-            #       client_max_body_size 0;
-            #       create_full_put_path on;
-        
-            #       if ($request_method = 'OPTIONS') {
-            #           add_header 'Access-Control-Allow-Origin' '*';
-            #           add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-            #           add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
-            #           add_header 'Access-Control-Max-Age' 1728000;
-            #           add_header 'Content-Type' 'text/plain; charset=utf-8';
-            #           add_header 'Content-Length' 0;
-            #           return 204;
-            #       }
-            #       if ($request_method = 'POST') {
-            #           add_header 'Access-Control-Allow-Origin' '*' always;
-            #           add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-            #           add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
-            #           add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
-            #       }
-            #       if ($request_method = 'GET') {
-            #           add_header 'Access-Control-Allow-Origin' '*' always;
-            #           add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-            #           add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
-            #           add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
-            #       }
-            #     '';
-            #   };
-            # };
-            # security.acme = {
-              # acceptTerms = true;
-              # defaults.email = config.personal.email;
-            # };
+            # systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www/" "/var/www/share" ];
           });
         share1 = ({ config, pkgs, ... }:
         
