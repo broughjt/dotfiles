@@ -209,9 +209,10 @@
         
             services.nginx = {
               enable = true;
+              user = config.user.users.${config.personal.userName};
               additionalModules = with pkgs.nginxModules; [ dav ];
               virtualHosts.${config.personal.devices.share1.hostName} = {
-                forceSSL = true;
+                # forceSSL = true;
                 root = config.services.syncthing.settings.folders."share".path;
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
