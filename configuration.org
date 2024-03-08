@@ -972,12 +972,12 @@ emacsOverlay = (pkgs: package:
     override = epkgs: epkgs // {
       lean4-mode = epkgs.trivialBuild rec {
         pname = "lean4-mode";
-        version = "3";
+        version = "1";
         src = pkgs.fetchFromGitHub {
-          owner = "akirak";
+          owner = "leanprover";
           repo = "lean4-mode";
-          rev = "d5eb66d759eb1725b9e10737b1f1f400de024ea8";
-          sha256 = "mCyhZChwVEr3GYbL8VVvCXc3g8Ccw6//MnwI2h50lks=";
+          rev = "d1c936409ade7d93e67107243cbc0aa55cda7fd5";
+          sha256 = "sha256-tD5Ysa24fMIS6ipFc50OjabZEUge4riSb7p4BR05ReQ=";
         };
         propagatedUserEnvPkgs = with epkgs;
           [ dash f flycheck magit-section lsp-mode s ];
@@ -1116,8 +1116,8 @@ Useful stuff:
       org-startup-with-latex-preview t
       org-startup-with-inline-images t
       org-agenda-span 14)
-(plist-put org-format-latex-options :foreground nil)
-(plist-put org-format-latex-options :background nil)
+;; (plist-put org-format-latex-options :foreground nil)
+;; (plist-put org-format-latex-options :background nil)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
 (use-package org-ql)
@@ -1311,27 +1311,32 @@ Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket
 #+end_src
 
 *** Lean
-I got the specific fork of ~lean4-mode~ from a blogpost I found,
-[[https://jakob.space/blog/what-ive-learned-about-formal-methods.html#fn.2]]. Definitely
-worth looking the changes the fork has made, and maybe worth forking
-myself for better understanding and control.
-
-The hook for ~eglot-ensure~ also doesn't seem to be working upon first
-entering a file, so I have to run ~eglot~ by hand. Probably needs
-fixing somewhere.
+Regretably going back to ~lsp-mode~ for now because there are some
+features that don't seem to work with the ~eglot~ fork I was using earlier.
 
 #+begin_src elisp
+;; (use-package lean4-mode
+  ;; :hook
+  ;; ((lean4-mode . eglot-ensure)
+   ;; (lean4-mode . flymake-mode))
+  ;; :config
+  ;; (with-eval-after-load 'eglot
+    ;; (add-to-list 'eglot-server-programs
+                 ;; '(lean4-mode . ("lake" "serve"))))
+  ;; :mode "\\.lean\\'")
+
 (use-package lean4-mode
+  ;; :straight (lean4-mode
+	     ;; :type git
+	     ;; :host github
+	     ;; :repo "leanprover/lean4-mode"
+	     ;; :files ("*.el" "data"))
+  ;; to defer loading the package until required
   :hook
-  ((lean4-mode . eglot-ensure)
-   (lean4-mode . flymake-mode))
-  :config
-  (with-eval-after-load 'eglot
-    (add-to-list 'eglot-server-programs
-                 '(lean4-mode . ("lake" "serve"))))
+  ((lean4-mode . lsp-deferred))
+   ;; (lean4-mode . flymake-mode))
   :mode "\\.lean\\'"
-  ;; :commands (lean4-mode)
-  )
+  :commands (lean4-mode))
 #+end_src
 
 *** Magit
