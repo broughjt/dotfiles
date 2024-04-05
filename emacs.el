@@ -185,49 +185,36 @@
   :init
   (load-theme 'ef-light t))
 
-(use-package nix-mode
-  :mode "\\.nix\\'")
-
-(use-package envrc
-  :config
-  (envrc-global-mode))
-
 (use-package racket-mode)
 
 (use-package rust-mode
   :hook
   ((rust-mode . eglot-ensure)
-   (rust-mode . flymake-mode))
+   (rust-mode . flycheck-mode))
   :config
   (setq-default eglot-workspace-configuration
                 '(:rust-analyzer (:check (:command "clippy")))))
 
 (use-package proof-general)
 
-;; (use-package lean4-mode
-  ;; :hook
-  ;; ((lean4-mode . eglot-ensure)
-   ;; (lean4-mode . flymake-mode))
-  ;; :config
-  ;; (with-eval-after-load 'eglot
-    ;; (add-to-list 'eglot-server-programs
-                 ;; '(lean4-mode . ("lake" "serve"))))
-  ;; :mode "\\.lean\\'")
-
 (use-package lean4-mode
-  ;; :straight (lean4-mode
-	     ;; :type git
-	     ;; :host github
-	     ;; :repo "leanprover/lean4-mode"
-	     ;; :files ("*.el" "data"))
-  ;; to defer loading the package until required
   :hook
-  ((lean4-mode . lsp-deferred))
-   ;; (lean4-mode . flymake-mode))
-  :mode "\\.lean\\'"
-  :commands (lean4-mode))
+  ((lean4-mode . eglot-ensure)
+   (lean4-mode . flycheck-mode))
+  :config
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '(lean4-mode . ("lake" "serve"))))
+  :mode "\\.lean\\'")
 
 (use-package magit)
+
+(use-package nix-mode
+  :mode "\\.nix\\'")
+
+(use-package envrc
+  :config
+  (envrc-global-mode))
 
 ;; (comment (use-package ryo-modal
 ;;   ;; :disabled

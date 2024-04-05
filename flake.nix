@@ -380,7 +380,7 @@
             functions.pman = "mandoc -T pdf (man -w $argv) | open -fa Preview";
           };
         
-          programs.emacs.package = emacsOverlay pkgs pkgs.emacs29-macport;
+          programs.emacs.package = emacsOverlay pkgs pkgs.emacsMacport;
           home.sessionVariables.EDITOR = "emacsclient";
         
           services.syncthing.enable = true;
@@ -802,13 +802,13 @@
                 pname = "lean4-mode";
                 version = "1";
                 src = pkgs.fetchFromGitHub {
-                  owner = "leanprover";
+                  owner = "bustercopley";
                   repo = "lean4-mode";
-                  rev = "d1c936409ade7d93e67107243cbc0aa55cda7fd5";
-                  sha256 = "sha256-tD5Ysa24fMIS6ipFc50OjabZEUge4riSb7p4BR05ReQ=";
+                  rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
+                  sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc=";
                 };
                 propagatedUserEnvPkgs = with epkgs;
-                  [ dash f flycheck magit-section lsp-mode s ];
+                  [ dash f flycheck lsp-mode magit-section s ];
                 buildInputs = propagatedUserEnvPkgs;
                 postInstall = ''
                   DATADIR=$out/share/emacs/site-lisp/data
