@@ -63,6 +63,8 @@
       org-startup-with-latex-preview t
       org-startup-with-inline-images t
       org-agenda-span 14)
+(with-eval-after-load 'org
+  (plist-put org-format-latex-options :background "Transparent"))
 ;; (plist-put org-format-latex-options :foreground nil)
 ;; (plist-put org-format-latex-options :background nil)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
@@ -198,13 +200,6 @@
 (use-package proof-general)
 
 (use-package lean4-mode
-  :hook
-  ((lean4-mode . eglot-ensure)
-   (lean4-mode . flycheck-mode))
-  :config
-  (with-eval-after-load 'eglot
-    (add-to-list 'eglot-server-programs
-                 '(lean4-mode . ("lake" "serve"))))
   :mode "\\.lean\\'")
 
 (use-package magit)

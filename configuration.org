@@ -1114,6 +1114,8 @@ Useful stuff:
       org-startup-with-latex-preview t
       org-startup-with-inline-images t
       org-agenda-span 14)
+(with-eval-after-load 'org
+  (plist-put org-format-latex-options :background "Transparent"))
 ;; (plist-put org-format-latex-options :foreground nil)
 ;; (plist-put org-format-latex-options :background nil)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
@@ -1297,18 +1299,8 @@ Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket
 #+end_src
 
 *** Lean
-Regretably going back to ~lsp-mode~ for now because there are some
-features that don't seem to work with the ~eglot~ fork I was using earlier.
-
 #+begin_src elisp
 (use-package lean4-mode
-  :hook
-  ((lean4-mode . eglot-ensure)
-   (lean4-mode . flycheck-mode))
-  :config
-  (with-eval-after-load 'eglot
-    (add-to-list 'eglot-server-programs
-                 '(lean4-mode . ("lake" "serve"))))
   :mode "\\.lean\\'")
 #+end_src
 
