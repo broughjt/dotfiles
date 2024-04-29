@@ -107,6 +107,13 @@
   (require 'oc-basic)
   (org-roam-setup))
 
+(use-package org-roam-ui
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
+
 (use-package org-gtd
   :after
   org
@@ -201,6 +208,10 @@
 
 (use-package lean4-mode
   :mode "\\.lean\\'")
+
+(use-package haskell-mode
+  :hook
+  ((haskell-mode . eglot-ensure)))
 
 (use-package magit)
 
