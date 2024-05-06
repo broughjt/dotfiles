@@ -65,15 +65,10 @@
       org-agenda-span 14)
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent"))
-;; (plist-put org-format-latex-options :foreground nil)
-;; (plist-put org-format-latex-options :background nil)
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
 (use-package org-ql)
 (use-package org-roam-ql)
-
-(use-package org-modern
-  :hook (org-mode . org-modern-mode))
 
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode))
@@ -117,9 +112,10 @@
 (use-package org-gtd
   :after
   org
+  :init
+  (setq org-gtd-update-ack "3.0.0")
   :custom
   (org-gtd-directory "~/share/org/gtd/")
-  ;; (org-gtd-update-ack "3.0.0")
   (org-edna-use-inheritance t)
   :config
   (org-edna-mode)
