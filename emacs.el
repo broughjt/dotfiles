@@ -119,7 +119,7 @@
   org
   :custom
   (org-gtd-directory "~/share/org/gtd/")
-  (org-gtd-update-ack "3.0.0")
+  ;; (org-gtd-update-ack "3.0.0")
   (org-edna-use-inheritance t)
   :config
   (org-edna-mode)
