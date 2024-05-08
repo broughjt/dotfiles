@@ -212,7 +212,6 @@
               user = config.personal.userName;
               additionalModules = with pkgs.nginxModules; [ dav ];
               virtualHosts.${config.personal.devices.share1.hostName} = {
-                # forceSSL = true;
                 root = config.services.syncthing.settings.folders."share".path;
                 locations."/".extraConfig = ''
                   dav_methods PUT DELETE MKCOL COPY MOVE;
@@ -268,22 +267,6 @@
         
             age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
             services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
-            # age.secrets.webdav-user1 = {
-              # file = ./secrets/webdav-user1.age;
-              # mode = "770";
-              # owner = "nginx";
-              # group = "nginx";
-            # };
-            # services.nginx.virtualHosts.${config.personal.devices.share1.hostName} = let
-              # prefix = "/etc/ssl/certs/";
-            # in
-              # {
-                # # basicAuthFile = config.age.secrets.webdav-user1.path;
-                # # TODO: obviously change this
-                # basicAuth.foo = "bar";
-                # sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
-                # sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
-              # };
         
             nixpkgs.hostPlatform = "aarch64-linux";
           });
@@ -362,10 +345,6 @@
         
           home.homeDirectory = "/Users/${config.personal.userName}";
           home.packages = with pkgs; [
-            # Seems to be broken
-            # nixcasks.slack
-            # Seems to be broken
-            # nixcasks.docker
             jetbrains-mono
             (pkgs.texlive.combine {
               inherit (pkgs.texlive) scheme-basic
@@ -402,12 +381,9 @@
         
             "com.apple.dock" = {
               orientation = "left";
-              # show-recents = false;
-              # static-only = true;
               autohide = true;
             };
         
-            # TODO: Change to ~/shared/pictures
             "com.apple.screencapture" = {
               location = config.defaultDirectories.scratchDirectory;
             };
@@ -527,8 +503,6 @@
             defaultEditor = true;
             startWithUserSession = "graphical";
           };
-        
-          # services.syncthing.enable = true;
         };
         slackOverlay = { pkgs, ... }:
         

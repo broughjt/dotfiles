@@ -87,6 +87,7 @@ which I'm actually decently happy with.
 :END:
 
 ** Personal information
+
 #+begin_src nix
 personal = { lib, ... }:
 
@@ -117,6 +118,7 @@ personal = { lib, ... }:
 #+end_src
 
 ** Default directories
+
 #+begin_src nix
 defaultDirectories = { config, lib, ... }:
 
@@ -129,6 +131,7 @@ defaultDirectories = { config, lib, ... }:
     };
   };
 #+end_src
+
 ** Package manager configuration
 Make Nix can flakes.
 
@@ -142,7 +145,9 @@ package-manager = { pkgs, ... }:
     nixpkgs.config.allowUnfree = true;
   };
 #+end_src
+
 ** System
+
 I include ~git~ (and ~curl~ and ~neovim~) on every system to prevent a
 world of pain where I spend upwards of twenty minutes cursing the nix
 2.4 binary before realizing that it wants git to exist in the universe
@@ -168,8 +173,9 @@ system = { config, pkgs, ... }:
     users.users.${config.personal.userName}.shell = pkgs.fish;
   };
 #+end_src
-*** TODO Try nushell?
+
 ** Linux system
+
 #+begin_src nix
 linuxSystem = { config, pkgs, ... }:
 
@@ -191,8 +197,9 @@ linuxSystem = { config, pkgs, ... }:
     services.openssh.enable = true;
   };
 #+end_src
-*** TODO Remove ssh password authentication
+
 ** Darwin system
+
 #+begin_src nix
 darwinSystem = { config, pkgs, ... }:
 
@@ -221,7 +228,9 @@ darwinSystem = { config, pkgs, ... }:
     };
   };
 #+end_src
+
 ** Raspberry pi 4
+
 #+begin_src nix
 raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:
 
@@ -256,7 +265,9 @@ raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:
     powerManagement.cpuFreqGovernor = "ondemand";
   });
 #+end_src
+
 ** ~share~
+
 See [[https://wes.today/nixos-syncthing/]].
 
 #+begin_src nix
@@ -302,7 +313,6 @@ share = ({ config, lib, pkgs, ... }:
       user = config.personal.userName;
       additionalModules = with pkgs.nginxModules; [ dav ];
       virtualHosts.${config.personal.devices.share1.hostName} = {
-        # forceSSL = true;
         root = config.services.syncthing.settings.folders."share".path;
         locations."/".extraConfig = ''
           dav_methods PUT DELETE MKCOL COPY MOVE;
@@ -341,7 +351,9 @@ share = ({ config, lib, pkgs, ... }:
     systemd.services.nginx.serviceConfig.ReadWritePaths = [ config.services.syncthing.settings.folders."share".path ];
   });
 #+end_src
+
 ** ~share1~
+
 #+begin_src nix
 share1 = ({ config, pkgs, ... }:
 
@@ -361,27 +373,13 @@ share1 = ({ config, pkgs, ... }:
 
     age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
     services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
-    # age.secrets.webdav-user1 = {
-      # file = ./secrets/webdav-user1.age;
-      # mode = "770";
-      # owner = "nginx";
-      # group = "nginx";
-    # };
-    # services.nginx.virtualHosts.${config.personal.devices.share1.hostName} = let
-      # prefix = "/etc/ssl/certs/";
-    # in
-      # {
-        # # basicAuthFile = config.age.secrets.webdav-user1.path;
-        # # TODO: obviously change this
-        # basicAuth.foo = "bar";
-        # sslCertificate = prefix + "share1.tail662f8.ts.net.crt";
-        # sslCertificateKey = prefix + "share1.tail662f8.ts.net.key";
-      # };
 
     nixpkgs.hostPlatform = "aarch64-linux";
   });
 #+end_src
+
 ** Home
+
 #+begin_src nix
 home = { lib, config, pkgs, ... }:
 
@@ -450,7 +448,9 @@ home = { lib, config, pkgs, ... }:
     };
   };
 #+end_src
+
 ** Darwin home
+
 I got the nice ~pman~ command from this [[https://robservatory.com/open-postscript-files-in-preview-in-macos-ventura/][blog post]], which shows how to
 open man pages in Preview.
 
@@ -464,10 +464,6 @@ darwinHome = { config, pkgs, nixcasks, lib, ... }:
 
   home.homeDirectory = "/Users/${config.personal.userName}";
   home.packages = with pkgs; [
-    # Seems to be broken
-    # nixcasks.slack
-    # Seems to be broken
-    # nixcasks.docker
     jetbrains-mono
     (pkgs.texlive.combine {
       inherit (pkgs.texlive) scheme-basic
@@ -488,6 +484,7 @@ darwinHome = { config, pkgs, nixcasks, lib, ... }:
   services.syncthing.enable = true;
 };
 #+END_SRC
+
 *** ~default~ settings
 #+BEGIN_SRC nix
 defaultSettings = { config, lib, ... }:
@@ -507,12 +504,9 @@ defaultSettings = { config, lib, ... }:
 
     "com.apple.dock" = {
       orientation = "left";
-      # show-recents = false;
-      # static-only = true;
       autohide = true;
     };
 
-    # TODO: Change to ~/shared/pictures
     "com.apple.screencapture" = {
       location = config.defaultDirectories.scratchDirectory;
     };
@@ -554,10 +548,8 @@ defaultSettings = { config, lib, ... }:
   };
 };
 #+end_src
-*** TODO Dedupliate texlive package config
-*** TODO Add taps to nixcasks
-*** TODO Make Slack, Spotify, and Zoom regular packages
 ** Linux home
+
 #+begin_src nix
 linuxHome = { config, pkgs, ... }:
 
@@ -645,8 +637,6 @@ linuxHomeGraphical = { config, pkgs, ... }:
     defaultEditor = true;
     startWithUserSession = "graphical";
   };
-
-  # services.syncthing.enable = true;
 };
 #+END_SRC
 
@@ -656,8 +646,6 @@ command line arguments. See
 
 - https://wiki.archlinux.org/title/wayland
 - https://nixos.wiki/wiki/Slack
-- TODO Seems broken, running X
-- TODO Screen sharing
 
 #+begin_src nix
 slackOverlay = { pkgs, ... }:
@@ -806,6 +794,7 @@ dconfSettings = { config, ... }:
 };
 #+end_src
 ** Wireless
+
 #+begin_src nix
 wireless = ({ config, ... }: 
 
@@ -819,7 +808,9 @@ wireless = ({ config, ... }:
     };
   });
 #+end_src
+
 ** Tailscale auto-connect
+
 Stolen from some article I can no longer find. Wish I could just pull
 in their flake but for some reason they got rid of it.
 
@@ -930,7 +921,9 @@ in {
   };
 };
 #+end_src
+
 ** Home Manager NixOS module
+
 #+begin_src nix
 homeManagerNixOSModule = module: inputs:
   {
@@ -939,6 +932,7 @@ homeManagerNixOSModule = module: inputs:
     home-manager.users.${inputs.config.personal.userName} = (module inputs);
   };
 #+end_src
+
 * Emacs
 ** Nix
 :PROPERTIES:
@@ -990,7 +984,9 @@ emacsOverlay = (pkgs: package:
     alwaysEnsure = true;
   }));
 #+end_src
+
 *** Module
+
 #+begin_src nix
 emacsConfiguration = { pkgs, ... }:
 
@@ -1000,6 +996,7 @@ emacsConfiguration = { pkgs, ... }:
     programs.emacs.enable = true;
   };
 #+end_src
+
 ** Configuration
 :PROPERTIES:
 :header-args: :tangle emacs.el
@@ -1040,8 +1037,6 @@ painful experiences that led me to try "fixing it" here.
 (setq display-line-numbers-type 'visual)
 (global-display-line-numbers-mode)
 
-;; TODO: Actually understand these from long ago and hopefully get rid of most of it
-;; TODO: Make path implicit
 (setq local-directory (expand-file-name "~/.local/data/emacs/"))
 (setq backup-directory (concat local-directory "backups/"))
 (setq auto-save-directory (concat local-directory "auto-saves/"))
@@ -1052,7 +1047,6 @@ painful experiences that led me to try "fixing it" here.
 (setq auto-save-default nil)
 (setq create-lockfiles nil)
 (setq vc-make-backup-files t)
-;; TODO: Ideally just don't have one
 (setq custom-file (concat user-emacs-directory "custom.el"))
 
 (setq-default indent-tabs-mode nil)
@@ -1086,7 +1080,6 @@ for code that should run after.
  (evil-collection-init))
 #+end_src
 
-**** TODO Figure out ~evil-want-keybinding~
 *** Dired
 - https://www.youtube.com/watch?v=L_4pLN0gXGI
 - Dired hide details mode
@@ -1136,19 +1129,9 @@ Useful stuff:
       "%?" :target
       (file+head "pages/${slug}.org" "#+title: ${title}\n")
       :unnarrowed t)))
-  ;; (org-agenda-files '("~/share/notes" "~/share/notes/daily" "~/share/org"))
-  ;; (org-roam-dailies-capture-templates
-   ;; '(("d" "default" entry
-      ;; "* %?"
-      ;; :target (file+head "%<%Y-%m-%d>.org"
-                         ;; "#+title: %<%Y-%m-%d>\n\n"))))
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         ;; ("C-c n t" . org-roam-dailies-capture-today)
-         ;; ("C-c n a" . org-agenda)
-         ;; ("C-c n b" . org-iswitchb)
-         )
+         ("C-c n i" . org-roam-node-insert))
   :config
   (require 'oc-basic)
   (org-roam-setup))
@@ -1179,11 +1162,6 @@ Useful stuff:
    :map org-gtd-clarify-map
    ("C-c c" . org-gtd-organize)))
 #+end_src
-
-**** TODO Get ~use-package org~ working
-**** TODO Inject shareDirectory for notes directory
-**** TODO Figure out clocking
-**** TODO LogSeq linking stuff [[https://gist.github.com/zot/ddf1a89a567fea73bc3c8a209d48f527]]
 
 *** Completion
 Dude I just copied these hip packages from wherever I first saw them
@@ -1275,14 +1253,10 @@ mountains?
   (load-theme 'ef-light t))
 #+end_src
 
-**** TODO Figure out auto theme switching
 *** Racket
 #+begin_src elisp
 (use-package racket-mode)
 #+end_src
-
-**** TODO Racket language server
-Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket langauge server]], should check that out.
 *** Rust
 #+begin_src elisp
 (use-package rust-mode
@@ -1331,269 +1305,6 @@ Apparently there's a [[https://github.com/jeapostrophe/racket-langserver][racket
   (envrc-global-mode))
 #+end_src
 
-*** TODO Kakoune/Helix bindings
-These are attempted Kakoune bindings that I haven't had time to finish
-yet. Switching keybindings wholesale is kinda hard!
-
-#+begin_src elisp
-;; (comment (use-package ryo-modal
-;;   ;; :disabled
-;;   :bind
-;;   ("<escape>" . modal/normal-mode)
-;;   :hook
-;;   (after-init . modal/setup)
-;;   (prog-mode . modal/normal-mode)
-;;   :config  
-;;   (defun modal/insert-mode ()
-;;     "Return to insert mode."
-;;     (interactive)
-;;     (ryo-modal-mode 0))
-;;   
-;;   (defun modal/normal-mode ()
-;;     "Enter normal mode."
-;;     (interactive)
-;;     (ryo-modal-mode 1))
-;;   
-;;   (defun modal/set-mark-at-point ()
-;;     "Set the mark at the location of the point."
-;;     (interactive)
-;;     (set-mark (point)))
-;;   
-;;   (defun modal/set-mark-at-point-if-inactive ()
-;;     "Set the mark at the location of the point if it isn't active."
-;;     (interactive)
-;;     (unless (use-region-p)
-;;       (modal/set-mark-at-point)))
-;;    
-;;   ;; TODO: What's with rectangle-mark-mode
-;;   (defun modal/deactivate-mark ()
-;;     "Deactivate the mark.
-;; 
-;; Deactivate the mark unless mark-region-mode is active."
-;;     (interactive)
-;;     (unless rectangle-mark-mode (deactivate-mark)))
-;; 
-;;   ;;; Movement
-;; 
-;;   ;; TODO: bikeshed name, this is wrong
-;;   (defun modal/select-word-end ()
-;;     "Select preceding whitespaces and the word on the right of selection end."
-;;     (interactive)
-;;     (forward-word)
-;;     (backward-char))
-;; 
-;;   (defun modal/backward-same-syntax (count)
-;;     "Move backward COUNT times by same syntax blocks."
-;;     (interactive "p")
-;;     (forward-same-syntax (- count)))
-;;  
-;;   (defun modal/select-whole-line (count)
-;;     "Expand selections to contain full lines."
-;;     (interactive "p")
-;;     (beginning-of-line)
-;;     (modal/set-mark-at-point)
-;;     (forward-line count))
-;; 
-;;   (defun modal/select-to (count character)
-;;     "Select to (including) the COUNTth occurance of CHARACTER."
-;;     (interactive "p\ncSelect to character: ")
-;;     (let ((direction (if (>= count 0) 1 -1)))
-;;       (forward-char direction)
-;;       (unwind-protect
-;;        (search-forward (char-to-string character) nil nil count))
-;;       (point)))
-;; 
-;;   (defun modal/select-until (count character)
-;;     "Select until (excluding) the COUNTth occurance of CHARACTER."
-;;     (interactive "p\ncSelect until character: ")
-;;     (let ((direction (if (>= count 0) 1 -1)))
-;;       (forward-char direction)
-;;       (unwind-protect
-;;        (search-forward (char-to-string character) nil nil count)
-;;        (backward-char direction))
-;;       (point)))
-;; 
-;;   (defun modal/goto (count)
-;;     "Go to the beginning of the buffer or the COUNTth line."
-;;     (interactive "p")
-;;     (goto-char (point-min))
-;;     (when count (forward-line (1- count))))
-;;        
-;;   ;;; Changes
-;;   
-;;   (defun modal/kill (count)
-;;     "Kill selected text or delete `count` characters."
-;;     (interactive "p")
-;;     (if (use-region-p)
-;;         (kill-region (region-beginning) (region-end))
-;;       (delete-char count t)))
-;; 
-;;   (defun modal/yank (count)
-;;     "Yank COUNT times after the point."
-;;     (interactive "p")
-;;     (dotimes (_ count) (save-excursion (yank))))
-;; 
-;;   (defun modal/open-above (count)
-;;     "Open COUNT lines above the cursor and go into insert mode."
-;;     (interactive "p")
-;;     (beginning-of-line)
-;;     (dotimes (_ count)
-;;       (newline)
-;;       (forward-line -1)))
-;; 
-;;   (defun modal/open-below (count)
-;;     "Open COUNT lines below the cursor and go into insert mode."
-;;     (interactive "p")
-;;     (end-of-line)
-;;     (dotimes (_ count)
-;;       (electric-newline-and-maybe-indent)))
-;; 
-;;   (defun modal/join ()
-;;     "Join the next line to the current one."
-;;     (interactive)
-;;     (join-line 1))
-;; 
-;;   ;; Configuration
-;; 
-;;   (defun modal/setup ()
-;;     "Set up keybindings for normal mode."
-;;     (interactive)
-;;     (global-subword-mode 1)
-;;     (ryo-modal-major-mode-keys
-;;      'prog-mode
-;;      ("b" modal/backward-same-syntax :first '(modal/set-mark-at-point) :mc-all t)
-;;      ("B" modal/backward-same-syntax :first '(modal/set-mark-at-point-if-inactive) :mc-all t)
-;;      ("w" forward-same-syntax :first '(modal/set-mark-at-point) :mc-all t)
-;;      ("W" forward-same-syntax :first '(modal/set-mark-at-point-if-inactive) :mc-all t))
-;;     (ryo-modal-keys
-;;      (:mc-all t)
-;;      ("a" forward-char :exit t)
-;;      ("A" move-end-of-line :exit t)
-;;      ("b" backward-word :first '(modal/set-mark-at-point))
-;;      ("B" backward-word :first '(modal/set-mark-at-point-if-inactive))
-;;      ("c" modal/kill :exit t)
-;;      ("C" ignore)
-;;      ("d" modal/kill)
-;;      ("D" ignore)
-;;      ("e" ignore)
-;;      ("E" ignore)
-;;      ("f" modal/select-to :first '(modal/set-mark-at-point))
-;;      ("F" modal/select-to :first '(modal/set-mark-at-point-if-inactive))
-;;      ("g" (("g" modal/goto)
-;;            ("h" beginning-of-line)
-;;            ("i" back-to-indentation)
-;;            ("j" end-of-buffer)
-;;            ("k" beginning-of-buffer)
-;;            ("l" end-of-line)) :first '(modal/deactivate-mark))
-;;      ("G" (("g" modal/goto)
-;;            ("i" back-to-indentation)
-;;            ("h" beginning-of-line)
-;;            ("j" end-of-buffer)
-;;            ("k" beginning-of-buffer)
-;;            ("l" end-of-line)) :first '(modal/set-mark-at-point-if-inactive))
-;;      ("h" backward-char :first '(deactivate-mark))
-;;      ("H" backward-char :first '(modal/set-mark-at-point-if-inactive))
-;;      ("i" modal/insert-mode)
-;;      ("I" back-to-indentation :exit t)
-;;      ("j" next-line :first '(deactivate-mark))
-;;      ("J" next-line :first '(modal/set-mark-at-point-if-inactive))
-;;      ("M-j" modal/join)
-;;      ("k" previous-line :first '(deactivate-mark))
-;;      ("K" previous-line :first '(modal/set-mark-at-point-if-inactive))
-;;      ("l" forward-char :first '(deactivate-mark))
-;;      ("L" forward-char :first '(modal/set-mark-at-point-if-inactive))
-;;      ("m" ignore)
-;;      ("M" ignore)
-;;      ("n" ignore)
-;;      ("N" ignore)
-;;      ;; TODO: These don't open the new line at the right indentation
-;;      ("o" modal/open-below :exit t)
-;;      ("O" modal/open-above :exit t)
-;;      ("p" modal/yank)
-;;      ("P" ignore)
-;;      ("q" ignore)
-;;      ("Q" ignore)
-;;      ("r" ignore)
-;;      ("R" ignore)
-;;      ("s" ignore)
-;;      ("S" ignore)
-;;      ("t" modal/select-until :first '(modal/set-mark-at-point))
-;;      ("T" modal/select-until :first '(modal/set-mark-at-point-if-inactive))
-;;      ("u" undo)
-;;      ("U" undo-redo)
-;;      ("v" (("v" recenter)))
-;;      ("V" ignore)
-;;      ("w" forward-word :first '(modal/set-mark-at-point))
-;;      ("W" forward-word :first '(modal/set-mark-at-point-if-inactive))
-;;      ("x" modal/select-whole-line)
-;;      ("X" ignore)
-;;      ("y" kill-ring-save)
-;;      ("Y" ignore)
-;;      ("z" ignore)
-;;      ("Z" ignore)
-;;    
-;;      ("0" "M-0")
-;;      ("1" "M-1")
-;;      ("2" "M-2")
-;;      ("3" "M-3")
-;;      ("4" "M-4")
-;;      ("5" "M-5")
-;;      ("6" "M-6")
-;;      ("7" "M-7")
-;;      ("8" "M-8")
-;;      ("9" "M-9")
-;;    
-;;      ("~" ignore)
-;;      ("`" ignore)
-;;      ("!" ignore)
-;;      ("@" ignore)
-;;      ("#" ignore)
-;;      ("$" ignore)
-;;      ("%" ignore)
-;;      ("^" ignore)
-;;      ("&" ignore)
-;;      ("*" ignore)
-;;      ("(" ignore)
-;;      (")" ignore)
-;;      ("-" ignore)
-;;      ("_" ignore)
-;;      ("=" ignore)
-;;      ("+" ignore)
-;;      ("<backspace>" ignore)
-;;      ("<del>" ignore)
-;;      ("[" ignore)
-;;      ("{" ignore)
-;;      ("]" ignore)
-;;      ("}" ignore)
-;;      ("|" ignore)
-;;      ("\\" ignore)
-;;      (";" deactivate-mark)
-;;      (":" ignore)
-;;      ("'" ignore)
-;;      ("\"" ignore)
-;;      ("," ignore)
-;;      ("<" ignore)
-;;      ("." ignore)
-;;      (">" ignore)
-;;      ("/" ignore)
-;;      ("?" ignore)
-;; 
-;;      ("C-u" scroll-down-command :first '(deactivate-mark))
-;;      ("C-d" scroll-up-command :first '(deactivate-mark))))
-;;   
-;;   (setq ryo-modal-mode-cursor-type 'box)
-;;  (setq ryo-modal-cursor-color "pink")))
-#+end_src
-*** TODO Treesitter
-*** TODO ~<space>~ leader
-*** TODO Learn dired
-*** TODO Terminal emulator in emacs
-See https://coredumped.dev/2020/01/04/native-shell-completion-in-emacs/
-*** TODO Highlight center line to prevent unncessary ~zz~s
-*** TODO Grammarly
-*** TODO Check out https://github.com/seagle0128/.emacs.d
-*** TODO Try disabling flymake and flycheck when using eglot, maybe slow
-https://www.reddit.com/r/emacs/comments/10w30uj/any_good_tips_to_speed_up_eglotpyright_setup/
 * Secrets
 At this point in my life, I've decided that I don't understand ssh
 keys. I've come off Mount Stupid and am in the Valley of Despair. From
@@ -1712,14 +1423,11 @@ nixosConfigurations.share1Image = nixpkgs.lib.nixosSystem {
 };
 packages.aarch64-linux.share1Image = nixosConfigurations.share1Image.config.system.build.sdImage;
 #+end_src
-** TODO Get rid of extra ~allowUnfree~s
 * Commands
 ** Running ~home-manager switch~ without Home Manager 
 #+begin_src sh
 nix run github:broughjt/dotfiles#homeConfigurations.jackson@<machine>.activationPackage
 #+end_src
-
-*** TODO Prolly you can make a variable and run this directly from here
 ** Raspberry Pi Serial Console
 See
 [[https://www.jeffgeerling.com/blog/2021/attaching-raspberry-pis-serial-console-uart-debugging]].
@@ -1765,7 +1473,6 @@ ssh -T git@github.com
 # Local Variables:
 # eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
 # End:
-** TODO Figure out how to make tangled files read-only by default
 * Footnotes
 [fn:1] "No. Suffer my pain"
 [fn:2] https://twitter.com/bcantrill/status/1007680560133623808 
