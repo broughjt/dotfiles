@@ -1,5 +1,5 @@
 #+title: Configuration
-#+date: <2023-08-15 Tue>
+#+date: [2023-08-15 Tue]
 #+author: Jackson Brough
 
 * "Are these your configuration files, Larry?"
@@ -442,68 +442,103 @@ emacsConfiguration = { pkgs, ... }:
 :header-args: :tangle emacs.el
 :END:
 
-*** Disable package manager
-I'm not actually sure where I got this code, and I'm not sure it's
-even working. When I've searched it, most people are using it in their
-~early-init.el~, which I'm not sure how to get working with
-~emacsWithPackagesFromUsePackage~.
+*** Defaults
+
+Very first, disable the default package manager, because it sucks and
+also because we're using Nix instead.
 
 #+begin_src elisp
 (setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
 (setq package-archives nil)
+#+end_src
 
+Tell ~use-package~ to always ensure because the
+[[https://github.com/nix-community/emacs-overlay/tree/master][Emacs overlay documentation]] said to.
+
+#+begin_src elisp
 (setq use-package-always-ensure t)
-(eval-when-compile (require 'use-package))
-;; Required for ~:bind~ to work later
+#+end_src
+
+Require the ~bind-key~ module because ~use-package~ ~:bind~
+declarations won't work without it.
+
+#+begin_src elisp
 (require 'bind-key)
 #+end_src
 
-*** Defaults
-I gotta work on this. Much of this is pulled from Emacs configuration
-I started back in 2019-2020. A lot of it is probably not necessary but
-I'm a little scared to touch it for fear I'll rediscover one of the
-painful experiences that led me to try "fixing it" here.
+Disable the menu-, tool-, and scroll-bar modes.
 
 #+begin_src elisp
-(when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
-(when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
-(when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
-(when (eq system-type 'gnu/linux)
-  (add-to-list 'default-frame-alist '(undecorated . t))
-  (add-to-list 'default-frame-alist '(fullscreen . maximized)))
-(add-to-list 'default-frame-alist `(font . ,(if (eq system-type 'gnu/linux) "JetBrainsMono 12" "JetBrains Mono 14")))
+(menu-bar-mode 0)
+(tool-bar-mode 0)
+(scroll-bar-mode 0)
+#+end_src
+
+Set the font.
+
+#+begin_src elisp
+(set-face-attribute 'default nil :font "JetBrains Mono 14")
+#+end_src
+
+Never ever make an audible noise. "The editor does not speak unless
+spoken to."
+
+#+begin_src elisp
 (setq visible-bell t)
+#+end_src
+
+Get the relative line numbers; it's actually suprising how useless I feel
+without them.
+
+#+begin_src elisp
 (setq display-line-numbers-type 'visual)
 (global-display-line-numbers-mode)
+#+end_src
 
+Handle backups and autosaves. Autosaves are about preserving the current editing
+session, and backups are about recovering previous ones.
+
+#+begin_src elisp
 (setq local-directory (expand-file-name "~/.local/data/emacs/"))
 (setq backup-directory (concat local-directory "backups/"))
 (setq auto-save-directory (concat local-directory "auto-saves/"))
-(setq backup-directory-alist '(("*" . ,backup-directory)))
-(setq backup-inhibited t)
-(setq auto-save-file-name-transforms `((".*" ,auto-save-directory t)))
-(setq auto-save-list-file-prefix auto-save-directory)
-(setq auto-save-default nil)
-(setq create-lockfiles nil)
-(setq vc-make-backup-files t)
-(setq custom-file (concat user-emacs-directory "custom.el"))
+#+end_src
 
+See [[https://www.emacswiki.org/emacs/AutoSave]].
+
+#+begin_src elisp
+(setq backup-directory-alist `((".*" . ,backup-directory)))
+(setq auto-save-file-name-transforms `((".*" ,auto-save-directory t)))
+#+end_src
+
+But don't create lock files ever. That's just a fundamental design
+flaw with global mutable filesystems and I don't want Emacs to try to
+fix it.
+
+#+begin_src elisp
+(setq create-lockfiles nil)
+#+end_src
+
+Set the custom file.
+
+#+begin_src elisp
+(setq custom-file (concat local-directory "custom.el"))
+(load custom-file)
+#+end_src
+
+Holy cow: tabs.
+
+#+begin_src elisp
 (setq-default indent-tabs-mode nil)
 #+end_src
 
-Here's how I think I'm going to do this. Below this paragraph is all
-of the emacs defaults that I've added since making the configuration
-literate. I'll just incrementally add stuff here as it becomes
-relevant to me.
-
-Some use-package guidance: see [[https://github.com/jwiegley/use-package#getting-started][the README]] for more details.
-
-Does ~config~ load before or after the package loads? The ~init~
-keyword is for code that should run before, the ~config~ keyword is
-for code that should run after.
+As for ~use-package~ declarations, always remember, the ~init~ keyword
+is for code that should run before, the ~config~ keyword is for code
+that should run after.
 
 *** Evil mode
+
 #+begin_src elisp
 (use-package evil
  :init
@@ -515,12 +550,12 @@ for code that should run after.
 
 (use-package evil-collection
  :after evil
- :custom (evil-want-keybinding nil)
  :init
  (evil-collection-init))
 #+end_src
 
 *** Dired
+
 - https://www.youtube.com/watch?v=L_4pLN0gXGI
 - Dired hide details mode
 - M-<p,n>! Searches back and forward in mini buffer search history!
@@ -663,7 +698,9 @@ ends and these two start.
   (add-hook 'prog-mode-hook 'yas-minor-mode)
   (add-hook 'text-mode-hook 'yas-minor-mode))
 #+end_src
+
 *** Debugging
+
 #+begin_src elisp
 (use-package dap-mode
   :after lsp-mode
@@ -680,6 +717,7 @@ ends and these two start.
 #+end_src
 
 *** Themes
+
 Emacs themes: just skip to the end, discover [[https://protesilaos.com][Protesilaos Stavrou]], and
 install the ~ef~ themes. Apparently he's building a hut in the Cyprus
 mountains?
@@ -695,10 +733,13 @@ mountains?
 #+end_src
 
 *** Racket
+
 #+begin_src elisp
 (use-package racket-mode)
 #+end_src
+
 *** Rust
+
 #+begin_src elisp
 (use-package rust-mode
   :hook
@@ -717,12 +758,14 @@ mountains?
 #+end_src
 
 *** Lean
+
 #+begin_src elisp
 (use-package lean4-mode
   :mode "\\.lean\\'")
 #+end_src
 
 *** Haskell
+
 #+begin_src elisp
 (use-package haskell-mode
   :hook
@@ -730,6 +773,7 @@ mountains?
 #+end_src
 
 *** Magit
+
 #+begin_src elisp
 (use-package magit)
 #+end_src

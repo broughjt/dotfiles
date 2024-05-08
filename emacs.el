@@ -3,32 +3,31 @@
 (setq package-archives nil)
 
 (setq use-package-always-ensure t)
-(eval-when-compile (require 'use-package))
-;; Required for ~:bind~ to work later
+
 (require 'bind-key)
 
-(when (fboundp 'menu-bar-mode) (menu-bar-mode 0))
-(when (fboundp 'tool-bar-mode) (tool-bar-mode 0))
-(when (fboundp 'scroll-bar-mode) (scroll-bar-mode 0))
-(when (eq system-type 'gnu/linux)
-  (add-to-list 'default-frame-alist '(undecorated . t))
-  (add-to-list 'default-frame-alist '(fullscreen . maximized)))
-(add-to-list 'default-frame-alist `(font . ,(if (eq system-type 'gnu/linux) "JetBrainsMono 12" "JetBrains Mono 14")))
+(menu-bar-mode 0)
+(tool-bar-mode 0)
+(scroll-bar-mode 0)
+
+(set-face-attribute 'default nil :font "JetBrains Mono 14")
+
 (setq visible-bell t)
+
 (setq display-line-numbers-type 'visual)
 (global-display-line-numbers-mode)
 
 (setq local-directory (expand-file-name "~/.local/data/emacs/"))
 (setq backup-directory (concat local-directory "backups/"))
 (setq auto-save-directory (concat local-directory "auto-saves/"))
-(setq backup-directory-alist '(("*" . ,backup-directory)))
-(setq backup-inhibited t)
+
+(setq backup-directory-alist `((".*" . ,backup-directory)))
 (setq auto-save-file-name-transforms `((".*" ,auto-save-directory t)))
-(setq auto-save-list-file-prefix auto-save-directory)
-(setq auto-save-default nil)
+
 (setq create-lockfiles nil)
-(setq vc-make-backup-files t)
-(setq custom-file (concat user-emacs-directory "custom.el"))
+
+(setq custom-file (concat local-directory "custom.el"))
+(load custom-file)
 
 (setq-default indent-tabs-mode nil)
 
@@ -42,7 +41,6 @@
 
 (use-package evil-collection
  :after evil
- :custom (evil-want-keybinding nil)
  :init
  (evil-collection-init))
 
