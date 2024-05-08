@@ -112,6 +112,7 @@
    ("C-c d d" . (lambda (&optional GOTO)
                   (interactive)
                   (org-gtd-capture GOTO "i")))
+   ("C-c d p" . org-gtd-process-inbox)
    :map org-gtd-clarify-map
    ("C-c c" . org-gtd-organize)))
 

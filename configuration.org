@@ -33,6 +33,7 @@ fu, so I have settled on the "commit the build artifacts" approach,
 which I'm actually decently happy with.
 
 * Flake
+
 #+begin_src nix :tangle flake.nix :noweb yes
 {
   description = "Are these your configuration files, Larry?";
@@ -81,6 +82,7 @@ which I'm actually decently happy with.
     };
 }
 #+end_src
+
 * Modules
 :PROPERTIES:
 :header-args: :noweb-ref modules
@@ -174,30 +176,6 @@ system = { config, pkgs, ... }:
   };
 #+end_src
 
-** Linux system
-
-#+begin_src nix
-linuxSystem = { config, pkgs, ... }:
-
-  {
-    imports = [ system ];
-
-    system.stateVersion = "23.05";
-
-    hardware.enableRedistributableFirmware = true;
-
-    users.users.${config.personal.userName} = {
-      home = "/home/${config.personal.userName}";
-      extraGroups = [ "docker" "wheel" ];
-      isNormalUser = true;
-    };
-
-    virtualisation.docker.enable = true;
-
-    services.openssh.enable = true;
-  };
-#+end_src
-
 ** Darwin system
 
 #+begin_src nix
@@ -217,8 +195,6 @@ darwinSystem = { config, pkgs, ... }:
       homebrew.casks = [
         "discord"
         "docker"
-        "logseq"
-        "microsoft-teams"
         "slack"
         "spotify"
         "zoom"
@@ -227,155 +203,6 @@ darwinSystem = { config, pkgs, ... }:
       services.tailscale.enable = true;
     };
   };
-#+end_src
-
-** Raspberry pi 4
-
-#+begin_src nix
-raspberryPi4 = ({config, modulesPath, lib, pkgs, ... }:
-
-  {
-    imports = [
-      linuxSystem
-    ];
-
-    boot = {
-      kernelParams = [ "console=ttyS1,115200n8" ];
-      initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
-      loader = {
-        grub.enable = false;
-        generic-extlinux-compatible.enable = true;
-      };
-    };
-
-    fileSystems = {
-      "/" = {
-        device = "/dev/disk/by-label/NIXOS_SD";
-        fsType = "ext4";
-        options = [ "noatime" ];
-      };
-    };
-
-    networking.wireless = {
-      enable = true;
-      interfaces = [ "wlan0" ];
-    };
-
-    powerManagement.enable = true;
-    powerManagement.cpuFreqGovernor = "ondemand";
-  });
-#+end_src
-
-** ~share~
-
-See [[https://wes.today/nixos-syncthing/]].
-
-#+begin_src nix
-share = ({ config, lib, pkgs, ... }:
-  
-  {
-    imports = [
-      tailscale-autoconnect
-    ];
-    
-    environment.systemPackages = [ pkgs.tailscale ];
-    
-    services.tailscaleAutoConnect = {
-      enable = true;
-      loginServer = "https://login.tailscale.com";
-    };
-
-    services.syncthing = {
-      enable = true;
-      openDefaultPorts = true;
-      user = config.personal.userName;
-      dataDir = config.users.users.${config.personal.userName}.home;
-      guiAddress = "0.0.0.0:8384";
-      overrideDevices = true;
-      overrideFolders = true;
-      settings = {
-        devices = {
-          "kenobi".id = config.personal.devices.kenobi.syncthing;
-          "jackson-broughs-iphone".id = config.personal.devices.jackson-broughs-iphone.syncthing;
-        };
-        folders = {
-          "share" = {
-            devices = [ "kenobi" "jackson-broughs-iphone" ];
-            path = config.users.users.${config.personal.userName}.home + "/share";
-          };
-        };
-      };
-    };
-    users.users.${config.personal.userName}.extraGroups = [ "syncthing" "nginx" ];
-
-    services.nginx = {
-      enable = true;
-      user = config.personal.userName;
-      additionalModules = with pkgs.nginxModules; [ dav ];
-      virtualHosts.${config.personal.devices.share1.hostName} = {
-        root = config.services.syncthing.settings.folders."share".path;
-        locations."/".extraConfig = ''
-          dav_methods PUT DELETE MKCOL COPY MOVE;
-          dav_ext_methods PROPFIND OPTIONS;
-          dav_access user:rw group:rw all:rw;
-
-          client_max_body_size 0;
-          create_full_put_path on;
-
-          if ($request_method = 'OPTIONS') {
-              add_header 'Access-Control-Allow-Origin' '*';
-              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-              add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
-              add_header 'Access-Control-Max-Age' 1728000;
-              add_header 'Content-Type' 'text/plain; charset=utf-8';
-              add_header 'Content-Length' 0;
-              return 204;
-          }
-          if ($request_method = 'POST') {
-              add_header 'Access-Control-Allow-Origin' '*' always;
-              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-              add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
-              add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
-          }
-          if ($request_method = 'GET') {
-              add_header 'Access-Control-Allow-Origin' '*' always;
-              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-              add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
-              add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
-          }
-        '';
-      };
-    };
-    systemd.services.nginx.serviceConfig.ProtectHome = lib.mkForce false;
-    systemd.services.nginx.serviceConfig.ProtectSystem = lib.mkForce false;
-    systemd.services.nginx.serviceConfig.ReadWritePaths = [ config.services.syncthing.settings.folders."share".path ];
-  });
-#+end_src
-
-** ~share1~
-
-#+begin_src nix
-share1 = ({ config, pkgs, ... }:
-
-  {
-    imports = [
-      raspberryPi4
-      wireless
-      share
-    ];
-
-    networking.hostName = "share1";
-
-    users.users = {
-      ${config.personal.userName}.openssh.authorizedKeys.keys = [ config.personal.devices.kenobi.ssh ];
-      root.openssh.authorizedKeys.keys = [ config.personal.devices.kenobi.ssh ];
-    };
-
-    age.secrets.share1-auth-key1.file = ./secrets/share1-auth-key1.age;
-    services.tailscaleAutoConnect.authKeyFile = config.age.secrets.share1-auth-key1.path;
-
-    nixpkgs.hostPlatform = "aarch64-linux";
-  });
 #+end_src
 
 ** Home
@@ -480,8 +307,6 @@ darwinHome = { config, pkgs, nixcasks, lib, ... }:
 
   programs.emacs.package = emacsOverlay pkgs pkgs.emacsMacport;
   home.sessionVariables.EDITOR = "emacsclient";
-
-  services.syncthing.enable = true;
 };
 #+END_SRC
 
@@ -548,391 +373,6 @@ defaultSettings = { config, lib, ... }:
   };
 };
 #+end_src
-** Linux home
-
-#+begin_src nix
-linuxHome = { config, pkgs, ... }:
-
-  {
-    imports = [ home ];
-
-    home.homeDirectory = "/home/${config.personal.userName}";
-    home.packages = with pkgs; [
-      killall
-      docker-compose
-    ];
-
-    services.ssh-agent.enable = true;
-    services.gpg-agent.enable = true;
-  };
-#+end_src
-
-*** Headless
-#+begin_src nix
-linuxHomeHeadless = { pkgs, ... }:
-  {
-    imports = [ linuxHome ];
-
-    services.gpg-agent.pinentryFlavor = "tty";
-  };
-#+end_src
-*** Graphical
-#+begin_src nix
-linuxHomeGraphical = { config, pkgs, ... }:
-
-{
-  imports = [ linuxHome emacsConfiguration dconfSettings ];
-
-  home.packages = with pkgs; [
-    pinentry-gnome
-    jetbrains-mono
-    source-sans
-    source-serif
-    (pkgs.texlive.combine {
-      inherit (pkgs.texlive) scheme-basic
-        dvisvgm dvipng
-        wrapfig amsmath ulem hyperref capt-of
-        bussproofs;
-    })
-  
-    gnome.dconf-editor
-    gnomeExtensions.pop-shell
-    whitesur-gtk-theme
-    whitesur-icon-theme
-    
-    slack
-    spotify
-    playerctl
-  ];
-  
-  xdg.userDirs = {
-    createDirectories = true;
-    documents = config.defaultDirectories.scratchDirectory;
-    download = config.defaultDirectories.scratchDirectory;
-    music = "${config.defaultDirectories.shareDirectory}/music";
-    pictures = "${config.defaultDirectories.shareDirectory}/pictures";
-    publicShare = config.defaultDirectories.scratchDirectory;
-    templates = config.defaultDirectories.scratchDirectory;
-    videos = "${config.defaultDirectories.shareDirectory}/videos";
-  };
-  
-  fonts.fontconfig.enable = true;
-
-  services.gpg-agent.pinentryFlavor = "gnome3";
-
-  programs.kitty = {
-    enable = true;
-    font = { name = "JetBrains Mono"; size = 12; };
-  };
-  
-  programs.firefox = {
-    enable = true;
-    enableGnomeExtensions = false;
-  };
-    
-  programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
-  services.emacs = {
-    enable = true;
-    package = config.programs.emacs.package;
-    defaultEditor = true;
-    startWithUserSession = "graphical";
-  };
-};
-#+END_SRC
-
-**** Slack overlay
-Patch slack to work natively on wayland by passing extra electron
-command line arguments. See
-
-- https://wiki.archlinux.org/title/wayland
-- https://nixos.wiki/wiki/Slack
-
-#+begin_src nix
-slackOverlay = { pkgs, ... }:
-
-{
-  nixpkgs.overlays = [
-    (final: prev: {
-      slack = prev.slack.overrideAttrs (previous: {
-        installPhase = previous.installPhase + ''
-          rm $out/bin/slack
-  
-          makeWrapper $out/lib/slack/slack $out/bin/slack \
-          --prefix XDG_DATA_DIRS : $GSETTINGS_SCHEMAS_PATH \
-          --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.xdg-utils]} \
-          --add-flags "--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-webrtc-pipewire-capturer"
-        '';
-      });
-    })
-  ];
-};
-#+end_src
-**** ~dconf~ settings
-See
-- https://the-empire.systems/nixos-gnome-settings-and-keyboard-shortcuts
-- https://hoverbear.org/blog/declarative-gnome-configuration-in-nixos/
-
-#+BEGIN_SRC nix
-dconfSettings = { config, ... }:
-
-{
-  dconf.settings = {
-    "org/gnome/shell" = {
-      disable-user-extensions = false;
-      disabled-extensions = "disabled";
-      enabled-extensions = [
-        "pop-shell@system76.com"
-      ];
-    };
-    "org/gnome/shell/extensions/pop-shell" = {
-      tile-by-default = true;
-    };
-    "org/gnome/desktop/wm/keybindings" = {
-      close = [ "<Super>q" ];
-      minimize = [ "<Super>comma" ];
-      toggle-maximized = [ "<Super>m" ];
-      switch-to-workspace-1 = [ "<Super>1" ];
-      switch-to-workspace-2 = [ "<Super>2" ];
-      switch-to-workspace-3 = [ "<Super>3" ];
-      switch-to-workspace-4 = [ "<Super>4" ];
-      switch-to-workspace-5 = [ "<Super>5" ];
-      switch-to-workspace-6 = [ "<Super>6" ];
-      switch-to-workspace-7 = [ "<Super>7" ];
-      switch-to-workspace-8 = [ "<Super>8" ];
-      switch-to-workspace-9 = [ "<Super>9" ];
-      move-to-workspace-1 = [ "<Super><Shift>1" ];
-      move-to-workspace-2 = [ "<Super><Shift>2" ];
-      move-to-workspace-3 = [ "<Super><Shift>3" ];
-      move-to-workspace-4 = [ "<Super><Shift>4" ];
-      move-to-workspace-5 = [ "<Super><Shift>5" ];
-      move-to-workspace-6 = [ "<Super><Shift>6" ];
-      move-to-workspace-7 = [ "<Super><Shift>7" ];
-      move-to-workspace-8 = [ "<Super><Shift>8" ];
-      move-to-workspace-9 = [ "<Super><Shift>9" ];
-    };
-    "org/gnome/shell/keybindings" = {
-      toggle-message-tray = [ ];
-      focus-active-notification = [ ];
-      toggle-overview = [ ];
-      switch-to-application-1 = [ ];
-      switch-to-application-2 = [ ];
-      switch-to-application-3 = [ ];
-      switch-to-application-4 = [ ];
-      switch-to-application-5 = [ ];
-      switch-to-application-6 = [ ];
-      switch-to-application-7 = [ ];
-      switch-to-application-8 = [ ];
-      switch-to-application-9 = [ ];
-    };
-    "org/gnome/mutter/keybindings" = {
-      switch-monitor = [ ];
-    };
-    "org/gnome/settings-daemon/plugins/media-keys" = {
-      rotate-video-lock-static = [ ];
-      screenreader = [ ];
-      custom-keybindings = [
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
-      ];
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-      name = "Terminal";
-      command = "kitty";
-      binding = "<Super>t";
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-      name = "Browser";
-      command = "firefox";
-      binding = "<Super>b";
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
-      name = "Emacs";
-      command = "emacsclient -c";
-      binding = "<Super>e";
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
-      name = "Spotify";
-      command = "spotify";
-      binding = "<Super>s";
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
-      name = "Next";
-      command = "playerctl next";
-      binding = "<Super>n";
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
-      name = "Previous";
-      command = "playerctl previous";
-      binding = "<Super>p";
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
-      name = "Play";
-      command = "playerctl play-pause";
-      binding = "<Super>i";
-    };
-    "org/gnome/desktop/wm/preferences" = {
-      theme = "WhiteSur";
-      num-workspaces = 9;
-    };
-    "org/gnome/desktop/interface" = {
-      clock-format = "12h";
-      color-scheme = "prefer-dark";
-      enable-hot-corners = false;
-      gtk-theme = "WhiteSur";
-      icon-theme = "WhiteSur";
-    };
-    "org/gnome/desktop/background" = {
-      picture-uri = "file://${config.xdg.userDirs.pictures}/deep-field.png";
-      picture-uri-dark = "file://${config.xdg.userDirs.pictures}/deep-field.png";
-    };
-  };
-};
-#+end_src
-** Wireless
-
-#+begin_src nix
-wireless = ({ config, ... }: 
-
-  {
-    age.secrets.wireless.file = ./secrets/wireless.age;
-    networking.wireless = {
-      enable = true;
-      environmentFile = config.age.secrets.wireless.path;
-      networks."TheShire".psk = "@THE_SHIRE_PSK@";
-      networks."DudeCave".psk = "@DUDE_CAVE_PSK@";
-    };
-  });
-#+end_src
-
-** Tailscale auto-connect
-
-Stolen from some article I can no longer find. Wish I could just pull
-in their flake but for some reason they got rid of it.
-
-#+begin_src nix
-tailscale-autoconnect = { config, lib, pkgs, ... }:
-
-with lib; let
-  cfg = config.services.tailscaleAutoConnect;
-in {
-  options.services.tailscaleAutoConnect = {
-    enable = mkEnableOption "tailscaleAutoConnect";
-    authKeyFile = mkOption {
-      type = types.str;
-      description = "The authkey to use for authentication with Tailscale";
-    };
-
-    loginServer = mkOption {
-      type = types.str;
-      default = "";
-      description = "The login server to use for authentication with Tailscale";
-    };
-
-    advertiseExitNode = mkOption {
-      type = types.bool;
-      default = false;
-      description = "Whether to advertise this node as an exit node";
-    };
-
-    exitNode = mkOption {
-      type = types.str;
-      default = "";
-      description = "The exit node to use for this node";
-    };
-
-    exitNodeAllowLanAccess = mkOption {
-      type = types.bool;
-      default = false;
-      description = "Whether to allow LAN access to this node";
-    };
-  };
-
-  config = mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = cfg.authKeyFile != "";
-        message = "authKeyFile must be set";
-      }
-      {
-        assertion = cfg.exitNodeAllowLanAccess -> cfg.exitNode != "";
-        message = "exitNodeAllowLanAccess must be false if exitNode is not set";
-      }
-      {
-        assertion = cfg.advertiseExitNode -> cfg.exitNode == "";
-        message = "advertiseExitNode must be false if exitNode is set";
-      }
-    ];
-
-    systemd.services.tailscale-autoconnect = {
-      description = "Automatic connection to Tailscale";
-
-      # make sure tailscale is running before trying to connect to tailscale
-      after = ["network-pre.target" "tailscale.service"];
-      wants = ["network-pre.target" "tailscale.service"];
-      wantedBy = ["multi-user.target"];
-
-      serviceConfig.Type = "oneshot";
-
-      script = with pkgs; ''
-        # wait for tailscaled to settle
-        sleep 2
-
-        # check if we are already authenticated to tailscale
-        status="$(${tailscale}/bin/tailscale status -json | ${jq}/bin/jq -r .BackendState)"
-        # if status is not null, then we are already authenticated
-        echo "tailscale status: $status"
-        if [ "$status" != "NeedsLogin" ]; then
-            exit 0
-        fi
-
-        # otherwise authenticate with tailscale
-        # timeout after 10 seconds to avoid hanging the boot process
-        ${coreutils}/bin/timeout 10 ${tailscale}/bin/tailscale up \
-          ${lib.optionalString (cfg.loginServer != "") "--login-server=${cfg.loginServer}"} \
-          --authkey=$(cat "${cfg.authKeyFile}")
-
-        # we have to proceed in two steps because some options are only available
-        # after authentication
-        ${coreutils}/bin/timeout 10 ${tailscale}/bin/tailscale up \
-          ${lib.optionalString (cfg.loginServer != "") "--login-server=${cfg.loginServer}"} \
-          ${lib.optionalString (cfg.advertiseExitNode) "--advertise-exit-node"} \
-          ${lib.optionalString (cfg.exitNode != "") "--exit-node=${cfg.exitNode}"} \
-          ${lib.optionalString (cfg.exitNodeAllowLanAccess) "--exit-node-allow-lan-access"}
-      '';
-    };
-
-    networking.firewall = {
-      trustedInterfaces = ["tailscale0"];
-      allowedUDPPorts = [config.services.tailscale.port];
-    };
-
-    services.tailscale = {
-      enable = true;
-      useRoutingFeatures =
-        if cfg.advertiseExitNode
-        then "server"
-        else "client";
-    };
-  };
-};
-#+end_src
-
-** Home Manager NixOS module
-
-#+begin_src nix
-homeManagerNixOSModule = module: inputs:
-  {
-    imports = [ personal ];
-
-    home-manager.users.${inputs.config.personal.userName} = (module inputs);
-  };
-#+end_src
-
 * Emacs
 ** Nix
 :PROPERTIES:
@@ -1159,6 +599,7 @@ Useful stuff:
    ("C-c d d" . (lambda (&optional GOTO)
                   (interactive)
                   (org-gtd-capture GOTO "i")))
+   ("C-c d p" . org-gtd-process-inbox)
    :map org-gtd-clarify-map
    ("C-c c" . org-gtd-organize)))
 #+end_src
@@ -1306,6 +747,7 @@ mountains?
 #+end_src
 
 * Secrets
+
 At this point in my life, I've decided that I don't understand ssh
 keys. I've come off Mount Stupid and am in the Valley of Despair. From
 this [[https://superuser.com/questions/189355/is-it-ok-to-share-private-key-file-between-multiple-computers-services][stack exchange post]] and other things I've read, my best guess is
@@ -1324,6 +766,7 @@ in
   "wireless.age".publicKeys = [ kenobi share1 ];
 }
 #+end_src
+
 * Templates
 :PROPERTIES:
 :header-args: :noweb-ref templates
@@ -1385,6 +828,7 @@ templates.coq = {
 :END:
 
 ** ~kenobi~
+
 #+begin_src nix
 darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
   modules = with nixosModules; [
@@ -1403,26 +847,7 @@ homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration 
   extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
 };
 #+end_src
-** ~share1~
-#+begin_src nix
-nixosConfigurations.share1 = nixpkgs.lib.nixosSystem {
-  modules = [ nixosModules.share1 ];
-};
-#+end_src
-** Raspberry pi 4 image
-#+begin_src nix
-nixosConfigurations.share1Image = nixpkgs.lib.nixosSystem {
-  modules = [
-    nixosModules.share1
-    "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-    ({ config, ... }: {
-      users.users.${config.personal.userName}.initialPassword = "password";
-      users.users.root.initialPassword = "password";
-    })
-  ];
-};
-packages.aarch64-linux.share1Image = nixosConfigurations.share1Image.config.system.build.sdImage;
-#+end_src
+
 * Commands
 ** Running ~home-manager switch~ without Home Manager 
 #+begin_src sh
