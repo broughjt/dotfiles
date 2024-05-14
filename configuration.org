@@ -25,13 +25,6 @@ hilarious); I also made my first pass through /How to Take Smart
 Notes/ by Sönke Ahrens this summer, and am therefore obligated to try
 becoming an org-roam cultist as well.
 
-I tried the whole [[https://nixos.wiki/wiki/Import_From_Derivation][IFD]] thing, and back in the git history there is an
-attempt at a tiny flake that had just enough to tangle this org file,
-build the generated flake as a derivation, and evaluate that
-derivation by importing it, but I can't yet bend spoons with my nix
-fu, so I have settled on the "commit the build artifacts" approach,
-which I'm actually decently happy with.
-
 * Flake
 
 #+begin_src nix :tangle flake.nix :noweb yes
@@ -296,7 +289,7 @@ darwinHome = { config, pkgs, nixcasks, lib, ... }:
       inherit (pkgs.texlive) scheme-basic
         dvisvgm dvipng
         wrapfig amsmath ulem hyperref capt-of
-        bussproofs;
+        bussproofs simplebnf tabularray mathtools;
     })
   ];
 
@@ -561,36 +554,134 @@ that should run after.
 - M-<p,n>! Searches back and forward in mini buffer search history!
 
 *** Org
-Still very much in the learning stage with org-mode.
-
-Useful stuff:
+The bible apparently:
 
 - [[http://doc.norang.ca/org-mode.html]]
 
+Don't indent source blocks.
+
 #+begin_src elisp
 (setq org-src-preserve-indentation nil
-      org-edit-src-content-indentation 0
-      org-confirm-babel-evaluate nil
-      org-babel-load-languages
-        '((emacs-lisp . t)
-          (shell . t)
-          (python . t))
-      org-latex-compiler "lualatex"
-      org-latex-create-formula-image-program 'dvisvgm
-      org-preview-latex-image-directory temporary-file-directory
-      org-latex-packages-alist '(("" "bussproofs" t))
-      org-startup-with-latex-preview t
-      org-startup-with-inline-images t
-      org-agenda-span 14)
+      org-edit-src-content-indentation 0)
+#+end_src
+
+The default behavior of executing source blocks in org mode source
+blocks is pretty annoying, you have to confirm execution each
+time. Let's disable that and list a few languages which should work
+without confirmation. (I'm not actually sure that this works.)
+
+#+begin_src elisp
+(setq
+ org-confirm-babel-evaluate nil
+ org-babel-load-languages
+ '((emacs-lisp . t)
+   (shell . t)
+   (python . t)))
+#+end_src
+
+Now inline latex schenanigans. We want inline latex to be displayed
+using SVGs and to render on startup, and for the svg backgrounds to
+match the current theme. I also needed to include the ~bussproofs~ package to
+get natural deduction proof trees once.
+
+#+begin_src elisp
+(setq
+ org-latex-compiler "lualatex"
+ org-latex-create-formula-image-program 'dvisvgm
+ org-preview-latex-image-directory temporary-file-directory
+ org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
+ org-startup-with-latex-preview t
+ org-startup-with-inline-images t)
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent"))
-(add-hook 'org-mode-hook 'turn-on-auto-fill)
+#+end_src
 
+I'm an auto-fill-mode advocate. Plain text is rediculous enough as it
+is, I definitely don't want to have to manually indent my paragraphs
+in org mode.
+
+#+begin_src elisp
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
+#+end_src
+
+TODO: Commentary about GTD system.
+
+#+begin_src elisp
+(setq org-directory "~/share/org/")
+(setq inbox-file (concat org-directory "inbox.org"))
+(setq tasks-file (concat org-directory "tasks.org"))
+(setq suspended-file (concat org-directory "suspended.org"))
+(setq calendar-file (concat org-directory "calendar.org"))
+(setq archive-file (concat org-directory "archive.org"))
+
+(setq org-agenda-files `(,org-directory))
+(setq org-refile-targets
+      '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
+(setq org-outline-path-complete-in-steps nil)
+(setq org-refile-use-outline-path 'file)
+(setq org-archive-location (concat archive-file "::"))
+#+end_src
+
+#+begin_src elisp
+(setq org-tag-alist '(("next" . ?n) ("wait" . ?w)))
+#+end_src
+
+#+begin_src elisp
+(setq org-capture-templates
+      '(("d" "default" entry (file inbox-file)
+         "* %?\n%U\n")))
+
+(bind-key "C-c d d"
+          (lambda (&optional GOTO)
+            (interactive)
+            (org-capture GOTO "d")))
+(bind-key "C-c r t"
+          (lambda ()
+            (interactive)
+            (org-refile nil nil (list nil tasks-file nil nil))))
+#+end_src
+
+Enable todo state changes by adding "!" to the org keywords.
+
+#+begin_src elisp
+(setq org-todo-keywords '((sequence "TODO(!)" "DONE(!)")))
+(setq org-log-into-drawer t)
+#+end_src
+
+Habits. See [[https://cpbotha.net/2019/11/02/forming-and-maintaining-habits-using-orgmode/]].
+
+#+begin_src elisp
+(with-eval-after-load 'org
+  (add-to-list 'org-modules 'org-habit t))
+#+end_src
+
+#+begin_src elisp
+(setq org-cite-global-bibliography '("~/share/notes/citations.bib"))
+#+end_src
+
+#+begin_src elisp
+(use-package org-roam
+  :custom
+  (org-roam-directory "~/share/notes")
+  :bind
+  (("C-c n f" . org-roam-node-find)
+   ("C-c n i" . org-roam-node-insert))
+  :config
+  (org-roam-db-autosync-mode))
+
+(use-package org-roam-ui
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
+
+(use-package git-auto-commit-mode)
+#+end_src
+
+#+begin_src elisp :tangle no
 (use-package org-ql)
 (use-package org-roam-ql)
-
-(use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode))
 
 (use-package org-roam
   :custom

@@ -45,47 +45,72 @@
  (evil-collection-init))
 
 (setq org-src-preserve-indentation nil
-      org-edit-src-content-indentation 0
-      org-confirm-babel-evaluate nil
-      org-babel-load-languages
-        '((emacs-lisp . t)
-          (shell . t)
-          (python . t))
-      org-latex-compiler "lualatex"
-      org-latex-create-formula-image-program 'dvisvgm
-      org-preview-latex-image-directory temporary-file-directory
-      org-latex-packages-alist '(("" "bussproofs" t))
-      org-startup-with-latex-preview t
-      org-startup-with-inline-images t
-      org-agenda-span 14)
+      org-edit-src-content-indentation 0)
+
+(setq
+ org-confirm-babel-evaluate nil
+ org-babel-load-languages
+ '((emacs-lisp . t)
+   (shell . t)
+   (python . t)))
+
+(setq
+ org-latex-compiler "lualatex"
+ org-latex-create-formula-image-program 'dvisvgm
+ org-preview-latex-image-directory temporary-file-directory
+ org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
+ org-startup-with-latex-preview t
+ org-startup-with-inline-images t)
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent"))
+
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
-(use-package org-ql)
-(use-package org-roam-ql)
+(setq org-directory "~/share/org/")
+(setq inbox-file (concat org-directory "inbox.org"))
+(setq tasks-file (concat org-directory "tasks.org"))
+(setq suspended-file (concat org-directory "suspended.org"))
+(setq calendar-file (concat org-directory "calendar.org"))
+(setq archive-file (concat org-directory "archive.org"))
 
-(use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode))
+(setq org-agenda-files `(,org-directory))
+(setq org-refile-targets
+      '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
+(setq org-outline-path-complete-in-steps nil)
+(setq org-refile-use-outline-path 'file)
+(setq org-archive-location (concat archive-file "::"))
+
+(setq org-tag-alist '(("next" . ?n) ("wait" . ?w)))
+
+(setq org-capture-templates
+      '(("d" "default" entry (file inbox-file)
+         "* %?\n%U\n")))
+
+(bind-key "C-c d d"
+          (lambda (&optional GOTO)
+            (interactive)
+            (org-capture GOTO "d")))
+(bind-key "C-c r t"
+          (lambda ()
+            (interactive)
+            (org-refile nil nil (list nil tasks-file nil nil))))
+
+(setq org-todo-keywords '((sequence "TODO(!)" "DONE(!)")))
+(setq org-log-into-drawer t)
+
+(with-eval-after-load 'org
+  (add-to-list 'org-modules 'org-habit t))
+
+(setq org-cite-global-bibliography '("~/share/notes/citations.bib"))
 
 (use-package org-roam
   :custom
-  (org-roam-v2-ack t)
-  (org-directory "~/share")
   (org-roam-directory "~/share/notes")
-  (org-roam-dailies-directory "journals/")
-  (org-cite-global-bibliography '("~/share/notes/citations.bib"))
-  (org-roam-capture-templates
-   '(("d" "default" plain
-      "%?" :target
-      (file+head "pages/${slug}.org" "#+title: ${title}\n")
-      :unnarrowed t)))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert))
+  :bind
+  (("C-c n f" . org-roam-node-find)
+   ("C-c n i" . org-roam-node-insert))
   :config
-  (require 'oc-basic)
-  (org-roam-setup))
+  (org-roam-db-autosync-mode))
 
 (use-package org-roam-ui
   :config
@@ -94,25 +119,7 @@
         org-roam-ui-update-on-save t
         org-roam-ui-open-on-start t))
 
-(use-package org-gtd
-  :after
-  org
-  :init
-  (setq org-gtd-update-ack "3.0.0")
-  :custom
-  (org-gtd-directory "~/share/org/gtd/")
-  (org-edna-use-inheritance t)
-  :config
-  (org-edna-mode)
-  (org-gtd-mode)
-  :bind
-  (("C-c d c" . org-gtd-capture)
-   ("C-c d d" . (lambda (&optional GOTO)
-                  (interactive)
-                  (org-gtd-capture GOTO "i")))
-   ("C-c d p" . org-gtd-process-inbox)
-   :map org-gtd-clarify-map
-   ("C-c c" . org-gtd-organize)))
+(use-package git-auto-commit-mode)
 
 (use-package vertico
   :init

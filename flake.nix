@@ -197,7 +197,7 @@
               inherit (pkgs.texlive) scheme-basic
                 dvisvgm dvipng
                 wrapfig amsmath ulem hyperref capt-of
-                bussproofs;
+                bussproofs simplebnf tabularray mathtools;
             })
           ];
         
