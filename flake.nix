@@ -289,15 +289,14 @@
             };
         
             fileSystems."/boot" = {
-              device = "/dev/disk/by-uuid/AF19-A317";
+              device = "/dev/disk/by-uuid/9BEE-3421";
               fsType = "vfat";
               options = [ "fmask=0022" "dmask=0022" ];
             };
             fileSystems."/" = {
-              device = "/dev/disk/by-uuid/3cdd5c2c-ae93-4c4b-a586-cba97469f8e4";
+              device = "/dev/disk/by-uuid/581a668b-5332-4224-a9c2-86f1840e2bf6";
               fsType = "ext4";
             };
-            boot.initrd.luks.devices."luks-ab135bff-da1a-44ed-a055-5eaa34b1283d".device = "/dev/disk/by-uuid/ab135bff-da1a-44ed-a055-5eaa34b1283d";
             swapDevices = [ ];
         
             networking.hostName = "nixos";
@@ -333,7 +332,7 @@
             };
         
             environment.systemPackages = with pkgs; [
-              vim
+              neovim
               git
               curl
             ];
