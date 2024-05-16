@@ -305,8 +305,6 @@
             networking.useDHCP = lib.mkDefault true;
         
             # Non murph specific stuff
-            nixpkgs.config.allowUnfree = true;
-        
             time.timeZone = "America/Boise";
         
             i18n.defaultLocale = "en_US.UTF-8";
