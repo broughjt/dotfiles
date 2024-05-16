@@ -73,7 +73,7 @@
 (setq calendar-file (concat org-directory "calendar.org"))
 (setq archive-file (concat org-directory "archive.org"))
 
-(setq org-agenda-files `(,org-directory))
+(setq org-agenda-files (list tasks-file calendar-file suspended-file))
 (setq org-refile-targets
       '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
 (setq org-outline-path-complete-in-steps nil)
