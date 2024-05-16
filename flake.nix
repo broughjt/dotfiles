@@ -76,7 +76,6 @@
           {
             nix.package = pkgs.nix;
             nix.settings.experimental-features = [ "nix-command" "flakes" ];
-        
             nixpkgs.config.allowUnfree = true;
           };
         system = { config, pkgs, ... }:
@@ -92,6 +91,23 @@
             programs.fish.enable = true;
         
             users.users.${config.personal.userName}.shell = pkgs.fish;
+          };
+        linuxSystem = { config, pkgs, ... }:
+        
+          {
+            imports = [ system ];
+        
+            hardware.enableRedistributableFirmware = true;
+        
+            users.users.${config.personal.userName} = {
+              home = "/home/${config.personal.userName}";
+              extraGroups = [ "docker" "wheel" "networkmanager" ];
+              isNormalUser = true;
+            };
+        
+            virtualisation.docker.enable = true;
+        
+            services.openssh.enable = true;
           };
         darwinSystem = { config, pkgs, ... }:
         
@@ -323,23 +339,6 @@
               xkb.layout = "us";
               xkb.variant = "";
             };
-            
-            users.users.jackson = {
-              isNormalUser = true;
-              description = "Jackson Brough";
-              extraGroups = [ "networkmanager" "wheel" ];
-              packages = with pkgs; [];
-            };
-        
-            environment.systemPackages = with pkgs; [
-              neovim
-              git
-              curl
-            ];
-            
-            nix.package = pkgs.nix;
-            nix.settings.experimental-features = [ "nix-command" "flakes" ];
-            nixpkgs.config.allowUnfree = true;
           };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
@@ -396,7 +395,7 @@
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-        modules = [ nixosModules.murphHardware ];
+        modules = with nixosModules; [ murphHardware linuxSystem ];
       };
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
