@@ -74,7 +74,7 @@
         package-manager = { pkgs, ... }:
         
           {
-            nix.package = pkgs.nixFlakes;
+            nix.package = pkgs.nix;
             nix.settings.experimental-features = [ "nix-command" "flakes" ];
         
             nixpkgs.config.allowUnfree = true;
@@ -82,7 +82,7 @@
         system = { config, pkgs, ... }:
         
           {
-            imports = [ agenix.nixosModules.default package-manager personal ];
+            imports = [ package-manager personal ];
         
             nix.settings.trusted-users = [ "root" config.personal.userName ];
         
@@ -269,6 +269,81 @@
             };
           };
         };
+        murphHardware = { config, pkgs, ... }:
+          
+          {
+            hardware.enableRedistributableFirmware = lib.mkDefault true;
+            hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+        
+            nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+        
+            system.stateVersion = "23.11";
+        
+            boot = {
+              initrd.availableKernelModules = [ "nvme" "xhci_pci" "thunderbolt" "usb_storage" "sd_mod" ];
+              initrd.kernelModules = [ ];
+              kernelModules = [ "kvm-amd" ];
+              extraModulePackages = [ ];
+              loader.systemd-boot.enable = true;
+              loader.efi.canTouchEfiVariables = true;
+            };
+        
+            fileSystems."/boot" = {
+              device = "/dev/disk/by-uuid/AF19-A317";
+              fsType = "vfat";
+              options = [ "fmask=0022" "dmask=0022" ];
+            };
+            fileSystems."/" = {
+              device = "/dev/disk/by-uuid/3cdd5c2c-ae93-4c4b-a586-cba97469f8e4";
+              fsType = "ext4";
+            };
+            boot.initrd.luks.devices."luks-ab135bff-da1a-44ed-a055-5eaa34b1283d".device = "/dev/disk/by-uuid/ab135bff-da1a-44ed-a055-5eaa34b1283d";
+            swapDevices = [ ];
+        
+            networking.hostName = "nixos";
+            networking.networkmanager.enable = true;
+            networking.useDHCP = lib.mkDefault true;
+        
+            # Non murph specific stuff
+            nixpkgs.config.allowUnfree = true;
+        
+            time.timeZone = "America/Boise";
+        
+            i18n.defaultLocale = "en_US.UTF-8";
+            i18n.extraLocaleSettings = {
+              LC_ADDRESS = "en_US.UTF-8";
+              LC_IDENTIFICATION = "en_US.UTF-8";
+              LC_MEASUREMENT = "en_US.UTF-8";
+              LC_MONETARY = "en_US.UTF-8";
+              LC_NAME = "en_US.UTF-8";
+              LC_NUMERIC = "en_US.UTF-8";
+              LC_PAPER = "en_US.UTF-8";
+              LC_TELEPHONE = "en_US.UTF-8";
+              LC_TIME = "en_US.UTF-8";
+            };
+            
+            services.xserver = {
+              layout = "us";
+              xkbVariant = "";
+            };
+            
+            users.users.jackson = {
+              isNormalUser = true;
+              description = "Jackson Brough";
+              extraGroups = [ "networkmanager" "wheel" ];
+              packages = with pkgs; [];
+            };
+        
+            environment.systemPackages = with pkgs; [
+              vim
+              git
+              curl
+            ];
+            
+            nix.package = pkgs.nix;
+            nix.settings.experimental-features = [ "nix-command" "flakes" ];
+            nixpkgs.config.allowUnfree = true;
+          };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
             inherit package;
@@ -322,6 +397,9 @@
         };
         modules = with nixosModules; [ darwinHome ];
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
+      };
+      nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
+        modules = [ nixosModules.murphHardware ];
       };
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
