@@ -369,7 +369,7 @@ defaultSettings = { config, lib, ... }:
 ** murph
 
 #+begin_src nix
-murphHardware = { config, pkgs, ... }:
+murphHardware = { config, pkgs, lib, ... }:
   
   {
     hardware.enableRedistributableFirmware = lib.mkDefault true;
@@ -421,8 +421,8 @@ murphHardware = { config, pkgs, ... }:
     };
     
     services.xserver = {
-      layout = "us";
-      xkbVariant = "";
+      xkb.layout = "us";
+      xkb.variant = "";
     };
     
     users.users.jackson = {
