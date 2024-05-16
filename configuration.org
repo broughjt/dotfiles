@@ -187,6 +187,24 @@ linuxSystem = { config, pkgs, ... }:
     virtualisation.docker.enable = true;
 
     services.openssh.enable = true;
+
+    i18n.defaultLocale = "en_US.UTF-8";
+    i18n.extraLocaleSettings = {
+      LC_ADDRESS = "en_US.UTF-8";
+      LC_IDENTIFICATION = "en_US.UTF-8";
+      LC_MEASUREMENT = "en_US.UTF-8";
+      LC_MONETARY = "en_US.UTF-8";
+      LC_NAME = "en_US.UTF-8";
+      LC_NUMERIC = "en_US.UTF-8";
+      LC_PAPER = "en_US.UTF-8";
+      LC_TELEPHONE = "en_US.UTF-8";
+      LC_TIME = "en_US.UTF-8";
+    };
+
+    services.xserver = {
+      xkb.layout = "us";
+      xkb.variant = "";
+    };
   };
 #+end_src
 
@@ -391,7 +409,7 @@ defaultSettings = { config, lib, ... }:
 
 #+begin_src nix
 murphHardware = { config, pkgs, lib, ... }:
-  
+
   {
     hardware.enableRedistributableFirmware = lib.mkDefault true;
     hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
@@ -424,26 +442,7 @@ murphHardware = { config, pkgs, lib, ... }:
     networking.networkmanager.enable = true;
     networking.useDHCP = lib.mkDefault true;
 
-    # Non murph specific stuff
     time.timeZone = "America/Boise";
-
-    i18n.defaultLocale = "en_US.UTF-8";
-    i18n.extraLocaleSettings = {
-      LC_ADDRESS = "en_US.UTF-8";
-      LC_IDENTIFICATION = "en_US.UTF-8";
-      LC_MEASUREMENT = "en_US.UTF-8";
-      LC_MONETARY = "en_US.UTF-8";
-      LC_NAME = "en_US.UTF-8";
-      LC_NUMERIC = "en_US.UTF-8";
-      LC_PAPER = "en_US.UTF-8";
-      LC_TELEPHONE = "en_US.UTF-8";
-      LC_TIME = "en_US.UTF-8";
-    };
-    
-    services.xserver = {
-      xkb.layout = "us";
-      xkb.variant = "";
-    };
   };
 #+end_src
 
