@@ -323,7 +323,7 @@
         
             fonts.fontconfig.enable = true;
         
-            services.gpg-agent.pinentryFlavor = "gnome3";
+            services.gpg-agent.pinentryPackage = "gnome3";
         
             programs.firefox = {
               enable = true;
