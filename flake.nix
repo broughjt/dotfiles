@@ -215,7 +215,6 @@
               direnv
               eza
               fd
-              pass
               gopass
               ispell
               jq

@@ -309,7 +309,6 @@ home = { lib, config, pkgs, ... }:
       direnv
       eza
       fd
-      pass
       gopass
       ispell
       jq
