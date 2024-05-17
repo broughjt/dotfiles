@@ -309,6 +309,7 @@ home = { lib, config, pkgs, ... }:
       direnv
       eza
       fd
+      pass
       gopass
       ispell
       jq
@@ -396,7 +397,7 @@ linuxHomeHeadless = { pkgs, ... }:
   {
     imports = [ linuxHome ];
     
-    # services.gpg-agent.pinentryPackage = "tty";
+    services.gpg-agent.pinentryPackage = pkgs.pinentry-tty;
   };
 #+end_src
 
@@ -406,12 +407,15 @@ linuxHomeHeadless = { pkgs, ... }:
 linuxHomeGraphical = { config, pkgs, ... }:
 
   {
-    imports = [ linuxHome emacsConfiguration ];
+    imports = [ linuxHome emacsConfiguration dconfSettings ];
     
     home.packages = with pkgs; [
+      iosevka
       jetbrains-mono
       source-sans
       source-serif
+      ibm-plex
+      julia-mono
       
       slack
       spotify
@@ -431,7 +435,7 @@ linuxHomeGraphical = { config, pkgs, ... }:
 
     fonts.fontconfig.enable = true;
 
-    # services.gpg-agent.pinentryPackage = "gnome3";
+    services.gpg-agent.pinentryPackage = pkgs.pinentry-gnome3;
 
     programs.firefox = {
       enable = true;
@@ -444,6 +448,30 @@ linuxHomeGraphical = { config, pkgs, ... }:
       package = config.programs.emacs.package;
       defaultEditor = true;
       startWithUserSession = "graphical";
+    };
+  };
+#+end_src
+
+**** dconf settings
+
+#+begin_src nix
+dconfSettings = { config, ... }:
+
+  {
+    dconf.settings = {
+      "org/gnome/shell" = {
+        disabled-user-extension = false;
+        disabled-extensions = "disabled";
+        enabled-extensions = [ "pop-shell@system76.com" ];
+      };
+      "org/gnome/desktop/interface" = {
+        clock-format = "12h";
+        color-scheme = "prefer-dark";
+        enable-hot-corners = false;
+      };
+      "org/gnome/mutter" = {
+        experimental-features = [ "scale-monitor-framebuffer" ];
+      };
     };
   };
 #+end_src
@@ -691,7 +719,7 @@ Disable the menu-, tool-, and scroll-bar modes.
 Set the font.
 
 #+begin_src elisp
-(set-face-attribute 'default nil :font "JetBrains Mono 14")
+(add-to-list 'default-frame-alist '(font . "JetBrains Mono 12"))
 #+end_src
 
 Never ever make an audible noise. "The editor does not speak unless
@@ -1040,7 +1068,7 @@ mountains?
 
 (use-package ef-themes 
   :init
-  (load-theme 'ef-light t))
+  (load-theme 'ef-dark t))
 #+end_src
 
 *** Racket

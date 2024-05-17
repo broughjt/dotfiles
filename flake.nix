@@ -215,6 +215,7 @@
               direnv
               eza
               fd
+              pass
               gopass
               ispell
               jq
@@ -292,17 +293,20 @@
           {
             imports = [ linuxHome ];
             
-            # services.gpg-agent.pinentryPackage = "tty";
+            services.gpg-agent.pinentryPackage = pkgs.pinentry-tty;
           };
         linuxHomeGraphical = { config, pkgs, ... }:
         
           {
-            imports = [ linuxHome emacsConfiguration ];
+            imports = [ linuxHome emacsConfiguration dconfSettings ];
             
             home.packages = with pkgs; [
+              iosevka
               jetbrains-mono
               source-sans
               source-serif
+              ibm-plex
+              julia-mono
               
               slack
               spotify
@@ -322,7 +326,7 @@
         
             fonts.fontconfig.enable = true;
         
-            # services.gpg-agent.pinentryPackage = "gnome3";
+            services.gpg-agent.pinentryPackage = pkgs.pinentry-gnome3;
         
             programs.firefox = {
               enable = true;
@@ -335,6 +339,25 @@
               package = config.programs.emacs.package;
               defaultEditor = true;
               startWithUserSession = "graphical";
+            };
+          };
+        dconfSettings = { config, ... }:
+        
+          {
+            dconf.settings = {
+              "org/gnome/shell" = {
+                disabled-user-extension = false;
+                disabled-extensions = "disabled";
+                enabled-extensions = [ "pop-shell@system76.com" ];
+              };
+              "org/gnome/desktop/interface" = {
+                clock-format = "12h";
+                color-scheme = "prefer-dark";
+                enable-hot-corners = false;
+              };
+              "org/gnome/mutter" = {
+                experimental-features = [ "scale-monitor-framebuffer" ];
+              };
             };
           };
         darwinHome = { config, pkgs, nixcasks, lib, ... }:
