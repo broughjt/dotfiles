@@ -268,6 +268,76 @@
               '';
             };
           };
+        linuxHome = { config, pkgs, ... }:
+          
+          {
+            imports = [ home ];
+            
+            home.homeDirectory = "/home/${config.personal.userName}";
+            home.packages = with pkgs; [
+              killall
+              lldb
+              docker-compose
+              (pkgs.texlive.combine {
+                inherit (pkgs.texlive) scheme-basic
+                  dvisvgm dvipng
+                  wrapfig amsmath ulem hyperref capt-of;
+              })
+            ];
+            
+            services.ssh-agent.enable = true;
+            services.gpg-agent.enable = true;
+          };
+        linuxHomeHeadless = { pkgs, ... }:
+          {
+            imports = [ linuxHome ];
+            
+            services.gpg-agent.pinentryFlavor = "tty";
+          };
+        linuxHomeGraphical = { config, pkgs, ... }:
+        
+          {
+            imports = [ linuxHome emacsConfiguration ];
+            
+            home.packages = with pkgs; [
+              pinentry-gnome
+              jetbrains-mono
+              source-sans
+              source-serif
+              
+              slack
+              spotify
+              playerctl
+            ];
+        
+            xdg.userDirs = {
+              createDirectories = true;
+              documents = config.personal.scratchDirectory;
+              download = config.personal.scratchDirectory;
+              music = "${config.personal.shareDirectory}/music";
+              pictures = "${config.personal.shareDirectory}/pictures";
+              publicShare = config.personal.scratchDirectory;
+              templates = config.personal.scratchDirectory;
+              videos = "${config.personal.shareDirectory}/videos";
+            };
+        
+            fonts.fontconfig.enable = true;
+        
+            services.gpg-agent.pinentryFlavor = "gnome3";
+        
+            programs.firefox = {
+              enable = true;
+              enableGnomeExtensions = false;
+            };
+            
+            programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
+            services.emacs = {
+              enable = true;
+              package = config.programs.emacs.package;
+              defaultEditor = true;
+              startWithUserSession = "graphical";
+            };
+          };
         darwinHome = { config, pkgs, nixcasks, lib, ... }:
         
         {
@@ -452,7 +522,7 @@
           system = "x86_64-linux";
           config.allowUnfree = true;
         };
-        modules = with nixosModules; [ home ];
+        modules = with nixosModules; [ linuxHomeGraphical ];
       };
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
