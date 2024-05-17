@@ -292,7 +292,7 @@
           {
             imports = [ linuxHome ];
             
-            services.gpg-agent.pinentryPackage = "tty";
+            # services.gpg-agent.pinentryPackage = "tty";
           };
         linuxHomeGraphical = { config, pkgs, ... }:
         
@@ -323,7 +323,7 @@
         
             fonts.fontconfig.enable = true;
         
-            services.gpg-agent.pinentryPackage = "gnome3";
+            # services.gpg-agent.pinentryPackage = "gnome3";
         
             programs.firefox = {
               enable = true;
