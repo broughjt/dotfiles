@@ -396,7 +396,7 @@ linuxHomeHeadless = { pkgs, ... }:
   {
     imports = [ linuxHome ];
     
-    services.gpg-agent.pinentryFlavor = "tty";
+    services.gpg-agent.pinentryPackage = "tty";
   };
 #+end_src
 

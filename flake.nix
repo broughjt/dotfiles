@@ -292,7 +292,7 @@
           {
             imports = [ linuxHome ];
             
-            services.gpg-agent.pinentryFlavor = "tty";
+            services.gpg-agent.pinentryPackage = "tty";
           };
         linuxHomeGraphical = { config, pkgs, ... }:
         
