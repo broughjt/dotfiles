@@ -300,7 +300,6 @@
             imports = [ linuxHome emacsConfiguration ];
             
             home.packages = with pkgs; [
-              pinentry-gnome
               jetbrains-mono
               source-sans
               source-serif
