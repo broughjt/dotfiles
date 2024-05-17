@@ -208,6 +208,62 @@ linuxSystem = { config, pkgs, ... }:
   };
 #+end_src
 
+*** Graphical
+
+#+begin_src nix
+linuxSystemGraphical = { config, pkgs, ... }:
+
+  {
+    imports = [ linuxSystem ];
+    users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
+
+    services.xserver = {
+      enable = true;
+      displayManager.gdm.enable = true;
+      displayManager.gdm.wayland = true;
+      desktopManager.gnome.enable = true;
+    };
+    environment.gnome.excludePackages = (with pkgs; [
+      gnome-photos
+      gnome-tour
+      gedit
+    ]) ++ (with pkgs.gnome; [
+      cheese
+      atomix
+      epiphany
+      evince
+      geary
+      gnome-characters
+      gnome-music
+      hitori
+      iagno
+      tali
+      totem
+      gnome-calculator
+      gnome-calendar
+      gnome-clocks
+      gnome-contacts
+      gnome-maps
+      gnome-weather
+      # gnome-disk-image-mounter
+      # gnome-disks
+      # gnome-extensions
+      # gnome-extensions-app
+      # gnome-logs
+      # gnome-system-monitor
+      simple-scan
+    ]) ++ (with pkgs.gnome.apps; [
+      # TODO: Figure how to remove these
+      # gnome-connections
+      # gnome-help
+      # gnome-text-editor
+      # gnome-thumbnail-font
+    ]);
+
+    services.tailscale.enable = true;
+  };
+#+end_src
+
 ** Darwin system
 
 #+begin_src nix
@@ -1067,7 +1123,7 @@ homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration 
 
 #+begin_src nix
 nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-  modules = with nixosModules; [ murphHardware linuxSystem ];
+  modules = with nixosModules; [ murphHardware linuxSystemGraphical ];
 };
 #+end_src
 

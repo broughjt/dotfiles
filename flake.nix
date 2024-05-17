@@ -127,6 +127,57 @@
               xkb.variant = "";
             };
           };
+        linuxSystemGraphical = { config, pkgs, ... }:
+        
+          {
+            imports = [ linuxSystem ];
+            users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
+        
+            services.xserver = {
+              enable = true;
+              displayManager.gdm.enable = true;
+              displayManager.gdm.wayland = true;
+              desktopManager.gnome.enable = true;
+            };
+            environment.gnome.excludePackages = (with pkgs; [
+              gnome-photos
+              gnome-tour
+              gedit
+            ]) ++ (with pkgs.gnome; [
+              cheese
+              atomix
+              epiphany
+              evince
+              geary
+              gnome-characters
+              gnome-music
+              hitori
+              iagno
+              tali
+              totem
+              gnome-calculator
+              gnome-calendar
+              gnome-clocks
+              gnome-contacts
+              gnome-maps
+              gnome-weather
+              # gnome-disk-image-mounter
+              # gnome-disks
+              # gnome-extensions
+              # gnome-extensions-app
+              # gnome-logs
+              # gnome-system-monitor
+              simple-scan
+            ]) ++ (with pkgs.gnome.apps; [
+              # TODO: Figure how to remove these
+              # gnome-connections
+              # gnome-help
+              # gnome-text-editor
+              # gnome-thumbnail-font
+            ]);
+        
+            services.tailscale.enable = true;
+          };
         darwinSystem = { config, pkgs, ... }:
         
           {
@@ -394,7 +445,7 @@
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-        modules = with nixosModules; [ murphHardware linuxSystem ];
+        modules = with nixosModules; [ murphHardware linuxSystemGraphical ];
       };
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
