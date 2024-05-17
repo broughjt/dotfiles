@@ -447,7 +447,7 @@
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
         modules = with nixosModules; [ murphHardware linuxSystemGraphical ];
       };
-      homeConfigurations."jackson@murph" = home-manager.lib.homeManagerconfiguration {
+      homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
           system = "x86_64-linux";
           config.allowUnfree = true;
