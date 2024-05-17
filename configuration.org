@@ -1125,6 +1125,13 @@ homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration 
 nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
   modules = with nixosModules; [ murphHardware linuxSystemGraphical ];
 };
+homeConfigurations."jackson@murph" = home-manager.lib.homeManagerconfiguration {
+  pkgs = import nixpkgs {
+    system = "x86_64-linux";
+    config.allowUnfree = true;
+  };
+  modules = with nixosModules; [ home ];
+};
 #+end_src
 
 * Commands
@@ -1157,7 +1164,7 @@ nix run --extra-experimental-features nix-command --extra-experimental-features 
 
 ** Adding new ssh keys to GitHub
 
-If you need to generated a new one, see
+If you need to generate a new one, see
 https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent.
 
 Then run

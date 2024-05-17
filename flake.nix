@@ -447,6 +447,13 @@
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
         modules = with nixosModules; [ murphHardware linuxSystemGraphical ];
       };
+      homeConfigurations."jackson@murph" = home-manager.lib.homeManagerconfiguration {
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfree = true;
+        };
+        modules = with nixosModules; [ home ];
+      };
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
       });
