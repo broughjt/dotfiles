@@ -126,12 +126,14 @@
               xkb.layout = "us";
               xkb.variant = "";
             };
+        
+            services.tailscale.enable = true;
           };
         linuxSystemGraphical = { config, pkgs, ... }:
         
           {
             imports = [ linuxSystem ];
-            users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" ];
+            users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" "input" ];
         
             services.xserver = {
               enable = true;
@@ -175,8 +177,6 @@
               # gnome-text-editor
               # gnome-thumbnail-font
             ]);
-        
-            services.tailscale.enable = true;
           };
         darwinSystem = { config, pkgs, ... }:
         
@@ -198,8 +198,6 @@
                 "spotify"
                 "zoom"
               ];
-        
-              services.tailscale.enable = true;
             };
           };
         home = { lib, config, pkgs, ... }:
@@ -306,6 +304,9 @@
               source-serif
               ibm-plex
               julia-mono
+        
+              gnome.dconf-editor
+              gnomeExtensions.pop-shell
               
               slack
               spotify
@@ -353,9 +354,84 @@
                 clock-format = "12h";
                 color-scheme = "prefer-dark";
                 enable-hot-corners = false;
+                scaling-factor = 1.5;
+              };
+              "org/gnome/desktop/background" = {
+                picture-uri = "";
+                picture-dark-uri = "";
               };
               "org/gnome/mutter" = {
                 experimental-features = [ "scale-monitor-framebuffer" ];
+              };
+              "org/gnome/shell/extensions/pop-shell" = {
+                tile-by-default = true;
+                smart-gaps = true;
+              };
+              "org/gnome/desktop/wm/keybindings" = {
+                close = [ "<Super>q" ];
+                minimize = [ "<Super>comma" ];
+                toggle-fullscreen = [ "<Super>m" ];
+                toggle-maximized = [ "<Super><Shift>M" ];
+                switch-to-workspace-1 = [ "<Super>1" ];
+                switch-to-workspace-2 = [ "<Super>2" ];
+                switch-to-workspace-3 = [ "<Super>3" ];
+                switch-to-workspace-4 = [ "<Super>4" ];
+                switch-to-workspace-5 = [ "<Super>5" ];
+                switch-to-workspace-6 = [ "<Super>6" ];
+                switch-to-workspace-7 = [ "<Super>7" ];
+                switch-to-workspace-8 = [ "<Super>8" ];
+                switch-to-workspace-9 = [ "<Super>9" ];
+                move-to-workspace-1 = [ "<Super><Shift>1" ];
+                move-to-workspace-2 = [ "<Super><Shift>2" ];
+                move-to-workspace-3 = [ "<Super><Shift>3" ];
+                move-to-workspace-4 = [ "<Super><Shift>4" ];
+                move-to-workspace-5 = [ "<Super><Shift>5" ];
+                move-to-workspace-6 = [ "<Super><Shift>6" ];
+                move-to-workspace-7 = [ "<Super><Shift>7" ];
+                move-to-workspace-8 = [ "<Super><Shift>8" ];
+                move-to-workspace-9 = [ "<Super><Shift>9" ];
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+                name = "Emacs";
+                command = "emacsclient -c";
+                binding = "<Super>e";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+                name = "Browser";
+                command = "firefox";
+                binding = "<Super>b";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+                name = "Terminal";
+                command = "kgx";
+                binding = "<Super>t";
+              };
+              "org/gnome/settings-daemon/plugins/media-keys" = {
+                rotate-video-lock-static = [ ];
+                screenreader = [ ];
+                custom-keybindings = [
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
+                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
+                ];
+              };
+              "org/gnome/shell/keybindings" = {
+                toggle-message-tray = [ ];
+                focus-active-notification = [ ];
+                toggle-overview = [ ];
+                switch-to-application-1 = [ ];
+                switch-to-application-2 = [ ];
+                switch-to-application-3 = [ ];
+                switch-to-application-4 = [ ];
+                switch-to-application-5 = [ ];
+                switch-to-application-6 = [ ];
+                switch-to-application-7 = [ ];
+                switch-to-application-8 = [ ];
+                switch-to-application-9 = [ ];
               };
             };
           };
@@ -478,6 +554,8 @@
             networking.hostName = "murph";
             networking.networkmanager.enable = true;
             networking.useDHCP = lib.mkDefault true;
+        
+            services.fprintd.enable = true;
         
             time.timeZone = "America/Boise";
           };
