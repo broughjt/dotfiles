@@ -128,6 +128,7 @@
             };
         
             services.tailscale.enable = true;
+            services.tailscale.useRoutingFeatures = "client";
           };
         linuxSystemGraphical = { config, pkgs, ... }:
         
@@ -298,6 +299,7 @@
             imports = [ linuxHome emacsConfiguration dconfSettings ];
             
             home.packages = with pkgs; [
+              mpc-cli
               iosevka
               jetbrains-mono
               source-sans
@@ -308,6 +310,7 @@
               gnome.dconf-editor
               gnomeExtensions.pop-shell
               
+              nicotine-plus
               slack
               spotify
               playerctl
@@ -315,13 +318,13 @@
         
             xdg.userDirs = {
               createDirectories = true;
-              documents = config.personal.scratchDirectory;
-              download = config.personal.scratchDirectory;
-              music = "${config.personal.shareDirectory}/music";
-              pictures = "${config.personal.shareDirectory}/pictures";
-              publicShare = config.personal.scratchDirectory;
-              templates = config.personal.scratchDirectory;
-              videos = "${config.personal.shareDirectory}/videos";
+              documents = config.defaultDirectories.scratchDirectory;
+              download = config.defaultDirectories.scratchDirectory;
+              music = "${config.defaultDirectories.shareDirectory}/music";
+              pictures = "${config.defaultDirectories.shareDirectory}/pictures";
+              publicShare = config.defaultDirectories.scratchDirectory;
+              templates = config.defaultDirectories.scratchDirectory;
+              videos = "${config.defaultDirectories.shareDirectory}/videos";
             };
         
             fonts.fontconfig.enable = true;
@@ -339,6 +342,25 @@
               package = config.programs.emacs.package;
               defaultEditor = true;
               startWithUserSession = "graphical";
+            };
+        
+            programs.beets = {
+              enable = true;
+              settings = {
+                directory = "${config.defaultDirectories.shareDirectory}/music";
+                import.move = "yes";
+              };
+            };
+        
+            services.mpd = {
+              enable = true;
+              musicDirectory = "${config.defaultDirectories.shareDirectory}/music";
+              extraConfig = ''
+                audio_output {
+                  type "pipewire"
+                  name "pipewire"
+                }
+              '';
             };
           };
         dconfSettings = { config, ... }:
@@ -554,6 +576,18 @@
             networking.hostName = "murph";
             networking.networkmanager.enable = true;
             networking.useDHCP = lib.mkDefault true;
+        
+            hardware.pulseaudio.enable = false;
+            security.rtkit.enable = true;
+            services.pipewire = {
+              enable = true;
+              alsa.enable = true;
+              alsa.support32Bit = true;
+              pulse.enable = true;
+            };
+            hardware.bluetooth.enable = true;
+            hardware.bluetooth.powerOnBoot = true;
+            services.blueman.enable = true;
         
             services.fprintd.enable = true;
         
