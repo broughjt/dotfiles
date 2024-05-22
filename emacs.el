@@ -10,7 +10,7 @@
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 
-(add-to-list 'default-frame-alist '(font . "JetBrains Mono 12"))
+;; (add-to-list 'default-frame-alist '(font . "JetBrains Mono 12"))
 
 (setq visible-bell t)
 
@@ -151,8 +151,8 @@
   (company-idle-delay 0.1)
   :bind
   (:map company-active-map
-	("C-n" . company-select-next)
-	("C-p" . company-select-previous))
+    ("C-n" . company-select-next)
+    ("C-p" . company-select-previous))
   :init
   (global-company-mode))
 
@@ -166,7 +166,7 @@
   :after lsp-mode
   :commands dap-debug
   :hook ((python-mode . dap-ui-mode)
-	 (python-mode . dap-mode))
+         (python-mode . dap-mode))
   :custom
   (dap-python-debugger 'debugpy)
   :config
@@ -179,7 +179,7 @@
 
 (use-package modus-themes)
 
-(use-package ef-themes 
+(use-package ef-themes
   :init
   (load-theme 'ef-dark t))
 

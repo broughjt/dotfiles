@@ -217,10 +217,10 @@
             };
           };
         linuxHome = { config, pkgs, ... }:
-          
+        
           {
             imports = [ home ];
-            
+        
             home.homeDirectory = "/home/${config.personal.userName}";
             home.packages = with pkgs; [
               killall
@@ -232,26 +232,28 @@
                   wrapfig amsmath ulem hyperref capt-of;
               })
             ];
-            
+        
             services.ssh-agent.enable = true;
             services.gpg-agent.enable = true;
           };
         linuxHomeHeadless = { pkgs, ... }:
           {
             imports = [ linuxHome ];
-            
+        
             services.gpg-agent.pinentryPackage = pkgs.pinentry-tty;
           };
         linuxHomeGraphical = { config, pkgs, ... }:
         
           {
             imports = [ linuxHome emacsConfiguration ];
-            
+        
             home.packages = with pkgs; [
               jetbrains-mono
               source-sans
               source-serif
-              ibm-plex
+              ubuntu_font_family
+              public-sans
+              noto-fonts
         
               mpc-cli
               nicotine-plus
@@ -271,7 +273,80 @@
               videos = "${config.defaultDirectories.shareDirectory}/videos";
             };
         
-            fonts.fontconfig.enable = true;
+            fonts.fontconfig = {
+              enable = true;
+              defaultFonts.monospace = [ "JetBrains Mono" ];
+              defaultFonts.sansSerif = [ "Noto Sans" ];
+              defaultFonts.serif = [ "Noto Serif" ];
+            };
+        
+            wayland.windowManager.sway = {
+              enable = true;
+              wrapperFeatures.gtk = true;
+              config = {
+                terminal = "foot";
+                modifier = "Mod4";
+                input = {
+                  "type:Touchpad" = {
+                    "natural_scroll" = "enabled";
+                  };
+                };
+                keybindings = let
+                  modifier = config.wayland.windowManager.sway.config.modifier;
+                  terminal = config.wayland.windowManager.sway.config.terminal;
+                in {
+                  "${modifier}+q" = "kill";
+                  "${modifier}+t" = "exec ${terminal}";
+                  "${modifier}+b" = "exec firefox";
+                  "${modifier}+e" = "exec emacsclient -c";
+                  "${modifier}+c" = "sway exit";
+                  "${modifier}+r" = "reload";
+                  "${modifier}+f" = "fullscreen";
+        
+                  "${modifier}+h" = "focus left";
+                  "${modifier}+j" = "focus down";
+                  "${modifier}+k" = "focus up";
+                  "${modifier}+l" = "focus right";
+        
+                  "${modifier}+g" = "splith";
+                  "${modifier}+v" = "splitv";
+                  "${modifier}+Shift+f" = "floating toggle";
+        
+                  # TODO: mako, grim, slurp, wl-clipboard
+                  # TODO: Floating mode focus
+                  # TODO: Resizing windows
+        
+                  "${modifier}+Shift+h" = "move left";
+                  "${modifier}+Shift+j" = "move down";
+                  "${modifier}+Shift+k" = "move up";
+                  "${modifier}+Shift+l" = "move right";
+        
+                  "${modifier}+1" = "workspace number 1";
+                  "${modifier}+2" = "workspace number 2";
+                  "${modifier}+3" = "workspace number 3";
+                  "${modifier}+4" = "workspace number 4";
+                  "${modifier}+5" = "workspace number 5";
+                  "${modifier}+6" = "workspace number 6";
+                  "${modifier}+7" = "workspace number 7";
+                  "${modifier}+8" = "workspace number 8";
+                  "${modifier}+9" = "workspace number 9";
+                  "${modifier}+0" = "workspace number 10";
+        
+                  "${modifier}+Shift+1" = "move container workspace number 1";
+                  "${modifier}+Shift+2" = "move container workspace number 2";
+                  "${modifier}+Shift+3" = "move container workspace number 3";
+                  "${modifier}+Shift+4" = "move container workspace number 4";
+                  "${modifier}+Shift+5" = "move container workspace number 5";
+                  "${modifier}+Shift+6" = "move container workspace number 6";
+                  "${modifier}+Shift+7" = "move container workspace number 7";
+                  "${modifier}+Shift+8" = "move container workspace number 8";
+                  "${modifier}+Shift+9" = "move container workspace number 9";
+                  "${modifier}+Shift+0" = "move container workspace number 10";
+                };
+              };
+            };
+        
+            programs.foot.enable = true;
         
             services.gpg-agent.pinentryPackage = pkgs.pinentry-gnome3;
         
@@ -279,7 +354,7 @@
               enable = true;
               enableGnomeExtensions = false;
             };
-            
+        
             programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
             services.emacs = {
               enable = true;
