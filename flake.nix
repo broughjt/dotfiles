@@ -255,6 +255,8 @@
               public-sans
               noto-fonts
         
+              pinentry-gnome3
+        
               mpc-cli
               nicotine-plus
               slack
