@@ -489,12 +489,12 @@
             };
         
             fileSystems."/boot" = {
-              device = "/dev/disk/by-uuid/9BEE-3421";
+              device = "/dev/disk/by-uuid/79D4-F8F1";
               fsType = "vfat";
               options = [ "fmask=0022" "dmask=0022" ];
             };
             fileSystems."/" = {
-              device = "/dev/disk/by-uuid/581a668b-5332-4224-a9c2-86f1840e2bf6";
+              device = "/dev/disk/by-uuid/570b2e37-fe1d-47d0-be0c-457f37d4bc3d";
               fsType = "ext4";
             };
             swapDevices = [ ];
@@ -521,7 +521,7 @@
         
             services.fwupd.enable = true;
         
-            time.timeZone = "America/Boise";
+            time.timeZone = "America/Denver";
           };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
