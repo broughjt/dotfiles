@@ -235,12 +235,11 @@
         
             services.ssh-agent.enable = true;
             services.gpg-agent.enable = true;
+            services.gpg-agent.pinentryPackage = pkgs.pinentry-emacs;
           };
         linuxHomeHeadless = { pkgs, ... }:
           {
             imports = [ linuxHome ];
-        
-            services.gpg-agent.pinentryPackage = pkgs.pinentry-tty;
           };
         linuxHomeGraphical = { config, pkgs, ... }:
         
@@ -254,8 +253,6 @@
               ubuntu_font_family
               public-sans
               noto-fonts
-        
-              pinentry-gnome3
         
               mpc-cli
               nicotine-plus
@@ -289,7 +286,7 @@
                 terminal = "foot";
                 modifier = "Mod4";
                 input = {
-                  "type:Touchpad" = {
+                  "type:touchpad" = {
                     "natural_scroll" = "enabled";
                   };
                 };
@@ -301,7 +298,7 @@
                   "${modifier}+t" = "exec ${terminal}";
                   "${modifier}+b" = "exec firefox";
                   "${modifier}+e" = "exec emacsclient -c";
-                  "${modifier}+c" = "sway exit";
+                  "${modifier}+c" = "exit";
                   "${modifier}+r" = "reload";
                   "${modifier}+f" = "fullscreen";
         
@@ -313,6 +310,11 @@
                   "${modifier}+g" = "splith";
                   "${modifier}+v" = "splitv";
                   "${modifier}+Shift+f" = "floating toggle";
+                  "${modifier}+z" = "sticky toggle";
+        
+                  "XF86AudioRaiseVolume" = "exec 'wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+'";
+                  "XF86AudioLowerVolume" = "exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-'";
+                  "XF86AudioMute" = "exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
         
                   # TODO: mako, grim, slurp, wl-clipboard
                   # TODO: Floating mode focus
@@ -349,8 +351,6 @@
             };
         
             programs.foot.enable = true;
-        
-            services.gpg-agent.pinentryPackage = pkgs.pinentry-gnome3;
         
             programs.firefox = {
               enable = true;
@@ -503,19 +503,23 @@
             networking.networkmanager.enable = true;
             networking.useDHCP = lib.mkDefault true;
         
-            hardware.pulseaudio.enable = false;
             security.rtkit.enable = true;
             services.pipewire = {
               enable = true;
+              pulse.enable = true;
               alsa.enable = true;
               alsa.support32Bit = true;
-              pulse.enable = true;
             };
-            # hardware.bluetooth.enable = true;
-            # hardware.bluetooth.powerOnBoot = true;
-            # services.blueman.enable = true;
+        
+            hardware.bluetooth.enable = true;
+            services.blueman.enable = true;
         
             services.fprintd.enable = true;
+        
+            security.polkit.enable = true;
+            hardware.opengl.enable = true;
+        
+            services.fwupd.enable = true;
         
             time.timeZone = "America/Boise";
           };

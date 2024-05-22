@@ -31,6 +31,8 @@
 
 (setq-default indent-tabs-mode nil)
 
+(setq epg-pinentry-mode 'loopback)
+
 (use-package evil
  :init
  (setq evil-want-keybinding nil)
