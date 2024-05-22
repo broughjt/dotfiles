@@ -86,7 +86,7 @@
             nix.settings.trusted-users = [ "root" config.personal.userName ];
         
             environment.systemPackages = with pkgs; [ curl git neovim ];
-            environment.shells = with pkgs; [ bashInteractive zsh fish ];
+            environment.shells = with pkgs; [ bashInteractive fish ];
         
             programs.fish.enable = true;
         
@@ -97,17 +97,11 @@
           {
             imports = [ system ];
         
-            hardware.enableRedistributableFirmware = true;
-        
             users.users.${config.personal.userName} = {
               home = "/home/${config.personal.userName}";
-              extraGroups = [ "docker" "wheel" "networkmanager" ];
+              extraGroups = [ "docker" "wheel" "networkmanager" "video" "input" ];
               isNormalUser = true;
             };
-        
-            virtualisation.docker.enable = true;
-        
-            services.openssh.enable = true;
         
             i18n.defaultLocale = "en_US.UTF-8";
             i18n.extraLocaleSettings = {
@@ -127,57 +121,12 @@
               xkb.variant = "";
             };
         
-            services.tailscale.enable = true;
-            services.tailscale.useRoutingFeatures = "client";
-          };
-        linuxSystemGraphical = { config, pkgs, ... }:
+            virtualisation.docker.enable = true;
         
-          {
-            imports = [ linuxSystem ];
-            users.users.${config.personal.userName}.extraGroups = [ "networkmanager" "video" "input" ];
+            services.openssh.enable = true;
         
-            services.xserver = {
-              enable = true;
-              displayManager.gdm.enable = true;
-              displayManager.gdm.wayland = true;
-              desktopManager.gnome.enable = true;
-            };
-            environment.gnome.excludePackages = (with pkgs; [
-              gnome-photos
-              gnome-tour
-              gedit
-            ]) ++ (with pkgs.gnome; [
-              cheese
-              atomix
-              epiphany
-              evince
-              geary
-              gnome-characters
-              gnome-music
-              hitori
-              iagno
-              tali
-              totem
-              gnome-calculator
-              gnome-calendar
-              gnome-clocks
-              gnome-contacts
-              gnome-maps
-              gnome-weather
-              # gnome-disk-image-mounter
-              # gnome-disks
-              # gnome-extensions
-              # gnome-extensions-app
-              # gnome-logs
-              # gnome-system-monitor
-              simple-scan
-            ]) ++ (with pkgs.gnome.apps; [
-              # TODO: Figure how to remove these
-              # gnome-connections
-              # gnome-help
-              # gnome-text-editor
-              # gnome-thumbnail-font
-            ]);
+            # services.tailscale.enable = true;
+            # services.tailscale.useRoutingFeatures = "client";
           };
         darwinSystem = { config, pkgs, ... }:
         
@@ -296,20 +245,15 @@
         linuxHomeGraphical = { config, pkgs, ... }:
         
           {
-            imports = [ linuxHome emacsConfiguration dconfSettings ];
+            imports = [ linuxHome emacsConfiguration ];
             
             home.packages = with pkgs; [
-              mpc-cli
-              iosevka
               jetbrains-mono
               source-sans
               source-serif
               ibm-plex
-              julia-mono
-        
-              gnome.dconf-editor
-              gnomeExtensions.pop-shell
               
+              mpc-cli
               nicotine-plus
               slack
               spotify
@@ -341,7 +285,6 @@
               enable = true;
               package = config.programs.emacs.package;
               defaultEditor = true;
-              startWithUserSession = "graphical";
             };
         
             programs.beets = {
@@ -361,100 +304,6 @@
                   name "pipewire"
                 }
               '';
-            };
-          };
-        dconfSettings = { config, ... }:
-        
-          {
-            dconf.settings = {
-              "org/gnome/shell" = {
-                disabled-user-extension = false;
-                disabled-extensions = "disabled";
-                enabled-extensions = [ "pop-shell@system76.com" ];
-              };
-              "org/gnome/desktop/interface" = {
-                clock-format = "12h";
-                color-scheme = "prefer-dark";
-                enable-hot-corners = false;
-                scaling-factor = 1.5;
-              };
-              "org/gnome/desktop/background" = {
-                picture-uri = "";
-                picture-dark-uri = "";
-              };
-              "org/gnome/mutter" = {
-                experimental-features = [ "scale-monitor-framebuffer" ];
-              };
-              "org/gnome/shell/extensions/pop-shell" = {
-                tile-by-default = true;
-                smart-gaps = true;
-              };
-              "org/gnome/desktop/wm/keybindings" = {
-                close = [ "<Super>q" ];
-                minimize = [ "<Super>comma" ];
-                toggle-fullscreen = [ "<Super>m" ];
-                toggle-maximized = [ "<Super><Shift>M" ];
-                switch-to-workspace-1 = [ "<Super>1" ];
-                switch-to-workspace-2 = [ "<Super>2" ];
-                switch-to-workspace-3 = [ "<Super>3" ];
-                switch-to-workspace-4 = [ "<Super>4" ];
-                switch-to-workspace-5 = [ "<Super>5" ];
-                switch-to-workspace-6 = [ "<Super>6" ];
-                switch-to-workspace-7 = [ "<Super>7" ];
-                switch-to-workspace-8 = [ "<Super>8" ];
-                switch-to-workspace-9 = [ "<Super>9" ];
-                move-to-workspace-1 = [ "<Super><Shift>1" ];
-                move-to-workspace-2 = [ "<Super><Shift>2" ];
-                move-to-workspace-3 = [ "<Super><Shift>3" ];
-                move-to-workspace-4 = [ "<Super><Shift>4" ];
-                move-to-workspace-5 = [ "<Super><Shift>5" ];
-                move-to-workspace-6 = [ "<Super><Shift>6" ];
-                move-to-workspace-7 = [ "<Super><Shift>7" ];
-                move-to-workspace-8 = [ "<Super><Shift>8" ];
-                move-to-workspace-9 = [ "<Super><Shift>9" ];
-              };
-              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-                name = "Emacs";
-                command = "emacsclient -c";
-                binding = "<Super>e";
-              };
-              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
-                name = "Browser";
-                command = "firefox";
-                binding = "<Super>b";
-              };
-              "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-                name = "Terminal";
-                command = "kgx";
-                binding = "<Super>t";
-              };
-              "org/gnome/settings-daemon/plugins/media-keys" = {
-                rotate-video-lock-static = [ ];
-                screenreader = [ ];
-                custom-keybindings = [
-                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
-                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
-                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
-                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
-                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
-                  "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
-                ];
-              };
-              "org/gnome/shell/keybindings" = {
-                toggle-message-tray = [ ];
-                focus-active-notification = [ ];
-                toggle-overview = [ ];
-                switch-to-application-1 = [ ];
-                switch-to-application-2 = [ ];
-                switch-to-application-3 = [ ];
-                switch-to-application-4 = [ ];
-                switch-to-application-5 = [ ];
-                switch-to-application-6 = [ ];
-                switch-to-application-7 = [ ];
-                switch-to-application-8 = [ ];
-                switch-to-application-9 = [ ];
-              };
             };
           };
         darwinHome = { config, pkgs, nixcasks, lib, ... }:
@@ -585,9 +434,9 @@
               alsa.support32Bit = true;
               pulse.enable = true;
             };
-            hardware.bluetooth.enable = true;
-            hardware.bluetooth.powerOnBoot = true;
-            services.blueman.enable = true;
+            # hardware.bluetooth.enable = true;
+            # hardware.bluetooth.powerOnBoot = true;
+            # services.blueman.enable = true;
         
             services.fprintd.enable = true;
         
@@ -648,7 +497,7 @@
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-        modules = with nixosModules; [ murphHardware linuxSystemGraphical ];
+        modules = with nixosModules; [ murphHardware linuxSystem ];
       };
       homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
