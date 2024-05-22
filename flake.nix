@@ -482,6 +482,7 @@
             boot = {
               initrd.availableKernelModules = [ "nvme" "xhci_pci" "thunderbolt" "usb_storage" "sd_mod" ];
               initrd.kernelModules = [ ];
+              kernelPackages = pkgs.linuxPackages_latest;
               kernelModules = [ "kvm-amd" ];
               extraModulePackages = [ ];
               loader.systemd-boot.enable = true;
