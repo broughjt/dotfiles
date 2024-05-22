@@ -252,7 +252,7 @@
               source-sans
               source-serif
               ibm-plex
-              
+        
               mpc-cli
               nicotine-plus
               slack
