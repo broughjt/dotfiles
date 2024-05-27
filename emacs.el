@@ -31,8 +31,14 @@
 
 (setq-default indent-tabs-mode nil)
 
+(use-package exec-path-from-shell
+  :config
+  (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "GNUPGHOME" "LANG" "LC_CTYPE" "NIX_SSL_CERT_FILE" "NIX_PATH"))
+    (add-to-list 'exec-path-from-shell-variables var))
+  (exec-path-from-shell-initialize))
+
 ;; (setq epg-pinentry-mode 'loopback)
-(setenv "GNUPGHOME" "/home/jackson/.local/share/gnupg")
+;; (setenv "GNUPGHOME" "/home/jackson/.local/share/gnupg")
 
 (use-package evil
  :init
