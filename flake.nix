@@ -231,34 +231,38 @@
                   dvisvgm dvipng
                   wrapfig amsmath ulem hyperref capt-of;
               })
+              pinentry-emacs
             ];
         
             services.ssh-agent.enable = true;
-            services.gpg-agent.enable = true;
-            services.gpg-agent.pinentryPackage = pkgs.pinentry-emacs;
+        
+            services.gpg-agent = {
+              enable = true;
+              pinentryPackage = pkgs.pinentry-emacs;
+              extraConfig = ''
+                allow-emacs-pinentry
+                allow-loopback-pinentry
+              '';
+            };
           };
         linuxHomeHeadless = { pkgs, ... }:
           {
             imports = [ linuxHome ];
           };
-        linuxHomeGraphical = { config, pkgs, ... }:
+        linuxHomeGraphical = { config, pkgs, lib, ... }:
         
           {
             imports = [ linuxHome emacsConfiguration ];
         
             home.packages = with pkgs; [
               jetbrains-mono
-              source-sans
-              source-serif
-              ubuntu_font_family
-              public-sans
               noto-fonts
         
+              playerctl
               mpc-cli
               nicotine-plus
               slack
               spotify
-              playerctl
             ];
         
             xdg.userDirs = {
@@ -274,7 +278,7 @@
         
             fonts.fontconfig = {
               enable = true;
-              defaultFonts.monospace = [ "JetBrains Mono" ];
+              defaultFonts.monospace = [ "JetBrains Mono" "Noto Sans Mono" ];
               defaultFonts.sansSerif = [ "Noto Sans" ];
               defaultFonts.serif = [ "Noto Serif" ];
             };
@@ -290,6 +294,10 @@
                     "natural_scroll" = "enabled";
                   };
                 };
+                fonts.names = [ "monospace" ];
+                window.border = 0;
+                window.titlebar = false;
+                window.hideEdgeBorders = "smart";
                 keybindings = let
                   modifier = config.wayland.windowManager.sway.config.modifier;
                   terminal = config.wayland.windowManager.sway.config.terminal;
@@ -315,6 +323,7 @@
                   "XF86AudioRaiseVolume" = "exec 'wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+'";
                   "XF86AudioLowerVolume" = "exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-'";
                   "XF86AudioMute" = "exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
+                  "XF86AudioPlay"= "exec `playerctl play-pause`";
         
                   # TODO: mako, grim, slurp, wl-clipboard
                   # TODO: Floating mode focus
@@ -350,7 +359,18 @@
               };
             };
         
-            programs.foot.enable = true;
+            programs.foot = {
+              enable = true;
+              settings = {
+                main = {
+                  font = let
+                    defaultMonospace = builtins.head config.fonts.fontconfig.defaultFonts.monospace;
+                  in "${defaultMonospace}:size=10";
+                  dpi-aware = "yes";
+                };
+                mouse.hide-when-typing = "yes";
+              };
+            };
         
             programs.firefox = {
               enable = true;
@@ -368,7 +388,7 @@
               enable = true;
               settings = {
                 directory = "${config.defaultDirectories.shareDirectory}/music";
-                import.move = "yes";
+                import.move = true;
               };
             };
         
@@ -382,8 +402,11 @@
                 }
               '';
             };
+        
+            services.mpd-mpris.enable = true;
+            services.playerctld.enable = true;
           };
-        darwinHome = { config, pkgs, nixcasks, lib, ... }:
+        darwinHome = { config, pkgs, nixcasks, ... }:
         
         {
           imports = [ home emacsConfiguration defaultSettings ];

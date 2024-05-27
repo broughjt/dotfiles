@@ -68,7 +68,7 @@
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
-(setq org-directory "~/share/org/")
+(setq org-directory "~/repositories/gtd/")
 (setq inbox-file (concat org-directory "inbox.org"))
 (setq tasks-file (concat org-directory "tasks.org"))
 (setq suspended-file (concat org-directory "suspended.org"))
@@ -224,5 +224,4 @@
   (add-to-list 'emms-info-functions 'emms-info-mpd)
   (add-to-list 'emms-player-list 'emms-player-mpd)
   (emms-player-mpd-connect)
-  (add-hook 'emms-playlist-cleared-hook 'emms-player-mpd-clear)
-)
+  (add-hook 'emms-playlist-cleared-hook 'emms-player-mpd-clear))
