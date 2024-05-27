@@ -32,6 +32,7 @@
 (setq-default indent-tabs-mode nil)
 
 ;; (setq epg-pinentry-mode 'loopback)
+(setenv "GNUPGHOME" "/home/jackson/.local/share/gnupg")
 
 (use-package evil
  :init

@@ -829,10 +829,9 @@ As for ~use-package~ declarations, always remember, the ~init~ keyword
 is for code that should run before, the ~config~ keyword is for code
 that should run after.
 
-Use Emacs to ask for GPG pin numbers.
-
 #+begin_src elisp
 ;; (setq epg-pinentry-mode 'loopback)
+(setenv "GNUPGHOME" "/home/jackson/.local/share/gnupg")
 #+end_src
 
 *** Evil mode
