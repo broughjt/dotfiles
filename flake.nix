@@ -260,6 +260,7 @@
               slack
               spotify
             ];
+            home.sessionVariables.NIXOS_OZONE_WL = "1";
         
             xdg.userDirs = {
               createDirectories = true;
@@ -302,6 +303,7 @@
                   "${modifier}+t" = "exec ${terminal}";
                   "${modifier}+b" = "exec firefox";
                   "${modifier}+e" = "exec emacsclient -c";
+                  "${modifier}+d" = "exec tofi-drun | xargs swaymsg exec --";
                   "${modifier}+c" = "exit";
                   "${modifier}+r" = "reload";
                   "${modifier}+f" = "fullscreen";
@@ -378,6 +380,27 @@
               enable = true;
               package = config.programs.emacs.package;
               defaultEditor = true;
+            };
+        
+            programs.tofi = {
+              enable = true;
+              settings = {
+                anchor = "top";
+                width = "100%";
+                height = 30;
+                horizontal = true;
+                background-color = "#000000";
+                font-size = 14;
+                font = "monospace";
+                padding-top = 0;
+                padding-bottom = 0;
+                padding-left = 0;
+                padding-right = 0;
+                border-width = 0;
+                outline-width = 0;
+                result-spacing = 15;
+                min-input-width = 120;
+              };
             };
         
             programs.beets = {
