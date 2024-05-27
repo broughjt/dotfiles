@@ -325,18 +325,14 @@ linuxHome = { config, pkgs, ... }:
           dvisvgm dvipng
           wrapfig amsmath ulem hyperref capt-of;
       })
-      pinentry-emacs
+      pinentry-qt
     ];
 
     services.ssh-agent.enable = true;
 
     services.gpg-agent = {
       enable = true;
-      pinentryPackage = pkgs.pinentry-emacs;
-      extraConfig = ''
-        allow-emacs-pinentry
-        allow-loopback-pinentry
-      '';
+      pinentryPackage = pkgs.pinentry-qt;
     };
   };
 #+end_src
@@ -836,7 +832,7 @@ that should run after.
 Use Emacs to ask for GPG pin numbers.
 
 #+begin_src elisp
-(setq epg-pinentry-mode 'loopback)
+;; (setq epg-pinentry-mode 'loopback)
 #+end_src
 
 *** Evil mode

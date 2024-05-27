@@ -231,18 +231,14 @@
                   dvisvgm dvipng
                   wrapfig amsmath ulem hyperref capt-of;
               })
-              pinentry-emacs
+              pinentry-qt
             ];
         
             services.ssh-agent.enable = true;
         
             services.gpg-agent = {
               enable = true;
-              pinentryPackage = pkgs.pinentry-emacs;
-              extraConfig = ''
-                allow-emacs-pinentry
-                allow-loopback-pinentry
-              '';
+              pinentryPackage = pkgs.pinentry-qt;
             };
           };
         linuxHomeHeadless = { pkgs, ... }:
