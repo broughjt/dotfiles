@@ -358,6 +358,8 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
       jetbrains-mono
       noto-fonts
 
+      gnome.adwaita-icon-theme
+
       playerctl
       mpc-cli
       nicotine-plus
@@ -375,6 +377,20 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
       publicShare = config.defaultDirectories.scratchDirectory;
       templates = config.defaultDirectories.scratchDirectory;
       videos = "${config.defaultDirectories.shareDirectory}/videos";
+    };
+    xdg.portal = {
+      enable = true;
+      config = {
+        common = {
+          default = [
+            "gtk"
+          ];
+        };
+      };
+      extraPortals = with pkgs; [
+        xdg-desktop-portal-wlr
+        xdg-desktop-portal-gtk
+      ];
     };
 
     fonts.fontconfig = {
@@ -399,6 +415,7 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
         window.border = 0;
         window.titlebar = false;
         window.hideEdgeBorders = "smart";
+        seat."*".xcursor_theme = "Adwaita 18";
         keybindings = let
           modifier = config.wayland.windowManager.sway.config.modifier;
           terminal = config.wayland.windowManager.sway.config.terminal;
@@ -461,6 +478,15 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
       };
     };
 
+    # home.pointerCursor = {
+    #   name = "Adwaita";
+    #   package = pkgs.gnome.adwaita-icon-theme;
+    #   x11 = {
+    #     enable = true;
+    #     defaultCursor = "Adwaita";
+    #   };
+    # };
+
     programs.foot = {
       enable = true;
       settings = {
@@ -477,6 +503,8 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
     programs.firefox = {
       enable = true;
       enableGnomeExtensions = false;
+      package = (pkgs.wrapFirefox (pkgs.firefox-unwrapped.override { pipewireSupport = true; }) {});
+      # package = pkgs.firefox.override { pipewireSupport = true };
     };
 
     programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
@@ -766,13 +794,24 @@ also because we're using Nix instead.
 (setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
 (setq package-archives nil)
-#+end_src
 
-Tell ~use-package~ to always ensure because the
-[[https://github.com/nix-community/emacs-overlay/tree/master][Emacs overlay documentation]] said to.
-
-#+begin_src elisp
-(setq use-package-always-ensure t)
+(when (eq system-type 'windows-nt)
+  (defvar bootstrap-version)
+  (setq straight-use-package-by-default t)
+  (let ((bootstrap-file
+         (expand-file-name
+          "straight/repos/straight.el/bootstrap.el"
+          (or (bound-and-true-p straight-base-dir)
+              user-emacs-directory)))
+        (bootstrap-version 7))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage)))
 #+end_src
 
 Require the ~bind-key~ module because ~use-package~ ~:bind~
@@ -815,7 +854,10 @@ Handle backups and autosaves. Autosaves are about preserving the current editing
 session, and backups are about recovering previous ones.
 
 #+begin_src elisp
-(setq local-directory (expand-file-name "~/.local/data/emacs/"))
+(setq local-directory
+      (if (eq system-type 'windows-nt)
+          user-emacs-directory
+          (expand-file-name "~/.local/data/emacs/")))
 (setq backup-directory (concat local-directory "backups/"))
 (setq auto-save-directory (concat local-directory "auto-saves/"))
 #+end_src
@@ -853,11 +895,12 @@ is for code that should run before, the ~config~ keyword is for code
 that should run after.
 
 #+begin_src elisp
-(use-package exec-path-from-shell
-  :config
-  (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "GNUPGHOME" "LANG" "LC_CTYPE" "NIX_SSL_CERT_FILE" "NIX_PATH"))
-    (add-to-list 'exec-path-from-shell-variables var))
-  (exec-path-from-shell-initialize))
+(unless (eq system-type 'windows-nt)
+  (use-package exec-path-from-shell
+    :config
+    (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "GNUPGHOME" "LANG" "LC_CTYPE" "NIX_SSL_CERT_FILE" "NIX_PATH"))
+      (add-to-list 'exec-path-from-shell-variables var))
+    (exec-path-from-shell-initialize)))
 #+end_src
 
 #+begin_src elisp

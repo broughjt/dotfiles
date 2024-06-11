@@ -254,6 +254,8 @@
               jetbrains-mono
               noto-fonts
         
+              gnome.adwaita-icon-theme
+        
               playerctl
               mpc-cli
               nicotine-plus
@@ -271,6 +273,20 @@
               publicShare = config.defaultDirectories.scratchDirectory;
               templates = config.defaultDirectories.scratchDirectory;
               videos = "${config.defaultDirectories.shareDirectory}/videos";
+            };
+            xdg.portal = {
+              enable = true;
+              config = {
+                common = {
+                  default = [
+                    "gtk"
+                  ];
+                };
+              };
+              extraPortals = with pkgs; [
+                xdg-desktop-portal-wlr
+                xdg-desktop-portal-gtk
+              ];
             };
         
             fonts.fontconfig = {
@@ -295,6 +311,7 @@
                 window.border = 0;
                 window.titlebar = false;
                 window.hideEdgeBorders = "smart";
+                seat."*".xcursor_theme = "Adwaita 18";
                 keybindings = let
                   modifier = config.wayland.windowManager.sway.config.modifier;
                   terminal = config.wayland.windowManager.sway.config.terminal;
@@ -357,6 +374,15 @@
               };
             };
         
+            # home.pointerCursor = {
+            #   name = "Adwaita";
+            #   package = pkgs.gnome.adwaita-icon-theme;
+            #   x11 = {
+            #     enable = true;
+            #     defaultCursor = "Adwaita";
+            #   };
+            # };
+        
             programs.foot = {
               enable = true;
               settings = {
@@ -373,6 +399,8 @@
             programs.firefox = {
               enable = true;
               enableGnomeExtensions = false;
+              package = (pkgs.wrapFirefox (pkgs.firefox-unwrapped.override { pipewireSupport = true; }) {});
+              # package = pkgs.firefox.override { pipewireSupport = true };
             };
         
             programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
