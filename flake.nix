@@ -673,6 +673,8 @@
           {
             system.stateVersion = "24.05";
             wsl.enable = true;
+            wsl.defaultUser = "jackson";
+            wsl.startMenuLaunchers = true;
             networking.hostName = "lenovo";
           }
           packageManager jacksonUserLinux
