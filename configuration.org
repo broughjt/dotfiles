@@ -131,7 +131,7 @@ defaultDirectories = { config, lib, ... }:
 Make Nix can flakes.
 
 #+begin_src nix
-package-manager = { pkgs, ... }:
+packageManager = { pkgs, ... }:
 
   {
     nix.package = pkgs.nix;
@@ -140,7 +140,7 @@ package-manager = { pkgs, ... }:
   };
 #+end_src
 
-** System
+** User
 
 I include ~git~ (and ~curl~ and ~neovim~) on every system to prevent a
 world of pain where I spend upwards of twenty minutes cursing the nix
@@ -152,10 +152,59 @@ haven't had to set my init process to a statically linked python2 to
 recover my machine.
 
 #+begin_src nix
+jacksonUser = { config, pkgs, ... }:
+
+  {
+    imports = [ personal ];
+
+    nix.settings.trusted-users = [ "root" config.personal.userName ];
+
+    environment.systemPackages = with pkgs; [ curl git neovim ];
+    environment.shells = with pkgs; [ bashInteractive fish ];
+
+    programs.fish.enable = true;
+
+    users.users.${config.personal.userName}.shell = pkgs.fish;
+  };
+#+end_src
+
+** User Linux
+
+#+begin_src nix
+jacksonUserLinux = { config, pkgs, ... }:
+
+  {
+    imports = [ jacksonUser ];
+    
+    users.users.${config.personal.userName} = {
+      home = "/home/${config.personal.userName}";
+      extraGroups = [ "wheel" "networkmanager" "video" "input" ];
+      isNormalUser = true;
+    };
+
+    services.openssh.enable = true;
+  };
+#+end_src
+
+** Docker
+
+#+begin_src nix
+docker = { config, pkgs, ... }:
+
+  {
+    virtualisation.docker.enable = true;
+
+    users.users.${config.personal.userName}.extraGroups = [ "docker" ];
+  };
+#+end_src
+
+** System
+
+#+begin_src nix :tangle no
 system = { config, pkgs, ... }:
 
   {
-    imports = [ package-manager personal ];
+    imports = [ packageManager personal ];
 
     nix.settings.trusted-users = [ "root" config.personal.userName ];
 
@@ -258,6 +307,7 @@ home = { lib, config, pkgs, ... }:
       lldb
       pkgs.agenix
       ripgrep
+      ssh
     ];
     programs.home-manager.enable = true;
   
@@ -278,7 +328,7 @@ home = { lib, config, pkgs, ... }:
       userName = config.personal.fullName;
       userEmail = config.personal.email;
       signing.key = "1BA5F1335AB45105";
-      signing.signByDefault = true;
+      signing.signByDefault = config.programs.gpg.enable;
       # "Are the worker threads going to unionize?"
       extraConfig.init.defaultBranch = "main";
     };
@@ -287,8 +337,6 @@ home = { lib, config, pkgs, ... }:
       enable = true;
       settings.git_protocol = "ssh";
     };
-  
-    programs.ssh.enable = true;
   
     programs.gpg = {
       enable = true;
@@ -712,7 +760,25 @@ murphHardware = { config, pkgs, lib, ... }:
 
     services.fwupd.enable = true;
 
-    time.timeZone = "America/Denver";
+    time.timeZone = "America/Los_Angeles";
+
+    i18n.defaultLocale = "en_US.UTF-8";
+    i18n.extraLocaleSettings = {
+      LC_ADDRESS = "en_US.UTF-8";
+      LC_IDENTIFICATION = "en_US.UTF-8";
+      LC_MEASUREMENT = "en_US.UTF-8";
+      LC_MONETARY = "en_US.UTF-8";
+      LC_NAME = "en_US.UTF-8";
+      LC_NUMERIC = "en_US.UTF-8";
+      LC_PAPER = "en_US.UTF-8";
+      LC_TELEPHONE = "en_US.UTF-8";
+      LC_TIME = "en_US.UTF-8";
+    };
+
+    services.xserver = {
+      xkb.layout = "us";
+      xkb.variant = "";
+    };
   };
 #+end_src
 
@@ -1361,7 +1427,7 @@ homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration 
 
 #+begin_src nix
 nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-  modules = with nixosModules; [ murphHardware linuxSystem ];
+  modules = with nixosModules; [ murphHardware packageManager jacksonUserLinux docker ];
 };
 homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
   pkgs = import nixpkgs {

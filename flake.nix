@@ -71,17 +71,51 @@
               shareDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/share"; };
             };
           };
-        package-manager = { pkgs, ... }:
+        packageManager = { pkgs, ... }:
         
           {
             nix.package = pkgs.nix;
             nix.settings.experimental-features = [ "nix-command" "flakes" ];
             nixpkgs.config.allowUnfree = true;
           };
+        jacksonUser = { config, pkgs, ... }:
+        
+          {
+            imports = [ personal ];
+        
+            nix.settings.trusted-users = [ "root" config.personal.userName ];
+        
+            environment.systemPackages = with pkgs; [ curl git neovim ];
+            environment.shells = with pkgs; [ bashInteractive fish ];
+        
+            programs.fish.enable = true;
+        
+            users.users.${config.personal.userName}.shell = pkgs.fish;
+          };
+        jacksonUserLinux = { config, pkgs, ... }:
+        
+          {
+            imports = [ jacksonUser ];
+            
+            users.users.${config.personal.userName} = {
+              home = "/home/${config.personal.userName}";
+              extraGroups = [ "wheel" "networkmanager" "video" "input" ];
+              isNormalUser = true;
+            };
+        
+            services.openssh.enable = true;
+          };
+        docker = { config, pkgs, ... }:
+        
+          {
+            virtualisation.docker.enable = true;
+        
+            users.users.${config.personal.userName}.extraGroups = [ "docker" ];
+          };
         system = { config, pkgs, ... }:
         
           {
-            imports = [ package-manager personal ];
+            imports = [ packageManager personal ];
         
             nix.settings.trusted-users = [ "root" config.personal.userName ];
         
@@ -169,6 +203,7 @@
               lldb
               pkgs.agenix
               ripgrep
+              ssh
             ];
             programs.home-manager.enable = true;
           
@@ -189,7 +224,7 @@
               userName = config.personal.fullName;
               userEmail = config.personal.email;
               signing.key = "1BA5F1335AB45105";
-              signing.signByDefault = true;
+              signing.signByDefault = config.programs.gpg.enable;
               # "Are the worker threads going to unionize?"
               extraConfig.init.defaultBranch = "main";
             };
@@ -198,8 +233,6 @@
               enable = true;
               settings.git_protocol = "ssh";
             };
-          
-            programs.ssh.enable = true;
           
             programs.gpg = {
               enable = true;
@@ -592,7 +625,25 @@
         
             services.fwupd.enable = true;
         
-            time.timeZone = "America/Denver";
+            time.timeZone = "America/Los_Angeles";
+        
+            i18n.defaultLocale = "en_US.UTF-8";
+            i18n.extraLocaleSettings = {
+              LC_ADDRESS = "en_US.UTF-8";
+              LC_IDENTIFICATION = "en_US.UTF-8";
+              LC_MEASUREMENT = "en_US.UTF-8";
+              LC_MONETARY = "en_US.UTF-8";
+              LC_NAME = "en_US.UTF-8";
+              LC_NUMERIC = "en_US.UTF-8";
+              LC_PAPER = "en_US.UTF-8";
+              LC_TELEPHONE = "en_US.UTF-8";
+              LC_TIME = "en_US.UTF-8";
+            };
+        
+            services.xserver = {
+              xkb.layout = "us";
+              xkb.variant = "";
+            };
           };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
@@ -649,7 +700,7 @@
         extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
       };
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-        modules = with nixosModules; [ murphHardware linuxSystem ];
+        modules = with nixosModules; [ murphHardware packageManager jacksonUserLinux docker ];
       };
       homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
         pkgs = import nixpkgs {
