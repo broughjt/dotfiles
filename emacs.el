@@ -2,24 +2,6 @@
 (setq use-package-ensure-function 'ignore)
 (setq package-archives nil)
 
-(when (eq system-type 'windows-nt)
-  (defvar bootstrap-version)
-  (setq straight-use-package-by-default t)
-  (let ((bootstrap-file
-         (expand-file-name
-          "straight/repos/straight.el/bootstrap.el"
-          (or (bound-and-true-p straight-base-dir)
-              user-emacs-directory)))
-        (bootstrap-version 7))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously
-           "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-           'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage)))
-
 (require 'bind-key)
 
 (menu-bar-mode 0)
@@ -33,10 +15,7 @@
 (setq display-line-numbers-type 'visual)
 (global-display-line-numbers-mode)
 
-(setq local-directory
-      (if (eq system-type 'windows-nt)
-          user-emacs-directory
-          (expand-file-name "~/.local/data/emacs/")))
+(setq local-directory (expand-file-name "~/.local/data/emacs/"))
 (setq backup-directory (concat local-directory "backups/"))
 (setq auto-save-directory (concat local-directory "auto-saves/"))
 
