@@ -30,9 +30,12 @@
 
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
+    nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay, agenix }:
+  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay, agenix, nixos-wsl }:
     rec {
       nixosModules = rec {
         personal = { lib, ... }:
@@ -112,61 +115,9 @@
         
             users.users.${config.personal.userName}.extraGroups = [ "docker" ];
           };
-        system = { config, pkgs, ... }:
-        
-          {
-            imports = [ packageManager personal ];
-        
-            nix.settings.trusted-users = [ "root" config.personal.userName ];
-        
-            environment.systemPackages = with pkgs; [ curl git neovim ];
-            environment.shells = with pkgs; [ bashInteractive fish ];
-        
-            programs.fish.enable = true;
-        
-            users.users.${config.personal.userName}.shell = pkgs.fish;
-          };
-        linuxSystem = { config, pkgs, ... }:
-        
-          {
-            imports = [ system ];
-        
-            users.users.${config.personal.userName} = {
-              home = "/home/${config.personal.userName}";
-              extraGroups = [ "docker" "wheel" "networkmanager" "video" "input" ];
-              isNormalUser = true;
-            };
-        
-            i18n.defaultLocale = "en_US.UTF-8";
-            i18n.extraLocaleSettings = {
-              LC_ADDRESS = "en_US.UTF-8";
-              LC_IDENTIFICATION = "en_US.UTF-8";
-              LC_MEASUREMENT = "en_US.UTF-8";
-              LC_MONETARY = "en_US.UTF-8";
-              LC_NAME = "en_US.UTF-8";
-              LC_NUMERIC = "en_US.UTF-8";
-              LC_PAPER = "en_US.UTF-8";
-              LC_TELEPHONE = "en_US.UTF-8";
-              LC_TIME = "en_US.UTF-8";
-            };
-        
-            services.xserver = {
-              xkb.layout = "us";
-              xkb.variant = "";
-            };
-        
-            virtualisation.docker.enable = true;
-        
-            services.openssh.enable = true;
-        
-            # services.tailscale.enable = true;
-            # services.tailscale.useRoutingFeatures = "client";
-          };
         darwinSystem = { config, pkgs, ... }:
         
           {
-            imports = [ system ];
-        
             config = {
               services.nix-daemon.enable = true;
               system.configurationRevision = self.rev or self.dirtyRev or null;
@@ -184,41 +135,38 @@
               ];
             };
           };
-        home = { lib, config, pkgs, ... }:
+        home = { config, ... }:
         
           {
-            imports = [ personal defaultDirectories ];
-        
-            nixpkgs.overlays = [ agenix.overlays.default ];
-        
             home.username = config.personal.userName;
             home.stateVersion = "23.05";
-            home.packages = with pkgs; [
-              direnv
-              eza
-              fd
-              gopass
-              ispell
-              jq
-              lldb
-              pkgs.agenix
-              ripgrep
-              ssh
-            ];
             programs.home-manager.enable = true;
-          
+        
             xdg.enable = true;
             xdg.cacheHome = "${config.home.homeDirectory}/.cache";
             xdg.configHome = "${config.home.homeDirectory}/.config";
             xdg.dataHome = "${config.home.homeDirectory}/.local/share";
             xdg.stateHome = "${config.home.homeDirectory}/.local/state";
-          
+          };
+        commandLineUtilities = { config, pkgs, ... }:
+        
+          {
+            home.packages = with pkgs; [
+              direnv
+              eza
+              fd
+              ispell
+              jq
+              lldb
+              ripgrep
+            ];
+        
             programs.fish = {
               enable = true;
               interactiveShellInit = "fish_vi_key_bindings";
               shellAliases.ls = "exa --group-directories-first";
             };
-          
+        
             programs.git = {
               enable = true;
               userName = config.personal.fullName;
@@ -228,17 +176,54 @@
               # "Are the worker threads going to unionize?"
               extraConfig.init.defaultBranch = "main";
             };
-          
+        
+            programs.ssh.enable = true;
+          };
+        linuxCommandLineUtilities = { config, pkgs, ... }:
+        
+          {
+            imports = [ commandLineUtilities ];
+        
+            home.homeDirectory = "/home/${config.personal.userName}";
+            home.packages = with pkgs; [
+              killall
+              docker-compose
+              (pkgs.texlive.combine {
+                inherit (pkgs.texlive) scheme-basic
+                  dvisvgm dvipng
+                  wrapfig amsmath ulem hyperref capt-of;
+              })
+            ];
+          };
+        gh = { config, pkgs, ... }:
+        
+          {
             programs.gh = {
               enable = true;
               settings.git_protocol = "ssh";
             };
-          
+          };
+        gpg = { config, pkgs, ... }:
+        
+          {
+            home.packages = with pkgs; [ pinentry-qt ];
+        
+            services.ssh-agent.enable = pkgs.stdenv.isLinux;
+        
             programs.gpg = {
               enable = true;
               homedir = "${config.xdg.dataHome}/gnupg";
             };
-          
+            services.gpg-agent = {
+              enable = pkgs.stdenv.isLinux;
+              pinentryPackage = pkgs.pinentry-qt;
+            };
+          };
+        gopass = { config, pkgs, ... }:
+        
+          {
+            home.packages = [ pkgs.gopass ];
+        
             xdg.configFile.gopass = {
               target = "gopass/config";
               text = ''
@@ -249,39 +234,10 @@
               '';
             };
           };
-        linuxHome = { config, pkgs, ... }:
-        
-          {
-            imports = [ home ];
-        
-            home.homeDirectory = "/home/${config.personal.userName}";
-            home.packages = with pkgs; [
-              killall
-              lldb
-              docker-compose
-              (pkgs.texlive.combine {
-                inherit (pkgs.texlive) scheme-basic
-                  dvisvgm dvipng
-                  wrapfig amsmath ulem hyperref capt-of;
-              })
-              pinentry-qt
-            ];
-        
-            services.ssh-agent.enable = true;
-        
-            services.gpg-agent = {
-              enable = true;
-              pinentryPackage = pkgs.pinentry-qt;
-            };
-          };
-        linuxHomeHeadless = { pkgs, ... }:
-          {
-            imports = [ linuxHome ];
-          };
         linuxHomeGraphical = { config, pkgs, lib, ... }:
         
           {
-            imports = [ linuxHome emacsConfiguration ];
+            imports = [ defaultDirectories ];
         
             home.packages = with pkgs; [
               jetbrains-mono
@@ -434,13 +390,6 @@
               enableGnomeExtensions = false;
               package = (pkgs.wrapFirefox (pkgs.firefox-unwrapped.override { pipewireSupport = true; }) {});
               # package = pkgs.firefox.override { pipewireSupport = true };
-            };
-        
-            programs.emacs.package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
-            services.emacs = {
-              enable = true;
-              package = config.programs.emacs.package;
-              defaultEditor = true;
             };
         
             programs.tofi = {
@@ -675,12 +624,20 @@
             };
             alwaysEnsure = true;
           }));
-        emacsConfiguration = { pkgs, ... }:
+        emacsConfiguration = { config, pkgs, ... }:
         
           {
             nixpkgs.overlays = with emacs-overlay.overlays; [ emacs package ];
         
-            programs.emacs.enable = true;
+            programs.emacs = {
+              enable = true;
+              package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
+            };
+            services.emacs = {
+              enable = pkgs.stdenv.isLinux;
+              package = config.programs.emacs.package;
+              defaultEditor = true;
+            };
           };
       };
       darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
@@ -707,7 +664,26 @@
           system = "x86_64-linux";
           config.allowUnfree = true;
         };
-        modules = with nixosModules; [ linuxHomeGraphical ];
+        modules = with nixosModules; [ personal home linuxHomeGraphical linuxCommandLineUtilities gh gpg gopass emacsConfiguration ];
+      };
+      nixosConfigurations.lenovo = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = with nixosModules; [
+          nixos-wsl.nixosModuels.default 
+          {
+            system.stateVersion = "24.05";
+            wsl.enable = true;
+            networking.hostName = "lenovo";
+          }
+          packageManager jacksonUserLinux
+        ];
+      };
+      homeConfigurations."jackson@lenovo" = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfree = true;
+        };
+        modules = with nixosModules; [ personal home linuxCommandLineUtilities emacsConfiguration ];
       };
       formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
         system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
