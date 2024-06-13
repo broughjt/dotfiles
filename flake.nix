@@ -672,10 +672,14 @@
           nixos-wsl.nixosModuels.default 
           {
             system.stateVersion = "24.05";
+      
             wsl.enable = true;
             wsl.defaultUser = "jackson";
             wsl.startMenuLaunchers = true;
+      
             networking.hostName = "lenovo";
+            networking.proxy.httpProxy = "http://proxy-dmz.intel.com:911";
+            networking.proxy.httpsProxy = "http://proxy-dmz.intel.com:912";
           }
           packageManager jacksonUserLinux
         ];
