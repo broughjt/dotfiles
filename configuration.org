@@ -292,11 +292,6 @@ linuxCommandLineUtilities = { config, pkgs, ... }:
     home.packages = with pkgs; [
       killall
       docker-compose
-      (pkgs.texlive.combine {
-        inherit (pkgs.texlive) scheme-basic
-          dvisvgm dvipng
-          wrapfig amsmath ulem hyperref capt-of;
-      })
     ];
   };
 #+end_src
@@ -366,14 +361,21 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
     home.packages = with pkgs; [
       jetbrains-mono
       noto-fonts
-
       gnome.adwaita-icon-theme
 
+      brightnessctl
       playerctl
       mpc-cli
       nicotine-plus
       slack
       spotify
+
+      (pkgs.texlive.combine {
+        inherit (pkgs.texlive) scheme-basic
+          dvisvgm dvipng
+          wrapfig amsmath ulem hyperref capt-of
+          bussproofs simplebnf tabularray mathtools;
+      })
     ];
     home.sessionVariables.NIXOS_OZONE_WL = "1";
 
@@ -487,14 +489,13 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
       };
     };
 
-    # home.pointerCursor = {
-    #   name = "Adwaita";
-    #   package = pkgs.gnome.adwaita-icon-theme;
-    #   x11 = {
-    #     enable = true;
-    #     defaultCursor = "Adwaita";
-    #   };
-    # };
+    home.pointerCursor = {
+      name = "Adwaita";
+      gtk.enable = true;
+      package = pkgs.phinger-cursors; 
+      # package = pkgs.gnome.adwaita-icon-theme;
+      size = 48;
+    };
 
     programs.foot = {
       enable = true;
@@ -842,6 +843,7 @@ Disable the menu-, tool-, and scroll-bar modes.
 Set the font.
 
 #+begin_src elisp
+(set-face-attribute 'default nil :font "JetBrains Mono" :height 100)
 ;; (add-to-list 'default-frame-alist '(font . "JetBrains Mono 12"))
 #+end_src
 
@@ -969,6 +971,9 @@ using SVGs and to render on startup, and for the svg backgrounds to
 match the current theme. I also needed to include the ~bussproofs~ package to
 get natural deduction proof trees once.
 
+TODO: Don't know why the latex previews are so big by default. Make
+them smaller without manually setting scale.
+
 #+begin_src elisp
 (setq
  org-latex-compiler "lualatex"
@@ -978,7 +983,8 @@ get natural deduction proof trees once.
  org-startup-with-latex-preview t
  org-startup-with-inline-images t)
 (with-eval-after-load 'org
-  (plist-put org-format-latex-options :background "Transparent"))
+  (plist-put org-format-latex-options :background "Transparent")
+  (plist-put org-format-latex-options :scale 0.5))
 #+end_src
 
 I'm an auto-fill-mode advocate. Plain text is rediculous enough as it
@@ -1041,13 +1047,13 @@ Habits. See [[https://cpbotha.net/2019/11/02/forming-and-maintaining-habits-usin
 #+end_src
 
 #+begin_src elisp
-(setq org-cite-global-bibliography '("~/share/notes/citations.bib"))
+(setq org-cite-global-bibliography '("~/repositories/notes/citations.bib"))
 #+end_src
 
 #+begin_src elisp
 (use-package org-roam
   :custom
-  (org-roam-directory "~/share/notes")
+  (org-roam-directory "~/repositories/notes")
   :bind
   (("C-c n f" . org-roam-node-find)
    ("C-c n i" . org-roam-node-insert))

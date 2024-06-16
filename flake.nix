@@ -188,11 +188,6 @@
             home.packages = with pkgs; [
               killall
               docker-compose
-              (pkgs.texlive.combine {
-                inherit (pkgs.texlive) scheme-basic
-                  dvisvgm dvipng
-                  wrapfig amsmath ulem hyperref capt-of;
-              })
             ];
           };
         gh = { config, pkgs, ... }:
@@ -242,14 +237,21 @@
             home.packages = with pkgs; [
               jetbrains-mono
               noto-fonts
-        
               gnome.adwaita-icon-theme
         
+              brightnessctl
               playerctl
               mpc-cli
               nicotine-plus
               slack
               spotify
+        
+              (pkgs.texlive.combine {
+                inherit (pkgs.texlive) scheme-basic
+                  dvisvgm dvipng
+                  wrapfig amsmath ulem hyperref capt-of
+                  bussproofs simplebnf tabularray mathtools;
+              })
             ];
             home.sessionVariables.NIXOS_OZONE_WL = "1";
         
@@ -363,14 +365,13 @@
               };
             };
         
-            # home.pointerCursor = {
-            #   name = "Adwaita";
-            #   package = pkgs.gnome.adwaita-icon-theme;
-            #   x11 = {
-            #     enable = true;
-            #     defaultCursor = "Adwaita";
-            #   };
-            # };
+            home.pointerCursor = {
+              name = "Adwaita";
+              gtk.enable = true;
+              package = pkgs.phinger-cursors; 
+              # package = pkgs.gnome.adwaita-icon-theme;
+              size = 48;
+            };
         
             programs.foot = {
               enable = true;

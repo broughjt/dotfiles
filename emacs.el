@@ -8,6 +8,7 @@
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 
+(set-face-attribute 'default nil :font "JetBrains Mono" :height 100)
 ;; (add-to-list 'default-frame-alist '(font . "JetBrains Mono 12"))
 
 (setq visible-bell t)
@@ -70,7 +71,8 @@
  org-startup-with-latex-preview t
  org-startup-with-inline-images t)
 (with-eval-after-load 'org
-  (plist-put org-format-latex-options :background "Transparent"))
+  (plist-put org-format-latex-options :background "Transparent")
+  (plist-put org-format-latex-options :scale 0.5))
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
@@ -109,11 +111,11 @@
 (with-eval-after-load 'org
   (add-to-list 'org-modules 'org-habit t))
 
-(setq org-cite-global-bibliography '("~/share/notes/citations.bib"))
+(setq org-cite-global-bibliography '("~/repositories/notes/citations.bib"))
 
 (use-package org-roam
   :custom
-  (org-roam-directory "~/share/notes")
+  (org-roam-directory "~/repositories/notes")
   :bind
   (("C-c n f" . org-roam-node-find)
    ("C-c n i" . org-roam-node-insert))
