@@ -426,7 +426,7 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
         window.border = 0;
         window.titlebar = false;
         window.hideEdgeBorders = "smart";
-        seat."*".xcursor_theme = "Adwaita 18";
+        # seat."*".xcursor_theme = "Adwaita 18";
         keybindings = let
           modifier = config.wayland.windowManager.sway.config.modifier;
           terminal = config.wayland.windowManager.sway.config.terminal;
@@ -454,6 +454,10 @@ linuxHomeGraphical = { config, pkgs, lib, ... }:
           "XF86AudioLowerVolume" = "exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-'";
           "XF86AudioMute" = "exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
           "XF86AudioPlay"= "exec `playerctl play-pause`";
+          "XF86AudioPrev"= "exec `playerctl previous`";
+          "XF86AudioNext"= "exec `playerctl next`";
+          "XF86MonBrightnessDown"= "exec `brightnessctl set 10%-`";
+          "XF86MonBrightnessUp"= "exec `brightnessctl set 10%+`";
 
           # TODO: mako, grim, slurp, wl-clipboard
           # TODO: Floating mode focus
