@@ -245,6 +245,7 @@
               nicotine-plus
               slack
               spotify
+              ungoogled-chromium
         
               (pkgs.texlive.combine {
                 inherit (pkgs.texlive) scheme-basic
@@ -309,7 +310,7 @@
                 in {
                   "${modifier}+q" = "kill";
                   "${modifier}+t" = "exec ${terminal}";
-                  "${modifier}+b" = "exec firefox";
+                  "${modifier}+b" = "exec chromium";
                   "${modifier}+e" = "exec emacsclient -c";
                   "${modifier}+d" = "exec tofi-drun | xargs swaymsg exec --";
                   "${modifier}+c" = "exit";
@@ -388,13 +389,6 @@
                 };
                 mouse.hide-when-typing = "yes";
               };
-            };
-        
-            programs.firefox = {
-              enable = true;
-              enableGnomeExtensions = false;
-              package = (pkgs.wrapFirefox (pkgs.firefox-unwrapped.override { pipewireSupport = true; }) {});
-              # package = pkgs.firefox.override { pipewireSupport = true };
             };
         
             programs.tofi = {
