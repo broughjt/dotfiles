@@ -19,23 +19,11 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    nix-darwin.url = "github:LnL7/nix-darwin";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixcasks.url = "github:jacekszymanski/nixcasks";
-    nixcasks.inputs.nixpkgs.follows = "nixpkgs";
-
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
-
-    agenix.url = "github:ryantm/agenix";
-    agenix.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
-    nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-darwin, nixcasks, emacs-overlay, agenix, nixos-wsl }:
+  outputs = { self, nixpkgs, home-manager, emacs-overlay }:
     rec {
       nixosModules = rec {
         personal = { lib, ... }:
@@ -64,16 +52,6 @@
               };
             };
           };
-        defaultDirectories = { config, lib, ... }:
-        
-          {
-            options.defaultDirectories = {
-              repositoriesDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/repositories"; };
-              localDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/local"; };
-              scratchDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/scratch"; };
-              shareDirectory = lib.mkOption { type = lib.types.str; default = "${config.home.homeDirectory}/share"; };
-            };
-          };
         packageManager = { pkgs, ... }:
         
           {
@@ -81,445 +59,6 @@
             nix.settings.experimental-features = [ "nix-command" "flakes" ];
             nixpkgs.config.allowUnfree = true;
           };
-        jacksonUser = { config, pkgs, ... }:
-        
-          {
-            imports = [ personal ];
-        
-            nix.settings.trusted-users = [ "root" config.personal.userName ];
-        
-            environment.systemPackages = with pkgs; [ curl git neovim ];
-            environment.shells = with pkgs; [ bashInteractive fish ];
-        
-            programs.fish.enable = true;
-        
-            users.users.${config.personal.userName}.shell = pkgs.fish;
-          };
-        jacksonUserLinux = { config, pkgs, ... }:
-        
-          {
-            imports = [ jacksonUser ];
-            
-            users.users.${config.personal.userName} = {
-              home = "/home/${config.personal.userName}";
-              extraGroups = [ "wheel" "networkmanager" "video" "input" ];
-              isNormalUser = true;
-            };
-        
-            services.openssh.enable = true;
-          };
-        docker = { config, pkgs, ... }:
-        
-          {
-            virtualisation.docker.enable = true;
-        
-            users.users.${config.personal.userName}.extraGroups = [ "docker" ];
-          };
-        darwinSystem = { config, pkgs, ... }:
-        
-          {
-            config = {
-              services.nix-daemon.enable = true;
-              system.configurationRevision = self.rev or self.dirtyRev or null;
-              system.stateVersion = 4;
-        
-              users.users.${config.personal.userName}.home = "/Users/${config.personal.userName}";
-        
-              homebrew.enable = true;
-              homebrew.casks = [
-                "discord"
-                "docker"
-                "slack"
-                "spotify"
-                "zoom"
-              ];
-            };
-          };
-        home = { config, ... }:
-        
-          {
-            home.username = config.personal.userName;
-            home.stateVersion = "23.05";
-            programs.home-manager.enable = true;
-        
-            xdg.enable = true;
-            xdg.cacheHome = "${config.home.homeDirectory}/.cache";
-            xdg.configHome = "${config.home.homeDirectory}/.config";
-            xdg.dataHome = "${config.home.homeDirectory}/.local/share";
-            xdg.stateHome = "${config.home.homeDirectory}/.local/state";
-          };
-        commandLineUtilities = { config, pkgs, ... }:
-        
-          {
-            home.packages = with pkgs; [
-              direnv
-              eza
-              fd
-              ispell
-              jq
-              lldb
-              ripgrep
-            ];
-        
-            programs.fish = {
-              enable = true;
-              interactiveShellInit = "fish_vi_key_bindings";
-              shellAliases.ls = "exa --group-directories-first";
-            };
-        
-            programs.git = {
-              enable = true;
-              userName = config.personal.fullName;
-              userEmail = config.personal.email;
-              signing.key = "1BA5F1335AB45105";
-              signing.signByDefault = config.programs.gpg.enable;
-              # "Are the worker threads going to unionize?"
-              extraConfig.init.defaultBranch = "main";
-            };
-        
-            programs.ssh.enable = true;
-          };
-        linuxCommandLineUtilities = { config, pkgs, ... }:
-        
-          {
-            imports = [ commandLineUtilities ];
-        
-            home.homeDirectory = "/home/${config.personal.userName}";
-            home.packages = with pkgs; [
-              killall
-              docker-compose
-            ];
-          };
-        gh = { config, pkgs, ... }:
-        
-          {
-            programs.gh = {
-              enable = true;
-              settings.git_protocol = "ssh";
-            };
-          };
-        gpg = { config, pkgs, ... }:
-        
-          {
-            home.packages = with pkgs; [ pinentry-qt ];
-        
-            services.ssh-agent.enable = pkgs.stdenv.isLinux;
-        
-            programs.gpg = {
-              enable = true;
-              homedir = "${config.xdg.dataHome}/gnupg";
-            };
-            services.gpg-agent = {
-              enable = pkgs.stdenv.isLinux;
-              pinentryPackage = pkgs.pinentry-qt;
-            };
-          };
-        gopass = { config, pkgs, ... }:
-        
-          {
-            home.packages = [ pkgs.gopass ];
-        
-            xdg.configFile.gopass = {
-              target = "gopass/config";
-              text = ''
-                [mounts]
-                    path = ${config.defaultDirectories.repositoriesDirectory}/passwords
-                [recipients]
-                    hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
-              '';
-            };
-          };
-        linuxHomeGraphical = { config, pkgs, lib, ... }:
-        
-          {
-            imports = [ defaultDirectories ];
-        
-            home.packages = with pkgs; [
-              jetbrains-mono
-              noto-fonts
-              gnome.adwaita-icon-theme
-        
-              brightnessctl
-              playerctl
-              mpc-cli
-              nicotine-plus
-              slack
-              spotify
-              ungoogled-chromium
-        
-              (pkgs.texlive.combine {
-                inherit (pkgs.texlive) scheme-basic
-                  dvisvgm dvipng
-                  wrapfig amsmath ulem hyperref capt-of
-                  bussproofs simplebnf tabularray mathtools;
-              })
-            ];
-            home.sessionVariables.NIXOS_OZONE_WL = "1";
-        
-            xdg.userDirs = {
-              createDirectories = true;
-              documents = config.defaultDirectories.scratchDirectory;
-              download = config.defaultDirectories.scratchDirectory;
-              music = "${config.defaultDirectories.shareDirectory}/music";
-              pictures = "${config.defaultDirectories.shareDirectory}/pictures";
-              publicShare = config.defaultDirectories.scratchDirectory;
-              templates = config.defaultDirectories.scratchDirectory;
-              videos = "${config.defaultDirectories.shareDirectory}/videos";
-            };
-            xdg.portal = {
-              enable = true;
-              config = {
-                common = {
-                  default = [
-                    "gtk"
-                  ];
-                };
-              };
-              extraPortals = with pkgs; [
-                xdg-desktop-portal-wlr
-                xdg-desktop-portal-gtk
-              ];
-            };
-        
-            fonts.fontconfig = {
-              enable = true;
-              defaultFonts.monospace = [ "JetBrains Mono" "Noto Sans Mono" ];
-              defaultFonts.sansSerif = [ "Noto Sans" ];
-              defaultFonts.serif = [ "Noto Serif" ];
-            };
-        
-            wayland.windowManager.sway = {
-              enable = true;
-              wrapperFeatures.gtk = true;
-              config = {
-                terminal = "foot";
-                modifier = "Mod4";
-                input = {
-                  "type:touchpad" = {
-                    "natural_scroll" = "enabled";
-                  };
-                };
-                fonts.names = [ "monospace" ];
-                window.border = 0;
-                window.titlebar = false;
-                window.hideEdgeBorders = "smart";
-                # seat."*".xcursor_theme = "Adwaita 18";
-                keybindings = let
-                  modifier = config.wayland.windowManager.sway.config.modifier;
-                  terminal = config.wayland.windowManager.sway.config.terminal;
-                in {
-                  "${modifier}+q" = "kill";
-                  "${modifier}+t" = "exec ${terminal}";
-                  "${modifier}+b" = "exec chromium";
-                  "${modifier}+e" = "exec emacsclient -c";
-                  "${modifier}+d" = "exec tofi-drun | xargs swaymsg exec --";
-                  "${modifier}+c" = "exit";
-                  "${modifier}+r" = "reload";
-                  "${modifier}+f" = "fullscreen";
-        
-                  "${modifier}+h" = "focus left";
-                  "${modifier}+j" = "focus down";
-                  "${modifier}+k" = "focus up";
-                  "${modifier}+l" = "focus right";
-        
-                  "${modifier}+g" = "splith";
-                  "${modifier}+v" = "splitv";
-                  "${modifier}+Shift+f" = "floating toggle";
-                  "${modifier}+z" = "sticky toggle";
-        
-                  "XF86AudioRaiseVolume" = "exec 'wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+'";
-                  "XF86AudioLowerVolume" = "exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-'";
-                  "XF86AudioMute" = "exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
-                  "XF86AudioPlay"= "exec `playerctl play-pause`";
-                  "XF86AudioPrev"= "exec `playerctl previous`";
-                  "XF86AudioNext"= "exec `playerctl next`";
-                  "XF86MonBrightnessDown"= "exec `brightnessctl set 10%-`";
-                  "XF86MonBrightnessUp"= "exec `brightnessctl set 10%+`";
-        
-                  # TODO: mako, grim, slurp, wl-clipboard
-                  # TODO: Floating mode focus
-                  # TODO: Resizing windows
-        
-                  "${modifier}+Shift+h" = "move left";
-                  "${modifier}+Shift+j" = "move down";
-                  "${modifier}+Shift+k" = "move up";
-                  "${modifier}+Shift+l" = "move right";
-        
-                  "${modifier}+1" = "workspace number 1";
-                  "${modifier}+2" = "workspace number 2";
-                  "${modifier}+3" = "workspace number 3";
-                  "${modifier}+4" = "workspace number 4";
-                  "${modifier}+5" = "workspace number 5";
-                  "${modifier}+6" = "workspace number 6";
-                  "${modifier}+7" = "workspace number 7";
-                  "${modifier}+8" = "workspace number 8";
-                  "${modifier}+9" = "workspace number 9";
-                  "${modifier}+0" = "workspace number 10";
-        
-                  "${modifier}+Shift+1" = "move container workspace number 1";
-                  "${modifier}+Shift+2" = "move container workspace number 2";
-                  "${modifier}+Shift+3" = "move container workspace number 3";
-                  "${modifier}+Shift+4" = "move container workspace number 4";
-                  "${modifier}+Shift+5" = "move container workspace number 5";
-                  "${modifier}+Shift+6" = "move container workspace number 6";
-                  "${modifier}+Shift+7" = "move container workspace number 7";
-                  "${modifier}+Shift+8" = "move container workspace number 8";
-                  "${modifier}+Shift+9" = "move container workspace number 9";
-                  "${modifier}+Shift+0" = "move container workspace number 10";
-                };
-              };
-            };
-        
-            home.pointerCursor = {
-              name = "Adwaita";
-              gtk.enable = true;
-              package = pkgs.phinger-cursors; 
-              # package = pkgs.gnome.adwaita-icon-theme;
-              size = 48;
-            };
-        
-            programs.foot = {
-              enable = true;
-              settings = {
-                main = {
-                  font = let
-                    defaultMonospace = builtins.head config.fonts.fontconfig.defaultFonts.monospace;
-                  in "${defaultMonospace}:size=10";
-                  dpi-aware = "yes";
-                };
-                mouse.hide-when-typing = "yes";
-              };
-            };
-        
-            programs.tofi = {
-              enable = true;
-              settings = {
-                anchor = "top";
-                width = "100%";
-                height = 30;
-                horizontal = true;
-                background-color = "#000000";
-                font-size = 14;
-                font = "monospace";
-                padding-top = 0;
-                padding-bottom = 0;
-                padding-left = 0;
-                padding-right = 0;
-                border-width = 0;
-                outline-width = 0;
-                result-spacing = 15;
-                min-input-width = 120;
-              };
-            };
-        
-            programs.beets = {
-              enable = true;
-              settings = {
-                directory = "${config.defaultDirectories.shareDirectory}/music";
-                import.move = true;
-              };
-            };
-        
-            services.mpd = {
-              enable = true;
-              musicDirectory = "${config.defaultDirectories.shareDirectory}/music";
-              extraConfig = ''
-                audio_output {
-                  type "pipewire"
-                  name "pipewire"
-                }
-              '';
-            };
-        
-            services.mpd-mpris.enable = true;
-            services.playerctld.enable = true;
-          };
-        darwinHome = { config, pkgs, nixcasks, ... }:
-        
-        {
-          imports = [ home emacsConfiguration defaultSettings ];
-           
-          nixpkgs.overlays = [ (final: prev: { inherit nixcasks; }) ];
-        
-          home.homeDirectory = "/Users/${config.personal.userName}";
-          home.packages = with pkgs; [
-            jetbrains-mono
-            (pkgs.texlive.combine {
-              inherit (pkgs.texlive) scheme-basic
-                dvisvgm dvipng
-                wrapfig amsmath ulem hyperref capt-of
-                bussproofs simplebnf tabularray mathtools;
-            })
-          ];
-        
-          programs.fish = {
-            interactiveShellInit = "eval (brew shellenv)";
-            functions.pman = "mandoc -T pdf (man -w $argv) | open -fa Preview";
-          };
-        
-          programs.emacs.package = emacsOverlay pkgs pkgs.emacsMacport;
-          home.sessionVariables.EDITOR = "emacsclient";
-        };
-        defaultSettings = { config, lib, ... }:
-        
-        {
-          home.activation = {
-            activateSettings = lib.hm.dag.entryAfter
-              [ "writeBoundary" ] 
-              "/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u";
-          };
-        
-          targets.darwin.defaults = {
-            NSGlobalDomain = {
-              AppleInterfaceStyleSwitchesAutomatically = true;
-              WebKitDeveloperExtras = true;
-            };
-        
-            "com.apple.dock" = {
-              orientation = "left";
-              autohide = true;
-            };
-        
-            "com.apple.screencapture" = {
-              location = config.defaultDirectories.scratchDirectory;
-            };
-        
-            "com.apple.Safari" = {
-              AutoOpenSafeDownloads = false;
-              SuppressSearchSuggestions = true;
-              UniversalSearchEnabled = false;
-              AutoFillFromAddressBook = false;
-              AutoFillPasswords = false;
-              IncludeDevelopMenu = true;
-              SandboxBroker.ShowDevelopMenu = true;
-              AutoFillCreditCardData = false;
-              AutoFillMiscellaneousForms = false;
-              ShowFavoritesBar = false;
-              WarnAboutFraudulentWebsites = true;
-              WebKitJavaEnabled = false;
-            };
-        
-            "com.apple.AdLib" = {
-              allowApplePersonalizedAdvertising = false;
-            };
-        
-            "com.apple.finder" = {
-              AppleShowAllFiles = true;
-              ShowPathbar = true;
-            };
-        
-            "com.apple.print.PrintingPrefs" = {
-              "Quit When Finished" = true;
-            };
-        
-            "com.apple.SoftwareUpdate" = {
-              AutomaticCheckEnabled = true;
-              ScheduleFrequency = 1;
-              AutomaticDownload = 1;
-              CriticalUpdateInstall = 1;
-            };
-          };
-        };
         murphHardware = { config, pkgs, lib, ... }:
         
           {
@@ -593,6 +132,340 @@
               xkb.variant = "";
             };
           };
+        jacksonUserLinux = { config, pkgs, ... }:
+        
+          {
+            nix.settings.trusted-users = [ "root" config.personal.userName ];
+        
+            environment.systemPackages = with pkgs; [ curl git neovim ];
+            environment.shells = with pkgs; [ bashInteractive fish ];
+        
+            programs.fish.enable = true;
+        
+            users.users.${config.personal.userName} = {
+              home = "/home/${config.personal.userName}";
+              extraGroups = [ "wheel" "networkmanager" "video" "input" ];
+              shell = pkgs.fish;
+              isNormalUser = true;
+            };
+        
+            services.openssh.enable = true;
+          };
+        docker = { config, pkgs, ... }:
+        
+          {
+            virtualisation.docker.enable = true;
+        
+            users.users.${config.personal.userName}.extraGroups = [ "docker" ];
+          };
+        homeLinux = { config, pkgs, ... }:
+          
+          {
+            home-manager.users.${config.personal.userName} = let
+              homeDirectory = "/home/${config.personal.userName}";
+            in {
+              home.stateVersion = "23.05";
+              programs.home-manager.enable = true;
+              home.homeDirectory = homeDirectory;
+        
+              xdg = {
+                enable = true;
+                cacheHome = "${homeDirectory}/.cache";
+                configHome = "${homeDirectory}/.config";
+                dataHome = "${homeDirectory}/.local/share";
+                stateHome = "${homeDirectory}/.local/state";
+              };
+        
+              home.packages = with pkgs; [
+                direnv
+                eza
+                fd
+                ispell
+                jq
+                killall
+                lldb
+                ripgrep
+              ];
+              
+              programs.fish = {
+                enable = true;
+                interactiveShellInit = "fish_vi_key_bindings";
+                shellAliases.ls = "eza --group-directories-first";
+              };
+              
+              programs.git = {
+                enable = true;
+                userName = config.personal.fullName;
+                userEmail = config.personal.email;
+                signing.key = "1BA5F1335AB45105";
+                signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
+                # "Are the worker threads going to unionize?"
+                extraConfig.init.defaultBranch = "main";
+              };
+              
+              programs.ssh.enable = true;
+            };
+          };
+        homeLinuxGraphical = { config, pkgs, lib, ... }:
+        
+          {
+            options = let
+              homeDirectory = config.home-manager.users.${config.personal.userName}.home.homeDirectory; in
+              {
+                defaultDirectories.repositoriesDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/repositories"; };
+                defaultDirectories.localDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/local"; };
+                defaultDirectories.scratchDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/scratch"; };
+                defaultDirectories.shareDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/share"; };
+              };
+        
+            config.home-manager.users.${config.personal.userName} = {
+              home.packages = with pkgs; [
+                jetbrains-mono
+                noto-fonts
+                gnome.adwaita-icon-theme
+                
+                brightnessctl
+                playerctl
+                mpc-cli
+                nicotine-plus
+                slack
+                spotify
+                ungoogled-chromium
+                
+                (pkgs.texlive.combine {
+                  inherit (pkgs.texlive) scheme-basic
+                    dvisvgm dvipng
+                    wrapfig amsmath ulem hyperref capt-of
+                    bussproofs simplebnf tabularray mathtools;
+                })
+              ];
+              home.sessionVariables.NIXOS_OZONE_WL = "1";
+              
+              xdg.userDirs = {
+                createDirectories = true;
+                documents = config.defaultDirectories.scratchDirectory;
+                download = config.defaultDirectories.scratchDirectory;
+                music = "${config.defaultDirectories.shareDirectory}/music";
+                pictures = "${config.defaultDirectories.shareDirectory}/pictures";
+                publicShare = config.defaultDirectories.scratchDirectory;
+                templates = config.defaultDirectories.scratchDirectory;
+                videos = "${config.defaultDirectories.shareDirectory}/videos";
+              };
+              xdg.portal = {
+                enable = true;
+                config = {
+                  common = {
+                    default = [
+                      "gtk"
+                    ];
+                  };
+                };
+                extraPortals = with pkgs; [
+                  xdg-desktop-portal-wlr
+                  xdg-desktop-portal-gtk
+                ];
+              };
+              
+              fonts.fontconfig = {
+                enable = true;
+                defaultFonts.monospace = [ "JetBrains Mono" "Noto Sans Mono" ];
+                defaultFonts.sansSerif = [ "Noto Sans" ];
+                defaultFonts.serif = [ "Noto Serif" ];
+              };
+              
+              wayland.windowManager.sway = let
+                terminal = "foot";
+                modifier = "Mod4";
+              in {
+                enable = true;
+                wrapperFeatures.gtk = true;
+                config = {
+                  terminal = terminal;
+                  modifier = modifier;
+                  input = {
+                    "type:touchpad" = {
+                      "natural_scroll" = "enabled";
+                    };
+                  };
+                  fonts.names = [ "monospace" ];
+                  window.border = 0;
+                  window.titlebar = false;
+                  window.hideEdgeBorders = "smart";
+                  # seat."*".xcursor_theme = "Adwaita 18";
+                  keybindings = {
+                    "${modifier}+q" = "kill";
+                    "${modifier}+t" = "exec ${terminal}";
+                    "${modifier}+b" = "exec chromium";
+                    "${modifier}+e" = "exec emacsclient -c";
+                    "${modifier}+d" = "exec tofi-drun | xargs swaymsg exec --";
+                    "${modifier}+c" = "exit";
+                    "${modifier}+r" = "reload";
+                    "${modifier}+f" = "fullscreen";
+                    
+                    "${modifier}+h" = "focus left";
+                    "${modifier}+j" = "focus down";
+                    "${modifier}+k" = "focus up";
+                    "${modifier}+l" = "focus right";
+                    
+                    "${modifier}+g" = "splith";
+                    "${modifier}+v" = "splitv";
+                    "${modifier}+Shift+f" = "floating toggle";
+                    "${modifier}+z" = "sticky toggle";
+                    
+                    "XF86AudioRaiseVolume" = "exec 'wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+'";
+                    "XF86AudioLowerVolume" = "exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-'";
+                    "XF86AudioMute" = "exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
+                    "XF86AudioPlay"= "exec `playerctl play-pause`";
+                    "XF86AudioPrev"= "exec `playerctl previous`";
+                    "XF86AudioNext"= "exec `playerctl next`";
+                    "XF86MonBrightnessDown"= "exec `brightnessctl set 10%-`";
+                    "XF86MonBrightnessUp"= "exec `brightnessctl set 10%+`";
+                    
+                    # TODO: mako, grim, slurp, wl-clipboard
+                    # TODO: Floating mode focus
+                    # TODO: Resizing windows
+                    
+                    "${modifier}+Shift+h" = "move left";
+                    "${modifier}+Shift+j" = "move down";
+                    "${modifier}+Shift+k" = "move up";
+                    "${modifier}+Shift+l" = "move right";
+                    
+                    "${modifier}+1" = "workspace number 1";
+                    "${modifier}+2" = "workspace number 2";
+                    "${modifier}+3" = "workspace number 3";
+                    "${modifier}+4" = "workspace number 4";
+                    "${modifier}+5" = "workspace number 5";
+                    "${modifier}+6" = "workspace number 6";
+                    "${modifier}+7" = "workspace number 7";
+                    "${modifier}+8" = "workspace number 8";
+                    "${modifier}+9" = "workspace number 9";
+                    "${modifier}+0" = "workspace number 10";
+                    
+                    "${modifier}+Shift+1" = "move container workspace number 1";
+                    "${modifier}+Shift+2" = "move container workspace number 2";
+                    "${modifier}+Shift+3" = "move container workspace number 3";
+                    "${modifier}+Shift+4" = "move container workspace number 4";
+                    "${modifier}+Shift+5" = "move container workspace number 5";
+                    "${modifier}+Shift+6" = "move container workspace number 6";
+                    "${modifier}+Shift+7" = "move container workspace number 7";
+                    "${modifier}+Shift+8" = "move container workspace number 8";
+                    "${modifier}+Shift+9" = "move container workspace number 9";
+                    "${modifier}+Shift+0" = "move container workspace number 10";
+                  };
+                };
+              };
+              
+              home.pointerCursor = {
+                name = "Adwaita";
+                gtk.enable = true;
+                package = pkgs.phinger-cursors; 
+                # package = pkgs.gnome.adwaita-icon-theme;
+                size = 48;
+              };
+              
+              programs.foot = {
+                enable = true;
+                settings = {
+                  main = {
+                    font = let
+                      defaultMonospace = builtins.head config.fonts.fontconfig.defaultFonts.monospace;
+                    in "${defaultMonospace}:size=10";
+                    dpi-aware = "yes";
+                  };
+                  mouse.hide-when-typing = "yes";
+                };
+              };
+              
+              programs.tofi = {
+                enable = true;
+                settings = {
+                  anchor = "top";
+                  width = "100%";
+                  height = 30;
+                  horizontal = true;
+                  background-color = "#000000";
+                  font-size = 14;
+                  font = "monospace";
+                  padding-top = 0;
+                  padding-bottom = 0;
+                  padding-left = 0;
+                  padding-right = 0;
+                  border-width = 0;
+                  outline-width = 0;
+                  result-spacing = 15;
+                  min-input-width = 120;
+                };
+              };
+              
+              programs.beets = {
+                enable = true;
+                settings = {
+                  directory = "${config.defaultDirectories.shareDirectory}/music";
+                  import.move = true;
+                };
+              };
+              
+              services.mpd = {
+                enable = true;
+                musicDirectory = "${config.defaultDirectories.shareDirectory}/music";
+                extraConfig = ''
+                            audio_output {
+                            type "pipewire"
+                            name "pipewire"
+                            }
+                            '';
+              };
+              
+              services.mpd-mpris.enable = true;
+              services.playerctld.enable = true;
+            };
+          };
+        gh = { config, pkgs, ... }:
+        
+          {
+            home-manager.users.${config.personal.userName} = {
+              programs.gh = {
+                enable = true;
+                settings.git_protocol = "ssh";
+              };
+            };
+          };
+        gpg = { config, pkgs, ... }:
+        
+          {
+            home-manager.users.${config.personal.userName} = {
+              home.packages = with pkgs; [ pinentry-qt ];
+              
+              services.ssh-agent.enable = pkgs.stdenv.isLinux;
+              
+              programs.gpg = {
+                enable = true;
+                homedir = let xdgDataHome = config.home-manager.users.${config.personal.userName}.xdg.dataHome;
+                          in "${xdgDataHome}/gnupg";
+              };
+              services.gpg-agent = {
+                enable = pkgs.stdenv.isLinux;
+                pinentryPackage = pkgs.pinentry-qt;
+              };
+            };
+          };
+        gopass = { config, pkgs, ... }:
+        
+          {
+            home-manager.users.${config.personal.userName} = {
+              home.packages = [ pkgs.gopass ];
+              
+              xdg.configFile.gopass = {
+                target = "gopass/config";
+                text = ''
+                  [mounts]
+                  path = ${config.defaultDirectories.repositoriesDirectory}/passwords
+                  [recipients]
+                  hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
+                '';
+              };
+            };
+          };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
             inherit package;
@@ -628,71 +501,63 @@
           {
             nixpkgs.overlays = with emacs-overlay.overlays; [ emacs package ];
         
-            programs.emacs = {
-              enable = true;
-              package = emacsOverlay pkgs pkgs.emacs-unstable-pgtk;
-            };
-            services.emacs = {
-              enable = pkgs.stdenv.isLinux;
-              package = config.programs.emacs.package;
-              defaultEditor = true;
+            home-manager.users.${config.personal.userName} = {
+              programs.emacs = {
+                enable = true;
+                package = pkgs.emacsWithPackagesFromUsePackage {
+                  package = pkgs.emacs-unstable-pgtk;
+                  config = ./emacs.el;
+                  defaultInitFile = true;
+                  extraEmacsPackages = epkgs: with epkgs; [
+                    treesit-grammars.with-all-grammars
+                  ];
+                  override = epkgs: epkgs // {
+                    lean4-mode = epkgs.trivialBuild rec {
+                      pname = "lean4-mode";
+                      version = "1";
+                      src = pkgs.fetchFromGitHub {
+                        owner = "bustercopley";
+                        repo = "lean4-mode";
+                        rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
+                        sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc=";
+                      };
+                      propagatedUserEnvPkgs = with epkgs;
+                        [ dash f flycheck lsp-mode magit-section s ];
+                      buildInputs = propagatedUserEnvPkgs;
+                      postInstall = ''
+                        DATADIR=$out/share/emacs/site-lisp/data
+                        mkdir $DATADIR
+                        install ./data/abbreviations.json $DATADIR
+                      '';
+                    };
+                  };
+                  alwaysEnsure = true;
+                };
+              };
+              services.emacs = {
+                enable = pkgs.stdenv.isLinux;
+                package = config.home-manager.users.${config.personal.userName}.programs.emacs.package;
+                defaultEditor = true;
+              };
             };
           };
       };
-      darwinConfigurations.kenobi = nix-darwin.lib.darwinSystem {
-        modules = with nixosModules; [
-          darwinSystem
-          {
-            nixpkgs.hostPlatform = "x86_64-darwin";
-          }
-        ];
-      };
-      homeConfigurations."jackson@kenobi" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "x86_64-darwin";
-          config.allowUnfree = true;
-        };
-        modules = with nixosModules; [ darwinHome ];
-        extraSpecialArgs.nixcasks = nixcasks.legacyPackages."x86_64-darwin";
-      };
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
-        modules = with nixosModules; [ murphHardware packageManager jacksonUserLinux docker ];
-      };
-      homeConfigurations."jackson@murph" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "x86_64-linux";
-          config.allowUnfree = true;
-        };
-        modules = with nixosModules; [ personal home linuxHomeGraphical linuxCommandLineUtilities gh gpg gopass emacsConfiguration ];
-      };
-      nixosConfigurations.lenovo = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
         modules = with nixosModules; [
-          nixos-wsl.nixosModuels.default 
-          {
-            system.stateVersion = "24.05";
-      
-            wsl.enable = true;
-            wsl.defaultUser = "jackson";
-            wsl.startMenuLaunchers = true;
-      
-            networking.hostName = "lenovo";
-            networking.proxy.httpProxy = "http://proxy-dmz.intel.com:911";
-            networking.proxy.httpsProxy = "http://proxy-dmz.intel.com:912";
-          }
-          packageManager jacksonUserLinux
+          murphHardware
+          packageManager
+          jacksonUserLinux
+          docker
+          home-manager.nixosModules.home-manager
+          personal
+          homeLinux
+          homeLinuxGraphical
+          gh
+          gpg
+          gopass
+          emacsConfiguration
         ];
       };
-      homeConfigurations."jackson@lenovo" = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "x86_64-linux";
-          config.allowUnfree = true;
-        };
-        modules = with nixosModules; [ personal home linuxCommandLineUtilities emacsConfiguration ];
-      };
-      formatter = nixpkgs.lib.genAttrs [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (system: {
-        system = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
-      });
       templates.rust = {
         path = ./templates/rust;
         description = "Rust template";
