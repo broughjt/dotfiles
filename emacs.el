@@ -9,7 +9,7 @@
 (scroll-bar-mode 0)
 
 (set-face-attribute 'default nil :font "JetBrains Mono" :height 100)
-;; (add-to-list 'default-frame-alist '(font . "JetBrains Mono 12"))
+;; (add-to-list 'default-frame-alist '(font . "JetBrains Mono 10"))
 
 (setq visible-bell t)
 
