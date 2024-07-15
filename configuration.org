@@ -257,12 +257,67 @@ homeLinux = { config, pkgs, ... }:
   };
 #+end_src
 
+** Gnome
+
+#+begin_src nix
+systemLinuxGnome = { config, pkgs, lib, ... }:
+  {
+    services.xserver = {
+      enable = true;
+      displayManager.gdm.enable = true;
+      displayManager.gdm.wayland = true;
+      desktopManager.gnome.enable = true;
+    };
+    hardware.pulseaudio.enable = false;
+    
+    environment.gnome.excludePackages = (with pkgs; [
+      gnome-photos
+      gnome-tour
+      gedit
+    ]) ++ (with pkgs.gnome; [
+      cheese
+      atomix
+      epiphany
+      evince
+      geary
+      gnome-characters
+      gnome-music
+      hitori
+      iagno
+      tali
+      totem
+      gnome-calculator
+      gnome-calendar
+      gnome-clocks
+      gnome-contacts
+      gnome-maps
+      gnome-weather
+      # gnome-disk-image-mounter
+      # gnome-disks
+      # gnome-extensions
+      # gnome-extensions-app
+      # gnome-logs
+      # gnome-system-monitor
+      simple-scan
+    ]) ++ (with pkgs.gnome.apps; [
+      # TODO: Figure how to remove these
+      # gnome-connections
+      # gnome-help
+      # gnome-text-editor
+      # gnome-thumbnail-font
+    ]);
+    environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  };
+#+end_src
+
 ** Linux home graphical
 
 #+begin_src nix
 homeLinuxGraphical = { config, pkgs, lib, ... }:
 
   {
+    imports = [ dconf ];
+
     options = let
       homeDirectory = config.home-manager.users.${config.personal.userName}.home.homeDirectory; in
       {
@@ -272,206 +327,195 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
         defaultDirectories.shareDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/share"; };
       };
 
-    config.home-manager.users.${config.personal.userName} = {
-      home.packages = with pkgs; [
-        jetbrains-mono
-        noto-fonts
-        gnome.adwaita-icon-theme
-        
-        brightnessctl
-        playerctl
-        mpc-cli
-        nicotine-plus
-        slack
-        spotify
-        ungoogled-chromium
-        
-        (pkgs.texlive.combine {
-          inherit (pkgs.texlive) scheme-basic
-            dvisvgm dvipng
-            wrapfig amsmath ulem hyperref capt-of
-            bussproofs simplebnf tabularray mathtools;
-        })
-      ];
-      home.sessionVariables.NIXOS_OZONE_WL = "1";
-      
-      xdg.userDirs = {
-        createDirectories = true;
-        documents = config.defaultDirectories.scratchDirectory;
-        download = config.defaultDirectories.scratchDirectory;
-        music = "${config.defaultDirectories.shareDirectory}/music";
-        pictures = "${config.defaultDirectories.shareDirectory}/pictures";
-        publicShare = config.defaultDirectories.scratchDirectory;
-        templates = config.defaultDirectories.scratchDirectory;
-        videos = "${config.defaultDirectories.shareDirectory}/videos";
-      };
-      xdg.portal = {
+    config = {
+      services.xserver = {
         enable = true;
-        config = {
-          common = {
-            default = [
-              "gtk"
-            ];
-          };
-        };
-        extraPortals = with pkgs; [
-          xdg-desktop-portal-wlr
-          xdg-desktop-portal-gtk
+        displayManager.gdm.enable = true;
+        displayManager.gdm.wayland = true;
+        desktopManager.gnome.enable = true;
+      };
+      hardware.pulseaudio.enable = false;
+      
+      environment.gnome.excludePackages = (with pkgs; [
+        gnome-photos
+        gnome-tour
+        gedit
+      ]) ++ (with pkgs.gnome; [
+        cheese
+        atomix
+        epiphany
+        evince
+        geary
+        gnome-characters
+        gnome-music
+        hitori
+        iagno
+        tali
+        totem
+        gnome-calculator
+        gnome-calendar
+        gnome-clocks
+        gnome-contacts
+        gnome-maps
+        gnome-weather
+        # gnome-disk-image-mounter
+        # gnome-disks
+        # gnome-extensions
+        # gnome-extensions-app
+        # gnome-logs
+        # gnome-system-monitor
+        simple-scan
+      ]) ++ (with pkgs.gnome.apps; [
+        # TODO: Figure how to remove these
+        # gnome-connections
+        # gnome-help
+        # gnome-text-editor
+        # gnome-thumbnail-font
+      ]);
+      # environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
+      home-manager.users.${config.personal.userName} = {
+        home.packages = with pkgs; [
+          jetbrains-mono
+          noto-fonts
+          
+          slack
+          spotify
+          firefox
+          gnome.dconf-editor
+          
+          (pkgs.texlive.combine {
+            inherit (pkgs.texlive) scheme-basic
+              dvisvgm dvipng
+              wrapfig amsmath ulem hyperref capt-of
+              bussproofs simplebnf tabularray mathtools;
+          })
         ];
-      };
-      
-      fonts.fontconfig = {
-        enable = true;
-        defaultFonts.monospace = [ "JetBrains Mono" "Noto Sans Mono" ];
-        defaultFonts.sansSerif = [ "Noto Sans" ];
-        defaultFonts.serif = [ "Noto Serif" ];
-      };
-      
-      wayland.windowManager.sway = let
-        terminal = "foot";
-        modifier = "Mod4";
-      in {
-        enable = true;
-        wrapperFeatures.gtk = true;
-        config = {
-          terminal = terminal;
-          modifier = modifier;
-          input = {
-            "type:touchpad" = {
-              "natural_scroll" = "enabled";
+        home.sessionVariables.NIXOS_OZONE_WL = "1";
+        
+        xdg.userDirs = {
+          createDirectories = true;
+          documents = config.defaultDirectories.scratchDirectory;
+          download = config.defaultDirectories.scratchDirectory;
+          music = "${config.defaultDirectories.shareDirectory}/music";
+          pictures = "${config.defaultDirectories.shareDirectory}/pictures";
+          publicShare = config.defaultDirectories.scratchDirectory;
+          templates = config.defaultDirectories.scratchDirectory;
+          videos = "${config.defaultDirectories.shareDirectory}/videos";
+        };
+        xdg.portal = {
+          enable = true;
+          config = {
+            common = {
+              default = [
+                "gtk"
+              ];
             };
           };
-          fonts.names = [ "monospace" ];
-          window.border = 0;
-          window.titlebar = false;
-          window.hideEdgeBorders = "smart";
-          # seat."*".xcursor_theme = "Adwaita 18";
-          keybindings = {
-            "${modifier}+q" = "kill";
-            "${modifier}+t" = "exec ${terminal}";
-            "${modifier}+b" = "exec chromium";
-            "${modifier}+e" = "exec emacsclient -c";
-            "${modifier}+d" = "exec tofi-drun | xargs swaymsg exec --";
-            "${modifier}+c" = "exit";
-            "${modifier}+r" = "reload";
-            "${modifier}+f" = "fullscreen";
-            
-            "${modifier}+h" = "focus left";
-            "${modifier}+j" = "focus down";
-            "${modifier}+k" = "focus up";
-            "${modifier}+l" = "focus right";
-            
-            "${modifier}+g" = "splith";
-            "${modifier}+v" = "splitv";
-            "${modifier}+Shift+f" = "floating toggle";
-            "${modifier}+z" = "sticky toggle";
-            
-            "XF86AudioRaiseVolume" = "exec 'wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+'";
-            "XF86AudioLowerVolume" = "exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-'";
-            "XF86AudioMute" = "exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
-            "XF86AudioPlay"= "exec `playerctl play-pause`";
-            "XF86AudioPrev"= "exec `playerctl previous`";
-            "XF86AudioNext"= "exec `playerctl next`";
-            "XF86MonBrightnessDown"= "exec `brightnessctl set 10%-`";
-            "XF86MonBrightnessUp"= "exec `brightnessctl set 10%+`";
-            
-            # TODO: mako, grim, slurp, wl-clipboard
-            # TODO: Floating mode focus
-            # TODO: Resizing windows
-            
-            "${modifier}+Shift+h" = "move left";
-            "${modifier}+Shift+j" = "move down";
-            "${modifier}+Shift+k" = "move up";
-            "${modifier}+Shift+l" = "move right";
-            
-            "${modifier}+1" = "workspace number 1";
-            "${modifier}+2" = "workspace number 2";
-            "${modifier}+3" = "workspace number 3";
-            "${modifier}+4" = "workspace number 4";
-            "${modifier}+5" = "workspace number 5";
-            "${modifier}+6" = "workspace number 6";
-            "${modifier}+7" = "workspace number 7";
-            "${modifier}+8" = "workspace number 8";
-            "${modifier}+9" = "workspace number 9";
-            "${modifier}+0" = "workspace number 10";
-            
-            "${modifier}+Shift+1" = "move container workspace number 1";
-            "${modifier}+Shift+2" = "move container workspace number 2";
-            "${modifier}+Shift+3" = "move container workspace number 3";
-            "${modifier}+Shift+4" = "move container workspace number 4";
-            "${modifier}+Shift+5" = "move container workspace number 5";
-            "${modifier}+Shift+6" = "move container workspace number 6";
-            "${modifier}+Shift+7" = "move container workspace number 7";
-            "${modifier}+Shift+8" = "move container workspace number 8";
-            "${modifier}+Shift+9" = "move container workspace number 9";
-            "${modifier}+Shift+0" = "move container workspace number 10";
+          extraPortals = with pkgs; [
+            xdg-desktop-portal-wlr
+            xdg-desktop-portal-gtk
+          ];
+        };
+        
+        programs.beets = {
+          enable = true;
+          settings = {
+            directory = "${config.defaultDirectories.shareDirectory}/music";
+            import.move = true;
           };
         };
+
+        fonts.fontconfig = {
+          enable = true;
+          defaultFonts.monospace = [ "JetBrains Mono" "Noto Sans Mono" ];
+          defaultFonts.sansSerif = [ "Noto Sans" ];
+          defaultFonts.serif = [ "Noto Serif" ];
+        };
+
+        # services.mpd = {
+        # enable = true;
+        # musicDirectory = "${config.defaultDirectories.shareDirectory}/music";
+        # extraConfig = ''
+        # audio_output {
+        # type "pipewire"
+        # name "pipewire"
+        # }
+        # '';
+        # };
+        
+        # services.mpd-mpris.enable = true;
+        # services.playerctld.enable = true;
       };
-      
-      home.pointerCursor = {
-        name = "Adwaita";
-        gtk.enable = true;
-        package = pkgs.phinger-cursors; 
-        # package = pkgs.gnome.adwaita-icon-theme;
-        size = 48;
-      };
-      
-      programs.foot = {
-        enable = true;
-        settings = {
-          main = {
-            font = let
-              defaultMonospace = builtins.head config.fonts.fontconfig.defaultFonts.monospace;
-            in "${defaultMonospace}:size=10";
-            dpi-aware = "yes";
-          };
-          mouse.hide-when-typing = "yes";
+    };
+  };
+#+end_src
+
+** dconf
+
+#+begin_src nix
+dconf = { config, lib, ... }:
+  {
+    home-manager.users.${config.personal.userName}.dconf = {
+      enable = true;
+      settings = {
+        "org/gnome/desktop/wm/keybindings" = {
+          close = [ "<Super>q" ];
+          switch-to-workspace-1 = [ "<Super>1" ];
+          switch-to-workspace-2 = [ "<Super>2" ];
+          switch-to-workspace-3 = [ "<Super>3" ];
+          switch-to-workspace-4 = [ "<Super>4" ];
+          switch-to-workspace-5 = [ "<Super>5" ];
+          switch-to-workspace-6 = [ "<Super>6" ];
+          switch-to-workspace-7 = [ "<Super>7" ];
+          switch-to-workspace-8 = [ "<Super>8" ];
+          switch-to-workspace-9 = [ "<Super>9" ];
+          move-to-workspace-1 = [ "<Super><Shift>1" ];
+          move-to-workspace-2 = [ "<Super><Shift>2" ];
+          move-to-workspace-3 = [ "<Super><Shift>3" ];
+          move-to-workspace-4 = [ "<Super><Shift>4" ];
+          move-to-workspace-5 = [ "<Super><Shift>5" ];
+          move-to-workspace-6 = [ "<Super><Shift>6" ];
+          move-to-workspace-7 = [ "<Super><Shift>7" ];
+          move-to-workspace-8 = [ "<Super><Shift>8" ];
+          move-to-workspace-9 = [ "<Super><Shift>9" ];
+        };
+        "org/gnome/desktop/wm/preferences" = {
+          num-workspaces = 9;
+        };
+        "org/gnome/shell/keybindings" = {
+          toggle-message-tray = [ ];
+          focus-active-notification = [ ];
+          toggle-overview = [ ];
+          switch-to-application-1 = [ ];
+          switch-to-application-2 = [ ];
+          switch-to-application-3 = [ ];
+          switch-to-application-4 = [ ];
+          switch-to-application-5 = [ ];
+          switch-to-application-6 = [ ];
+          switch-to-application-7 = [ ];
+          switch-to-application-8 = [ ];
+          switch-to-application-9 = [ ];
+        };
+        "org/gnome/mutter/keybindings" = {
+          switch-monitor = [ ];
+        };
+        "org/gnome/shell" = {
+          disabled-user-extension = false;
+          disabled-extensions = "disabled";
+        };
+        "org/gnome/desktop/interface" = {
+          scaling-factor = home-manager.lib.hm.gvariant.mkUint32 2;
+          color-scheme = "prefer-dark";
+          enable-hot-cornors = false;
+          clock-format = "12h";
+        };
+        "org/gnome/desktop/background" = {
+          picture-options = "none";
+          color-shading-type = "solid";
+          primary-color = "#0a369d";
         };
       };
-      
-      programs.tofi = {
-        enable = true;
-        settings = {
-          anchor = "top";
-          width = "100%";
-          height = 30;
-          horizontal = true;
-          background-color = "#000000";
-          font-size = 14;
-          font = "monospace";
-          padding-top = 0;
-          padding-bottom = 0;
-          padding-left = 0;
-          padding-right = 0;
-          border-width = 0;
-          outline-width = 0;
-          result-spacing = 15;
-          min-input-width = 120;
-        };
-      };
-      
-      programs.beets = {
-        enable = true;
-        settings = {
-          directory = "${config.defaultDirectories.shareDirectory}/music";
-          import.move = true;
-        };
-      };
-      
-      services.mpd = {
-        enable = true;
-        musicDirectory = "${config.defaultDirectories.shareDirectory}/music";
-        extraConfig = ''
-                    audio_output {
-                    type "pipewire"
-                    name "pipewire"
-                    }
-                    '';
-      };
-      
-      services.mpd-mpris.enable = true;
-      services.playerctld.enable = true;
     };
   };
 #+end_src
@@ -498,7 +542,7 @@ gpg = { config, pkgs, ... }:
 
   {
     home-manager.users.${config.personal.userName} = {
-      home.packages = with pkgs; [ pinentry-qt ];
+      home.packages = with pkgs; [ pinentry-gnome3 ];
       
       services.ssh-agent.enable = pkgs.stdenv.isLinux;
       
@@ -509,7 +553,7 @@ gpg = { config, pkgs, ... }:
       };
       services.gpg-agent = {
         enable = pkgs.stdenv.isLinux;
-        pinentryPackage = pkgs.pinentry-qt;
+        pinentryPackage = pkgs.pinentry-gnome3;
       };
     };
   };
@@ -673,7 +717,7 @@ Disable the menu-, tool-, and scroll-bar modes.
 Set the font.
 
 #+begin_src elisp
-(set-face-attribute 'default nil :font "JetBrains Mono" :height 100)
+;; (set-face-attribute 'default nil :font "JetBrains Mono" :height 100)
 ;; (add-to-list 'default-frame-alist '(font . "JetBrains Mono 10"))
 #+end_src
 
@@ -1133,6 +1177,7 @@ nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
     packageManager
     jacksonUserLinux
     docker
+    systemLinuxGnome
     home-manager.nixosModules.home-manager
     personal
     homeLinux
