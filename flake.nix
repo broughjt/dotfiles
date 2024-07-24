@@ -500,6 +500,11 @@
               };
             };
           };
+        tailscale = { config, ... }:
+          {
+            services.tailscale.enable = true;
+            services.tailscale.useRoutingFeatures = "client";
+          };
         emacsOverlay = (pkgs: package:
           (pkgs.emacsWithPackagesFromUsePackage {
             inherit package;
@@ -582,6 +587,7 @@
           packageManager
           jacksonUserLinux
           docker
+          tailscale
           systemLinuxGnome
           home-manager.nixosModules.home-manager
           personal

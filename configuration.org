@@ -581,6 +581,16 @@ gopass = { config, pkgs, ... }:
   };
 #+end_src
 
+** Tailscale
+
+#+begin_src nix
+tailscale = { config, ... }:
+  {
+    services.tailscale.enable = true;
+    services.tailscale.useRoutingFeatures = "client";
+  };
+#+end_src
+
 * Emacs
 ** Nix
 :PROPERTIES:
@@ -1177,6 +1187,7 @@ nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
     packageManager
     jacksonUserLinux
     docker
+    tailscale
     systemLinuxGnome
     home-manager.nixosModules.home-manager
     personal
