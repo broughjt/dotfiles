@@ -8,7 +8,7 @@
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 
-;; (set-face-attribute 'default nil :font "JetBrains Mono" :height 100)
+(set-face-attribute 'default nil :font "JetBrains Mono")
 ;; (add-to-list 'default-frame-alist '(font . "JetBrains Mono 10"))
 
 (setq visible-bell t)
@@ -64,15 +64,17 @@
    (python . t)))
 
 (setq
- org-latex-compiler "lualatex"
- org-latex-create-formula-image-program 'dvisvgm
+ ;; org-latex-compiler "lualatex"
+ ;; org-latex-create-formula-image-program 'dvisvgm
  org-preview-latex-image-directory temporary-file-directory
- org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
- org-startup-with-latex-preview t
- org-startup-with-inline-images t)
+ ;; org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
+ ;; org-startup-with-latex-preview t
+ ;; org-startup-with-inline-images t
+ )
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent")
-  (plist-put org-format-latex-options :scale 0.5))
+  ;; (plist-put org-format-latex-options :scale 0.5)
+  )
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
