@@ -1,18 +1,6 @@
 {
   description = "Are these your configuration files, Larry?";
 
-  nixConfig = {
-    extra-substituters = [
-      "https://cache.nixos.org/"
-      "https://nix-community.cachix.org"
-    ];
-
-    extra-trusted-public-keys = [
-      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-    ];
-  };
-
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
 
@@ -108,7 +96,7 @@
             services.fprintd.enable = true;
         
             security.polkit.enable = true;
-            hardware.opengl.enable = true;
+            hardware.graphics.enable = true;
         
             services.fwupd.enable = true;
         
@@ -206,54 +194,6 @@
               programs.ssh.enable = true;
             };
           };
-        systemLinuxGnome = { config, pkgs, lib, ... }:
-          {
-            services.xserver = {
-              enable = true;
-              displayManager.gdm.enable = true;
-              displayManager.gdm.wayland = true;
-              desktopManager.gnome.enable = true;
-            };
-            hardware.pulseaudio.enable = false;
-            
-            environment.gnome.excludePackages = (with pkgs; [
-              gnome-photos
-              gnome-tour
-              gedit
-            ]) ++ (with pkgs.gnome; [
-              cheese
-              atomix
-              epiphany
-              evince
-              geary
-              gnome-characters
-              gnome-music
-              hitori
-              iagno
-              tali
-              totem
-              gnome-calculator
-              gnome-calendar
-              gnome-clocks
-              gnome-contacts
-              gnome-maps
-              gnome-weather
-              # gnome-disk-image-mounter
-              # gnome-disks
-              # gnome-extensions
-              # gnome-extensions-app
-              # gnome-logs
-              # gnome-system-monitor
-              simple-scan
-            ]) ++ (with pkgs.gnome.apps; [
-              # TODO: Figure how to remove these
-              # gnome-connections
-              # gnome-help
-              # gnome-text-editor
-              # gnome-thumbnail-font
-            ]);
-            environment.sessionVariables.NIXOS_OZONE_WL = "1";
-          };
         homeLinuxGraphical = { config, pkgs, lib, ... }:
         
           {
@@ -281,20 +221,21 @@
                 gnome-photos
                 gnome-tour
                 gedit
-              ]) ++ (with pkgs.gnome; [
                 cheese
-                atomix
                 epiphany
                 evince
                 geary
+                totem
+                gnome-calculator
+                gnome-calendar
+                simple-scan
+              ]) ++ (with pkgs.gnome; [
+                atomix
                 gnome-characters
                 gnome-music
                 hitori
                 iagno
                 tali
-                totem
-                gnome-calculator
-                gnome-calendar
                 gnome-clocks
                 gnome-contacts
                 gnome-maps
@@ -305,15 +246,7 @@
                 # gnome-extensions-app
                 # gnome-logs
                 # gnome-system-monitor
-                simple-scan
-              ]) ++ (with pkgs.gnome.apps; [
-                # TODO: Figure how to remove these
-                # gnome-connections
-                # gnome-help
-                # gnome-text-editor
-                # gnome-thumbnail-font
               ]);
-              # environment.sessionVariables.NIXOS_OZONE_WL = "1";
         
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
@@ -323,7 +256,7 @@
                   slack
                   spotify
                   firefox
-                  gnome.dconf-editor
+                  dconf-editor
                   
                   (pkgs.texlive.combine {
                     inherit (pkgs.texlive) scheme-basic
@@ -587,8 +520,8 @@
           packageManager
           jacksonUserLinux
           docker
-          tailscale
-          systemLinuxGnome
+          # TODO:
+          # tailscale
           home-manager.nixosModules.home-manager
           personal
           homeLinux

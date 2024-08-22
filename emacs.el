@@ -8,8 +8,7 @@
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 
-(set-face-attribute 'default nil :font "JetBrains Mono")
-;; (add-to-list 'default-frame-alist '(font . "JetBrains Mono 10"))
+(set-face-attribute 'default nil :family "JetBrains Mono" :height 100)
 
 (setq visible-bell t)
 
@@ -193,7 +192,7 @@
 
 (use-package ef-themes
   :init
-  (load-theme 'ef-dark t))
+  (load-theme 'ef-light t))
 
 (use-package racket-mode)
 
