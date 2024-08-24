@@ -64,15 +64,16 @@
 
 (setq
  ;; org-latex-compiler "lualatex"
- ;; org-latex-create-formula-image-program 'dvisvgm
+ org-latex-create-formula-image-program 'dvisvgm
  org-preview-latex-image-directory temporary-file-directory
- ;; org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
- ;; org-startup-with-latex-preview t
- ;; org-startup-with-inline-images t
+ org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
+ org-startup-with-latex-preview t
+ org-startup-with-inline-images t
  )
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent")
-  ;; (plist-put org-format-latex-options :scale 0.5)
+  ;; TODO: Works for now?
+  (plist-put org-format-latex-options :scale 0.5)
   )
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
@@ -105,9 +106,11 @@
           (lambda ()
             (interactive)
             (org-refile nil nil (list nil tasks-file nil nil))))
+(bind-key "C-c a" 'org-agenda)
 
 (setq org-todo-keywords '((sequence "TODO(!)" "DONE(!)")))
 (setq org-log-into-drawer t)
+(setq org-log-done 'time)
 
 (with-eval-after-load 'org
   (add-to-list 'org-modules 'org-habit t))

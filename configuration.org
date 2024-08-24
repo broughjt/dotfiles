@@ -785,15 +785,16 @@ get natural deduction proof trees once.
 #+begin_src elisp
 (setq
  ;; org-latex-compiler "lualatex"
- ;; org-latex-create-formula-image-program 'dvisvgm
+ org-latex-create-formula-image-program 'dvisvgm
  org-preview-latex-image-directory temporary-file-directory
- ;; org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
- ;; org-startup-with-latex-preview t
- ;; org-startup-with-inline-images t
+ org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
+ org-startup-with-latex-preview t
+ org-startup-with-inline-images t
  )
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent")
-  ;; (plist-put org-format-latex-options :scale 0.5)
+  ;; TODO: Works for now?
+  (plist-put org-format-latex-options :scale 0.5)
   )
 #+end_src
 
@@ -840,6 +841,7 @@ TODO: Commentary about GTD system.
           (lambda ()
             (interactive)
             (org-refile nil nil (list nil tasks-file nil nil))))
+(bind-key "C-c a" 'org-agenda)
 #+end_src
 
 Enable todo state changes by adding "!" to the org keywords.
@@ -847,6 +849,7 @@ Enable todo state changes by adding "!" to the org keywords.
 #+begin_src elisp
 (setq org-todo-keywords '((sequence "TODO(!)" "DONE(!)")))
 (setq org-log-into-drawer t)
+(setq org-log-done 'time)
 #+end_src
 
 Habits. See [[https://cpbotha.net/2019/11/02/forming-and-maintaining-habits-using-orgmode/]].
