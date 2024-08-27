@@ -253,10 +253,11 @@
                   jetbrains-mono
                   noto-fonts
                   
+                  dconf-editor
+                  discord # Eww cringe, but everyone uses it for class group chats
+                  firefox
                   slack
                   spotify
-                  firefox
-                  dconf-editor
                   
                   (pkgs.texlive.combine {
                     inherit (pkgs.texlive) scheme-basic
