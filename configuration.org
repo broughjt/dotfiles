@@ -153,6 +153,16 @@ murphHardware = { config, pkgs, lib, ... }:
       xkb.layout = "us";
       xkb.variant = "";
     };
+
+    # TODO: For ECE 3710 FPGA, remove when finished with the class
+    services.udev.extraRules = ''
+    SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6001", MODE="0666"
+    SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6002", MODE="0666"
+    SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6003", MODE="0666"
+
+    SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6010", MODE="0666"
+    SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6810", MODE="0666"
+    '';
   };
 #+end_src
 
@@ -861,6 +871,8 @@ Habits. See [[https://cpbotha.net/2019/11/02/forming-and-maintaining-habits-usin
 #+end_src
 
 #+begin_src elisp
+(with-eval-after-load 'org
+  (require 'oc-basic))
 (setq org-cite-global-bibliography '("~/repositories/notes/citations.bib"))
 #+end_src
 

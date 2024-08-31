@@ -115,6 +115,8 @@
 (with-eval-after-load 'org
   (add-to-list 'org-modules 'org-habit t))
 
+(with-eval-after-load 'org
+  (require 'oc-basic))
 (setq org-cite-global-bibliography '("~/repositories/notes/citations.bib"))
 
 (use-package org-roam

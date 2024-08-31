@@ -119,6 +119,16 @@
               xkb.layout = "us";
               xkb.variant = "";
             };
+        
+            # TODO: For ECE 3710 FPGA, remove when finished with the class
+            services.udev.extraRules = ''
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6001", MODE="0666"
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6002", MODE="0666"
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6003", MODE="0666"
+        
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6010", MODE="0666"
+            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6810", MODE="0666"
+            '';
           };
         jacksonUserLinux = { config, pkgs, ... }:
         
