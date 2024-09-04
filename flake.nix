@@ -172,6 +172,12 @@
                 configHome = "${homeDirectory}/.config";
                 dataHome = "${homeDirectory}/.local/share";
                 stateHome = "${homeDirectory}/.local/state";
+                mimeApps = {
+                  enable = true;
+                  defaultApplications = {
+                    "application/pdf" = "firefox.desktop";
+                  };
+                };
               };
         
               home.packages = with pkgs; [
