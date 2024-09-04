@@ -1007,13 +1007,6 @@ mountains?
                 '(:rust-analyzer (:check (:command "clippy")))))
 #+end_src
 
-*** Proof general
-[[https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/][The holy trinity.]]
-
-#+begin_src elisp
-(use-package proof-general)
-#+end_src
-
 *** Lean
 
 #+begin_src elisp

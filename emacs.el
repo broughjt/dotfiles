@@ -209,8 +209,6 @@
   (setq-default eglot-workspace-configuration
                 '(:rust-analyzer (:check (:command "clippy")))))
 
-(use-package proof-general)
-
 (use-package lean4-mode
   :mode "\\.lean\\'")
 
