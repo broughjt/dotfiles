@@ -274,13 +274,15 @@
                   firefox
                   slack
                   spotify
+                  evince
                   
-                  (pkgs.texlive.combine {
-                    inherit (pkgs.texlive) scheme-basic
-                      dvisvgm dvipng
-                      wrapfig amsmath ulem hyperref capt-of
-                      bussproofs simplebnf tabularray mathtools;
-                  })
+                  # Say no to globally installed tex
+                  # (pkgs.texlive.combine {
+                    # inherit (pkgs.texlive) scheme-basic
+                      # dvisvgm dvipng
+                      # wrapfig amsmath ulem hyperref capt-of
+                      # bussproofs simplebnf tabularray mathtools;
+                  # })
                 ];
                 home.sessionVariables.NIXOS_OZONE_WL = "1";
                 

@@ -13,7 +13,8 @@
 (setq visible-bell t)
 
 (setq display-line-numbers-type 'visual)
-(global-display-line-numbers-mode)
+;; (global-display-line-numbers-mode)
+(add-hook 'text-mode-hook #'display-line-numbers-mode)
 
 (setq local-directory (expand-file-name "~/.local/data/emacs/"))
 (setq backup-directory (concat local-directory "backups/"))
@@ -137,6 +138,14 @@
 
 (use-package git-auto-commit-mode)
 
+;; (use-package auctex
+  ;; :init
+  ;; (setq TeX-electric-sub-and-superscript t)
+  ;; (setq TeX-view-program-selection `((output-pdf "xdg-open")))
+  ;; )
+
+;; TODO: pdf-tools?
+
 (use-package vertico
   :init
   (vertico-mode)
@@ -175,7 +184,7 @@
 (use-package yasnippet
   :config
   (yas-reload-all)
-  (add-hook 'prog-mode-hook 'yas-minor-mode)
+  ;; (add-hook 'prog-mode-hook 'yas-minor-mode)
   (add-hook 'text-mode-hook 'yas-minor-mode))
 
 (use-package dap-mode
