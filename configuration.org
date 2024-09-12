@@ -221,12 +221,12 @@ homeLinux = { config, pkgs, ... }:
         configHome = "${homeDirectory}/.config";
         dataHome = "${homeDirectory}/.local/share";
         stateHome = "${homeDirectory}/.local/state";
-        mimeApps = {
-          enable = true;
-          defaultApplications = {
-            "application/pdf" = "firefox.desktop";
-          };
-        };
+        # mimeApps = {
+        #   enable = true;
+        #   defaultApplications = {
+        #     "application/pdf" = "firefox.desktop";
+        #   };
+        # };
       };
 
       home.packages = with pkgs; [
@@ -689,7 +689,7 @@ without them.
 
 #+begin_src elisp
 (setq display-line-numbers-type 'visual)
-;; (global-display-line-numbers-mode)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
 #+end_src
 
@@ -908,11 +908,11 @@ Habits. See [[https://cpbotha.net/2019/11/02/forming-and-maintaining-habits-usin
 *** Tex
 
 #+begin_src elisp
-;; (use-package auctex
-  ;; :init
-  ;; (setq TeX-electric-sub-and-superscript t)
+(use-package auctex
+  :init
+  (setq TeX-electric-sub-and-superscript t)
   ;; (setq TeX-view-program-selection `((output-pdf "xdg-open")))
-  ;; )
+  )
 
 ;; TODO: pdf-tools?
 #+end_src

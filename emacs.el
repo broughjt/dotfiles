@@ -13,7 +13,7 @@
 (setq visible-bell t)
 
 (setq display-line-numbers-type 'visual)
-;; (global-display-line-numbers-mode)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
 
 (setq local-directory (expand-file-name "~/.local/data/emacs/"))
@@ -138,11 +138,11 @@
 
 (use-package git-auto-commit-mode)
 
-;; (use-package auctex
-  ;; :init
-  ;; (setq TeX-electric-sub-and-superscript t)
+(use-package auctex
+  :init
+  (setq TeX-electric-sub-and-superscript t)
   ;; (setq TeX-view-program-selection `((output-pdf "xdg-open")))
-  ;; )
+  )
 
 ;; TODO: pdf-tools?
 
