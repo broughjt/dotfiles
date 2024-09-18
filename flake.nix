@@ -432,6 +432,9 @@
               services.gpg-agent = {
                 enable = pkgs.stdenv.isLinux;
                 pinentryPackage = pkgs.pinentry-gnome3;
+                # https://superuser.com/questions/624343/keep-gnupg-credentials-cached-for-entire-user-session
+                defaultCacheTtl = 34560000;
+                maxCacheTtl = 34560000;
               };
             };
           };
