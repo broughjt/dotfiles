@@ -1038,6 +1038,12 @@ mountains?
   :mode "\\.lean\\'")
 #+end_src
 
+*** Agda
+
+#+begin_src elisp
+(use-package agda-mode)
+#+end_src
+
 *** Haskell
 
 #+begin_src elisp

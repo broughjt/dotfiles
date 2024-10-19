@@ -221,6 +221,8 @@
 (use-package lean4-mode
   :mode "\\.lean\\'")
 
+(use-package agda-mode)
+
 (use-package haskell-mode
   :hook
   ((haskell-mode . eglot-ensure)))
