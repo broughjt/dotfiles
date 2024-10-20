@@ -221,7 +221,8 @@
 (use-package lean4-mode
   :mode "\\.lean\\'")
 
-(use-package agda-mode)
+(load-file (let ((coding-system-for-read 'utf-8))
+             (shell-command-to-string "agda-mode locate")))
 
 (use-package haskell-mode
   :hook
@@ -235,6 +236,8 @@
 (use-package envrc
   :config
   (envrc-global-mode))
+
+(use-package inheritenv)
 
 (use-package emms
   :config

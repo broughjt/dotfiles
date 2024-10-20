@@ -299,7 +299,6 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
         gnome-calculator
         gnome-calendar
         simple-scan
-      ]) ++ (with pkgs.gnome; [
         atomix
         gnome-characters
         gnome-music
@@ -310,6 +309,7 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
         gnome-contacts
         gnome-maps
         gnome-weather
+      ]) ++ (with pkgs.gnome; [
         # gnome-disk-image-mounter
         # gnome-disks
         # gnome-extensions
@@ -329,6 +329,8 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
           slack
           spotify
           evince
+
+          agda
           
           # Say no to globally installed tex
           # (pkgs.texlive.combine {
@@ -1041,7 +1043,8 @@ mountains?
 *** Agda
 
 #+begin_src elisp
-(use-package agda-mode)
+(load-file (let ((coding-system-for-read 'utf-8))
+             (shell-command-to-string "agda-mode locate")))
 #+end_src
 
 *** Haskell
@@ -1068,6 +1071,8 @@ mountains?
 (use-package envrc
   :config
   (envrc-global-mode))
+
+(use-package inheritenv)
 #+end_src
 
 *** Emms

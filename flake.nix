@@ -245,7 +245,6 @@
                 gnome-calculator
                 gnome-calendar
                 simple-scan
-              ]) ++ (with pkgs.gnome; [
                 atomix
                 gnome-characters
                 gnome-music
@@ -256,6 +255,7 @@
                 gnome-contacts
                 gnome-maps
                 gnome-weather
+              ]) ++ (with pkgs.gnome; [
                 # gnome-disk-image-mounter
                 # gnome-disks
                 # gnome-extensions
@@ -275,6 +275,8 @@
                   slack
                   spotify
                   evince
+        
+                  agda
                   
                   # Say no to globally installed tex
                   # (pkgs.texlive.combine {
