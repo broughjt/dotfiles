@@ -206,7 +206,7 @@
 
 (use-package ef-themes
   :init
-  (load-theme 'ef-light t))
+  (load-theme 'ef-dark t))
 
 (use-package racket-mode)
 
