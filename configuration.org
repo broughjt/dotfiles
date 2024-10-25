@@ -1055,6 +1055,27 @@ mountains?
   ((haskell-mode . eglot-ensure)))
 #+end_src
 
+*** Verilog
+
+Seriously the default options for Emacs verilog mode are so
+annoying. Friggin 3 space indent are you serious?
+
+#+begin_src elisp
+(setq verilog-indent-level 4)
+(setq verilog-case-indent 4)
+(setq verilog-cexp-indent 4)
+(setq verilog-indent-level-behavioral 4)
+(setq verilog-indent-level-declaration 4)
+(setq verilog-indent-level-module 4)
+(setq verilog-indent-level-module 4)
+(setq verilog-align-ifelse t)
+(setq verilog-auto-delete-trailing-whitespace t)
+(setq verilog-auto-newline nil)
+(setq verilog-auto-lineup nil)
+(setq verilog-highlight-grouping-keywords t)
+(setq verilog-highlight-modules t)
+#+end_src
+
 *** Magit
 
 #+begin_src elisp
