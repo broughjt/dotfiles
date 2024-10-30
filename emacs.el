@@ -241,6 +241,9 @@
 (setq verilog-auto-lineup nil)
 (setq verilog-highlight-grouping-keywords t)
 (setq verilog-highlight-modules t)
+;; If users feel compelled to add comments signaling the end of blocks
+;; then you should change your language syntax
+(setq verilog-auto-endcomments nil)
 
 (use-package magit)
 
