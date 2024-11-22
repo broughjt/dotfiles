@@ -67,7 +67,7 @@
  ;; org-latex-compiler "lualatex"
  org-latex-create-formula-image-program 'dvisvgm
  org-preview-latex-image-directory temporary-file-directory
- org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t))
+ org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t))
  org-startup-with-latex-preview t
  org-startup-with-inline-images t
  )
@@ -82,11 +82,14 @@
 (setq org-directory "~/repositories/gtd/")
 (setq inbox-file (concat org-directory "inbox.org"))
 (setq tasks-file (concat org-directory "tasks.org"))
-(setq suspended-file (concat org-directory "suspended.org"))
+(setq suspended-directory (concat org-directory "suspended/"))
+(setq gtd-file (concat org-directory "gtd.org"))
+(setq emacs-file (concat org-directory "emacs.org"))
 (setq calendar-file (concat org-directory "calendar.org"))
 (setq archive-file (concat org-directory "archive.org"))
 
-(setq org-agenda-files (list tasks-file calendar-file suspended-file))
+(setq org-agenda-files (list tasks-file calendar-file
+                             gtd-file emacs-file))
 (setq org-refile-targets
       '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
 (setq org-outline-path-complete-in-steps nil)

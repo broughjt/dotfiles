@@ -283,7 +283,7 @@
                     inherit (pkgs.texlive) scheme-basic
                       dvisvgm dvipng
                       wrapfig amsmath ulem hyperref capt-of
-                      bussproofs simplebnf tabularray mathtools;
+                      bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
                   })
                 ];
                 home.sessionVariables.NIXOS_OZONE_WL = "1";
