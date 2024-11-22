@@ -126,6 +126,7 @@
 (use-package org-roam
   :custom
   (org-roam-directory "~/repositories/notes")
+  (org-roam-file-exclude-regexp nil)
   :bind
   (("C-c n f" . org-roam-node-find)
    ("C-c n i" . org-roam-node-insert))
