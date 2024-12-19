@@ -838,13 +838,15 @@ TODO: Commentary about GTD system.
 (setq inbox-file (concat org-directory "inbox.org"))
 (setq tasks-file (concat org-directory "tasks.org"))
 (setq suspended-directory (concat org-directory "suspended/"))
-(setq gtd-file (concat org-directory "gtd.org"))
-(setq emacs-file (concat org-directory "emacs.org"))
+(setq write-file (concat suspended-directory "write.org"))
+(setq read-file (concat suspended-directory "read.org"))
+(setq other-file (concat suspended-directory "other.org"))
 (setq calendar-file (concat org-directory "calendar.org"))
 (setq archive-file (concat org-directory "archive.org"))
 
 (setq org-agenda-files (list tasks-file calendar-file
-                             gtd-file emacs-file))
+                             ;; TODO: These probably are a seperate thing
+                             write-file read-file other-file))
 (setq org-refile-targets
       '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
 (setq org-outline-path-complete-in-steps nil)
