@@ -320,8 +320,9 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
 
       home-manager.users.${config.personal.userName} = {
         home.packages = with pkgs; [
-          jetbrains-mono
+          # jetbrains-mono
           noto-fonts
+          julia-mono
           
           dconf-editor
           discord # Eww cringe, but everyone uses it for class group chats
@@ -377,7 +378,7 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
 
         fonts.fontconfig = {
           enable = true;
-          defaultFonts.monospace = [ "JetBrains Mono" "Noto Sans Mono" ];
+          defaultFonts.monospace = [ "JuliaMono" "Noto Sans Mono" ];
           defaultFonts.sansSerif = [ "Noto Sans" ];
           defaultFonts.serif = [ "Noto Serif" ];
         };
@@ -679,7 +680,7 @@ Disable the menu-, tool-, and scroll-bar modes.
 Set the font.
 
 #+begin_src elisp
-(set-face-attribute 'default nil :family "JetBrains Mono" :height 100)
+(set-face-attribute 'default nil :family "JuliaMono" :height 100)
 #+end_src
 
 Never ever make an audible noise. "The editor does not speak unless
@@ -824,7 +825,7 @@ get natural deduction proof trees once.
 #+end_src
 
 I'm an auto-fill-mode advocate. Plain text is rediculous enough as it
-is, I definitely don't want to have to manually indent my paragraphs
+is -- I definitely don't want to have to manually indent my paragraphs
 in org mode.
 
 #+begin_src elisp

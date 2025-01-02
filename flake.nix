@@ -266,8 +266,9 @@
         
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
-                  jetbrains-mono
+                  # jetbrains-mono
                   noto-fonts
+                  julia-mono
                   
                   dconf-editor
                   discord # Eww cringe, but everyone uses it for class group chats
@@ -323,7 +324,7 @@
         
                 fonts.fontconfig = {
                   enable = true;
-                  defaultFonts.monospace = [ "JetBrains Mono" "Noto Sans Mono" ];
+                  defaultFonts.monospace = [ "JuliaMono" "Noto Sans Mono" ];
                   defaultFonts.sansSerif = [ "Noto Sans" ];
                   defaultFonts.serif = [ "Noto Serif" ];
                 };

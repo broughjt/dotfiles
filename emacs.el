@@ -8,7 +8,7 @@
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
 
-(set-face-attribute 'default nil :family "JetBrains Mono" :height 100)
+(set-face-attribute 'default nil :family "JuliaMono" :height 100)
 
 (setq visible-bell t)
 
