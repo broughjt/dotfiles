@@ -76,7 +76,12 @@
               device = "/dev/disk/by-uuid/570b2e37-fe1d-47d0-be0c-457f37d4bc3d";
               fsType = "ext4";
             };
-            swapDevices = [ ];
+            swapDevices = [
+              {
+                device = "/var/lib/swapfile";
+                size = 16000; # 16 Gigabytes
+              }
+            ];
         
             networking.hostName = "murph";
             networking.networkmanager.enable = true;
@@ -314,13 +319,13 @@
                   ];
                 };
                 
-                programs.beets = {
-                  enable = true;
-                  settings = {
-                    directory = "${config.defaultDirectories.shareDirectory}/music";
-                    import.move = true;
-                  };
-                };
+                # programs.beets = {
+                #   enable = true;
+                #   settings = {
+                #     directory = "${config.defaultDirectories.shareDirectory}/music";
+                #     import.move = true;
+                #   };
+                # };
         
                 fonts.fontconfig = {
                   enable = true;

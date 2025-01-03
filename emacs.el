@@ -262,15 +262,15 @@
 
 (use-package inheritenv)
 
-(use-package emms
-  :config
-  (require 'emms-setup)
-  (emms-all)
-  (setq emms-source-file-default-directory (expand-file-name "~/share/music/"))
-  (setq emms-player-mpd-server-name "localhost")
-  (setq emms-player-mpd-server-port "6600")
-  (setq emms-player-mpd-music-directory "~/share/music")
-  (add-to-list 'emms-info-functions 'emms-info-mpd)
-  (add-to-list 'emms-player-list 'emms-player-mpd)
-  (emms-player-mpd-connect)
-  (add-hook 'emms-playlist-cleared-hook 'emms-player-mpd-clear))
+;; (use-package emms
+;;   :config
+;;   (require 'emms-setup)
+;;   (emms-all)
+;;   (setq emms-source-file-default-directory (expand-file-name "~/share/music/"))
+;;   (setq emms-player-mpd-server-name "localhost")
+;;   (setq emms-player-mpd-server-port "6600")
+;;   (setq emms-player-mpd-music-directory "~/share/music")
+;;   (add-to-list 'emms-info-functions 'emms-info-mpd)
+;;   (add-to-list 'emms-player-list 'emms-player-mpd)
+;;   (emms-player-mpd-connect)
+;;   (add-hook 'emms-playlist-cleared-hook 'emms-player-mpd-clear))
