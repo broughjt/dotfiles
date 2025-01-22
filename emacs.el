@@ -133,7 +133,9 @@
   (("C-c n f" . org-roam-node-find)
    ("C-c n i" . org-roam-node-insert))
   :config
-  (org-roam-db-autosync-mode))
+  ;; TODO: Buggy
+  ;; (org-roam-db-autosync-mode)
+  )
 
 (use-package org-roam-ui
   :config
