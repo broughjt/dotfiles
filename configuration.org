@@ -335,6 +335,7 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
           slack
           spotify
           evince
+          vlc
 
           agda
           
@@ -1128,6 +1129,14 @@ annoying. Friggin 3 space indent are you serious?
 ;;   (add-to-list 'emms-player-list 'emms-player-mpd)
 ;;   (emms-player-mpd-connect)
 ;;   (add-hook 'emms-playlist-cleared-hook 'emms-player-mpd-clear))
+#+end_src
+
+*** Javascript
+
+Yuck. Just kinding I won't be a anti-javascript elitist, it's fine.
+
+#+begin_src elisp
+(setq js-indent-level 2)
 #+end_src
 
 * Systems

@@ -276,3 +276,5 @@
 ;;   (add-to-list 'emms-player-list 'emms-player-mpd)
 ;;   (emms-player-mpd-connect)
 ;;   (add-hook 'emms-playlist-cleared-hook 'emms-player-mpd-clear))
+
+(setq js-indent-level 2)

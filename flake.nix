@@ -281,6 +281,7 @@
                   slack
                   spotify
                   evince
+                  vlc
         
                   agda
                   
