@@ -67,7 +67,7 @@
  ;; org-latex-compiler "lualatex"
  org-latex-create-formula-image-program 'dvisvgm
  org-preview-latex-image-directory temporary-file-directory
- org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t))
+ ;; org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t))
  org-startup-with-latex-preview t
  org-startup-with-inline-images t
  )
@@ -229,9 +229,6 @@
 (use-package lean4-mode
   :mode "\\.lean\\'")
 
-(load-file (let ((coding-system-for-read 'utf-8))
-             (shell-command-to-string "agda-mode locate")))
-
 (use-package haskell-mode
   :hook
   ((haskell-mode . eglot-ensure)))
@@ -262,7 +259,11 @@
   :config
   (envrc-global-mode))
 
-(use-package inheritenv)
+(use-package inheritenv
+  :demand t)
+
+(load-file (let ((coding-system-for-read 'utf-8))
+             (shell-command-to-string "agda-mode locate")))
 
 ;; (use-package emms
 ;;   :config
@@ -278,3 +279,15 @@
 ;;   (add-hook 'emms-playlist-cleared-hook 'emms-player-mpd-clear))
 
 (setq js-indent-level 2)
+;; (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
+;; (add-to-list 'major-mode-remap-alist '(javascript-mode . js-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.mjs\\'" . typescript-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.cjs\\'" . typescript-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.mts\\'" . typescript-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
+(add-hook 'typescript-ts-mode-hook 'eglot-ensure)
+(add-hook 'tsx-ts-mode-hook 'eglot-ensure)

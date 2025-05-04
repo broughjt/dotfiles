@@ -276,15 +276,16 @@
                   julia-mono
                   
                   dconf-editor
-                  discord # Eww cringe, but everyone uses it for class group chats
+                  discord
                   firefox
                   slack
                   spotify
                   evince
                   vlc
         
+                  # Unfortunately global
                   agda
-                  
+        
                   # TODO: Say no to globally installed tex
                   (pkgs.texlive.combine {
                     inherit (pkgs.texlive) scheme-basic
