@@ -76,6 +76,7 @@
   ;; TODO: Works for now?
   (plist-put org-format-latex-options :scale 0.5)
   )
+(setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
