@@ -37,8 +37,8 @@
       (add-to-list 'exec-path-from-shell-variables var))
     (exec-path-from-shell-initialize)))
 
-;; (setq epg-pinentry-mode 'loopback)
-;; (setenv "GNUPGHOME" "/home/jackson/.local/share/gnupg")
+(setq-default fill-column 80)
+(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 
 (use-package evil
  :init
@@ -64,18 +64,15 @@
    (python . t)))
 
 (setq
- ;; org-latex-compiler "lualatex"
  org-latex-create-formula-image-program 'dvisvgm
  org-preview-latex-image-directory temporary-file-directory
- ;; org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t))
+ org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t))
  org-startup-with-latex-preview t
- org-startup-with-inline-images t
- )
+ org-startup-with-inline-images t)
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent")
   ;; TODO: Works for now?
-  (plist-put org-format-latex-options :scale 0.5)
-  )
+  (plist-put org-format-latex-options :scale 0.5))
 (setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
