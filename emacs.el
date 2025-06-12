@@ -183,9 +183,6 @@
   :init
   (global-company-mode))
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
-
 ;; (use-package dap-mode
 ;;   :after lsp-mode
 ;;   :commands dap-debug
@@ -280,3 +277,18 @@
 (add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
 (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
 (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
+
+(use-package gptel
+  :init
+  (defun jackson/gopass-show (key)
+    "Call `gopass show KEY` and return its output as a string."
+    (with-temp-buffer
+      (let ((exit-code (call-process "gopass" nil t nil "show" key)))
+        (if (= exit-code 0)
+            (string-trim (buffer-string))
+          (error "gopass show failed with exit code %d and message: %s" exit-code (buffer-string))))))
+  (setq gptel-api-key (lambda () (jackson/gopass-show "openai-api-key1"))))
+  ;; (gptel-make-ollama "Ollama"
+  ;;   :host "localhost:11434"
+  ;;   :stream t
+  ;;   :models '(mistral:latest))

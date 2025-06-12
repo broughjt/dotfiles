@@ -226,12 +226,6 @@ homeLinux = { config, pkgs, ... }:
         configHome = "${homeDirectory}/.config";
         dataHome = "${homeDirectory}/.local/share";
         stateHome = "${homeDirectory}/.local/state";
-        # mimeApps = {
-        #   enable = true;
-        #   defaultApplications = {
-        #     "application/pdf" = "firefox.desktop";
-        #   };
-        # };
       };
 
       home.packages = with pkgs; [
@@ -331,12 +325,13 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
           
           dconf-editor
           discord
-          firefox
+          # TODO: Weird connection issues
+          # firefox
+          ungoogled-chromium
           slack
           spotify
           evince
           vlc
-          copilot-language-server
 
           # Unfortunately global
           agda
@@ -348,6 +343,8 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
               wrapfig amsmath ulem hyperref capt-of
               bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
           })
+
+          ollama
         ];
         home.sessionVariables.NIXOS_OZONE_WL = "1";
         
@@ -987,9 +984,6 @@ ends and these two start.
     ("C-p" . company-select-previous))
   :init
   (global-company-mode))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode))
 #+end_src
 
 *** Debugging
@@ -1144,6 +1138,27 @@ Yuck. Just kinding, I won't be an anti-javascript elitist, it's fine.
 (add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
 (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
 (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
+#+end_src
+
+*** gptel
+
+Conversations with matrices.
+
+#+begin_src elisp
+(use-package gptel
+  :init
+  (defun jackson/gopass-show (key)
+    "Call `gopass show KEY` and return its output as a string."
+    (with-temp-buffer
+      (let ((exit-code (call-process "gopass" nil t nil "show" key)))
+        (if (= exit-code 0)
+            (string-trim (buffer-string))
+          (error "gopass show failed with exit code %d and message: %s" exit-code (buffer-string))))))
+  (setq gptel-api-key (lambda () (jackson/gopass-show "openai-api-key1"))))
+  ;; (gptel-make-ollama "Ollama"
+  ;;   :host "localhost:11434"
+  ;;   :stream t
+  ;;   :models '(mistral:latest))
 #+end_src
 
 * Systems

@@ -177,12 +177,6 @@
                 configHome = "${homeDirectory}/.config";
                 dataHome = "${homeDirectory}/.local/share";
                 stateHome = "${homeDirectory}/.local/state";
-                # mimeApps = {
-                #   enable = true;
-                #   defaultApplications = {
-                #     "application/pdf" = "firefox.desktop";
-                #   };
-                # };
               };
         
               home.packages = with pkgs; [
@@ -277,12 +271,13 @@
                   
                   dconf-editor
                   discord
-                  firefox
+                  # TODO: Weird connection issues
+                  # firefox
+                  ungoogled-chromium
                   slack
                   spotify
                   evince
                   vlc
-                  copilot-language-server
         
                   # Unfortunately global
                   agda
@@ -294,6 +289,8 @@
                       wrapfig amsmath ulem hyperref capt-of
                       bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
                   })
+        
+                  ollama
                 ];
                 home.sessionVariables.NIXOS_OZONE_WL = "1";
                 
