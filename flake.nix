@@ -282,6 +282,7 @@
                   spotify
                   evince
                   vlc
+                  copilot-language-server
         
                   # Unfortunately global
                   agda

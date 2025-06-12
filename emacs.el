@@ -146,11 +146,7 @@
 
 (use-package auctex
   :init
-  (setq TeX-electric-sub-and-superscript t)
-  ;; (setq TeX-view-program-selection `((output-pdf "xdg-open")))
-  )
-
-;; TODO: pdf-tools?
+  (setq TeX-electric-sub-and-superscript t))
 
 (use-package vertico
   :init
@@ -187,11 +183,8 @@
   :init
   (global-company-mode))
 
-(use-package yasnippet
-  :config
-  (yas-reload-all)
-  ;; (add-hook 'prog-mode-hook 'yas-minor-mode)
-  (add-hook 'text-mode-hook 'yas-minor-mode))
+(use-package company-box
+  :hook (company-mode . company-box-mode))
 
 ;; (use-package dap-mode
 ;;   :after lsp-mode
@@ -277,8 +270,6 @@
 ;;   (add-hook 'emms-playlist-cleared-hook 'emms-player-mpd-clear))
 
 (setq js-indent-level 2)
-;; (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
-;; (add-to-list 'major-mode-remap-alist '(javascript-mode . js-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.mjs\\'" . typescript-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.cjs\\'" . typescript-ts-mode))

@@ -336,6 +336,7 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
           spotify
           evince
           vlc
+          copilot-language-server
 
           # Unfortunately global
           agda
@@ -737,7 +738,7 @@ Set the custom file.
 (load custom-file)
 #+end_src
 
-Holy cow: tabs.
+Holy cow: spaces.
 
 #+begin_src elisp
 (setq-default indent-tabs-mode nil)
@@ -787,6 +788,7 @@ Set an 80-character marker.
 - M-<p,n>! Searches back and forward in mini buffer search history!
 
 *** Org
+
 The bible apparently:
 
 - [[http://doc.norang.ca/org-mode.html]]
@@ -931,14 +933,11 @@ Habits. See [[https://cpbotha.net/2019/11/02/forming-and-maintaining-habits-usin
 #+begin_src elisp
 (use-package auctex
   :init
-  (setq TeX-electric-sub-and-superscript t)
-  ;; (setq TeX-view-program-selection `((output-pdf "xdg-open")))
-  )
-
-;; TODO: pdf-tools?
+  (setq TeX-electric-sub-and-superscript t))
 #+end_src
 
 *** Completion
+
 Dude I just copied these hip packages from wherever I first saw them
 on the internet, I don't actually understand them. They look very pretty though.
 
@@ -988,14 +987,9 @@ ends and these two start.
     ("C-p" . company-select-previous))
   :init
   (global-company-mode))
-#+end_src
 
-#+begin_src elisp
-(use-package yasnippet
-  :config
-  (yas-reload-all)
-  ;; (add-hook 'prog-mode-hook 'yas-minor-mode)
-  (add-hook 'text-mode-hook 'yas-minor-mode))
+(use-package company-box
+  :hook (company-mode . company-box-mode))
 #+end_src
 
 *** Debugging
@@ -1136,12 +1130,10 @@ annoying. Friggin 3 space indent are you serious?
 
 *** Javascript
 
-Yuck. Just kinding I won't be a anti-javascript elitist, it's fine.
+Yuck. Just kinding, I won't be an anti-javascript elitist, it's fine.
 
 #+begin_src elisp
 (setq js-indent-level 2)
-;; (add-to-list 'major-mode-remap-alist '(js-mode . js-ts-mode))
-;; (add-to-list 'major-mode-remap-alist '(javascript-mode . js-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.mjs\\'" . typescript-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.cjs\\'" . typescript-ts-mode))
