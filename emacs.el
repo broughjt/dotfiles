@@ -73,6 +73,7 @@
   (plist-put org-format-latex-options :background "Transparent")
   ;; TODO: Works for now?
   (plist-put org-format-latex-options :scale 0.5))
+(setq org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t)))
 (setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
@@ -287,8 +288,5 @@
         (if (= exit-code 0)
             (string-trim (buffer-string))
           (error "gopass show failed with exit code %d and message: %s" exit-code (buffer-string))))))
-  (setq gptel-api-key (lambda () (jackson/gopass-show "openai-api-key1"))))
-  ;; (gptel-make-ollama "Ollama"
-  ;;   :host "localhost:11434"
-  ;;   :stream t
-  ;;   :models '(mistral:latest))
+  (setq gptel-api-key (lambda () (jackson/gopass-show "openai-api-key1")))
+  (setq gptel-default-mode 'org-mode))
