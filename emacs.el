@@ -63,17 +63,25 @@
    (shell . t)
    (python . t)))
 
-(setq
- org-latex-create-formula-image-program 'dvisvgm
- org-preview-latex-image-directory temporary-file-directory
- org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t))
- org-startup-with-latex-preview t
- org-startup-with-inline-images t)
-(with-eval-after-load 'org
-  (plist-put org-format-latex-options :background "Transparent")
-  ;; TODO: Works for now?
-  (plist-put org-format-latex-options :scale 0.5))
-(setq org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t)))
+;; (setq
+;;  org-latex-create-formula-image-program 'dvisvgm
+;;  org-preview-latex-image-directory temporary-file-directory
+;;  org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t))
+;;  org-startup-with-latex-preview t
+;;  org-startup-with-inline-images t)
+;; (with-eval-after-load 'org
+;;   (plist-put org-format-latex-options :background "Transparent")
+;;   ;; TODO: Works for now?
+;;   (plist-put org-format-latex-options :scale 0.5))
+;; (use-package org)
+
+;; (use-package org-latex-preview
+;;   :config
+;;   (add-hook 'org-mode-hook 'org-latex-preview-auto-mode)
+
+;;   (setq org-latex-preview-live t)
+;;   (setq org-latex-preview-live-debounce 0.25))
+  
 (setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)

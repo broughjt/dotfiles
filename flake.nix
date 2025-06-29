@@ -289,8 +289,6 @@
                       wrapfig amsmath ulem hyperref capt-of
                       bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
                   })
-        
-                  ollama
                 ];
                 home.sessionVariables.NIXOS_OZONE_WL = "1";
                 
@@ -468,36 +466,6 @@
             services.tailscale.enable = true;
             services.tailscale.useRoutingFeatures = "client";
           };
-        emacsOverlay = (pkgs: package:
-          (pkgs.emacsWithPackagesFromUsePackage {
-            inherit package;
-            config = ./emacs.el;
-            defaultInitFile = true;
-            extraEmacsPackages = epkgs: with epkgs; [
-              treesit-grammars.with-all-grammars
-            ];
-            override = epkgs: epkgs // {
-              lean4-mode = epkgs.trivialBuild rec {
-                pname = "lean4-mode";
-                version = "1";
-                src = pkgs.fetchFromGitHub {
-                  owner = "bustercopley";
-                  repo = "lean4-mode";
-                  rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
-                  sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc=";
-                };
-                propagatedUserEnvPkgs = with epkgs;
-                  [ dash f flycheck lsp-mode magit-section s ];
-                buildInputs = propagatedUserEnvPkgs;
-                postInstall = ''
-                  DATADIR=$out/share/emacs/site-lisp/data
-                  mkdir $DATADIR
-                  install ./data/abbreviations.json $DATADIR
-                '';
-              };
-            };
-            alwaysEnsure = true;
-          }));
         emacsConfiguration = { config, pkgs, ... }:
         
           {
@@ -521,7 +489,7 @@
                         owner = "bustercopley";
                         repo = "lean4-mode";
                         rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
-                        sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc=";
+                        sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc";
                       };
                       propagatedUserEnvPkgs = with epkgs;
                         [ dash f flycheck lsp-mode magit-section s ];

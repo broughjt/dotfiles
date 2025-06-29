@@ -343,8 +343,6 @@ homeLinuxGraphical = { config, pkgs, lib, ... }:
               wrapfig amsmath ulem hyperref capt-of
               bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
           })
-
-          ollama
         ];
         home.sessionVariables.NIXOS_OZONE_WL = "1";
         
@@ -555,10 +553,6 @@ tailscale = { config, ... }:
 :header-args: :noweb-ref modules
 :END:
 
-*** Overlay
-This is not actually a NixOS module. I guess it doesn't matter for
-now.
-
 I guess the lean4-mode package is not on MELPA, so I had to figure out
 how to add a custom emacs package using ~fetchFromGitHub~. Long story
 short: always check the Nix wiki entry before anything else. It'll
@@ -567,41 +561,6 @@ usually shoot you straight. Here's what I used:
 - [[https://nixos.wiki/wiki/Emacs#Adding_packages_from_outside_ELPA_.2F_MELPA]]
 - [[https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/lean4-mode.20with.20nix-doom-emacs/near/291790287]]
 - https://github.com/NixOS/nixpkgs/issues/191128
-
-#+begin_src nix
-emacsOverlay = (pkgs: package:
-  (pkgs.emacsWithPackagesFromUsePackage {
-    inherit package;
-    config = ./emacs.el;
-    defaultInitFile = true;
-    extraEmacsPackages = epkgs: with epkgs; [
-      treesit-grammars.with-all-grammars
-    ];
-    override = epkgs: epkgs // {
-      lean4-mode = epkgs.trivialBuild rec {
-        pname = "lean4-mode";
-        version = "1";
-        src = pkgs.fetchFromGitHub {
-          owner = "bustercopley";
-          repo = "lean4-mode";
-          rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
-          sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc=";
-        };
-        propagatedUserEnvPkgs = with epkgs;
-          [ dash f flycheck lsp-mode magit-section s ];
-        buildInputs = propagatedUserEnvPkgs;
-        postInstall = ''
-          DATADIR=$out/share/emacs/site-lisp/data
-          mkdir $DATADIR
-          install ./data/abbreviations.json $DATADIR
-        '';
-      };
-    };
-    alwaysEnsure = true;
-  }));
-#+end_src
-
-*** Module
 
 #+begin_src nix
 emacsConfiguration = { config, pkgs, ... }:
@@ -627,7 +586,7 @@ emacsConfiguration = { config, pkgs, ... }:
                 owner = "bustercopley";
                 repo = "lean4-mode";
                 rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
-                sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc=";
+                sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc";
               };
               propagatedUserEnvPkgs = with epkgs;
                 [ dash f flycheck lsp-mode magit-section s ];
@@ -817,17 +776,25 @@ match the current theme. I also needed to include the ~bussproofs~ package to
 get natural deduction proof trees once.
 
 #+begin_src elisp
-(setq
- org-latex-create-formula-image-program 'dvisvgm
- org-preview-latex-image-directory temporary-file-directory
- org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t))
- org-startup-with-latex-preview t
- org-startup-with-inline-images t)
-(with-eval-after-load 'org
-  (plist-put org-format-latex-options :background "Transparent")
-  ;; TODO: Works for now?
-  (plist-put org-format-latex-options :scale 0.5))
-(setq org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t)))
+;; (setq
+;;  org-latex-create-formula-image-program 'dvisvgm
+;;  org-preview-latex-image-directory temporary-file-directory
+;;  org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t))
+;;  org-startup-with-latex-preview t
+;;  org-startup-with-inline-images t)
+;; (with-eval-after-load 'org
+;;   (plist-put org-format-latex-options :background "Transparent")
+;;   ;; TODO: Works for now?
+;;   (plist-put org-format-latex-options :scale 0.5))
+;; (use-package org)
+
+;; (use-package org-latex-preview
+;;   :config
+;;   (add-hook 'org-mode-hook 'org-latex-preview-auto-mode)
+
+;;   (setq org-latex-preview-live t)
+;;   (setq org-latex-preview-live-debounce 0.25))
+  
 (setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
 #+end_src
 
