@@ -38,7 +38,8 @@
     (exec-path-from-shell-initialize)))
 
 (setq-default fill-column 80)
-(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode) 
+(add-hook 'text-mode-hook #'display-fill-column-indicator-mode)
 
 (use-package evil
  :init
@@ -63,25 +64,16 @@
    (shell . t)
    (python . t)))
 
-;; (setq
-;;  org-latex-create-formula-image-program 'dvisvgm
-;;  org-preview-latex-image-directory temporary-file-directory
-;;  org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t))
-;;  org-startup-with-latex-preview t
-;;  org-startup-with-inline-images t)
-;; (with-eval-after-load 'org
-;;   (plist-put org-format-latex-options :background "Transparent")
-;;   ;; TODO: Works for now?
-;;   (plist-put org-format-latex-options :scale 0.5))
-;; (use-package org)
-
-;; (use-package org-latex-preview
-;;   :config
-;;   (add-hook 'org-mode-hook 'org-latex-preview-auto-mode)
-
-;;   (setq org-latex-preview-live t)
-;;   (setq org-latex-preview-live-debounce 0.25))
-  
+(setq
+ org-latex-create-formula-image-program 'dvisvgm
+ org-preview-latex-image-directory temporary-file-directory
+ org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t))
+ org-startup-with-latex-preview t
+ org-startup-with-inline-images t)
+(with-eval-after-load 'org
+  (plist-put org-format-latex-options :background "Transparent")
+  ;; TODO: Works for now?
+  (plist-put org-format-latex-options :scale 0.5))
 (setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
@@ -218,7 +210,8 @@
 (use-package rust-mode
   :hook
   ((rust-mode . eglot-ensure)
-   (rust-mode . flycheck-mode))
+   ;; (rust-mode . flycheck-mode)
+   )
   :config
   (setq-default eglot-workspace-configuration
                 '(:rust-analyzer (:check (:command "clippy")))))
@@ -298,3 +291,9 @@
           (error "gopass show failed with exit code %d and message: %s" exit-code (buffer-string))))))
   (setq gptel-api-key (lambda () (jackson/gopass-show "openai-api-key1")))
   (setq gptel-default-mode 'org-mode))
+
+(use-package typst-ts-mode
+  :config
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 `((typst-ts-mode) . ,(eglot-alternatives `("tinymist"))))))

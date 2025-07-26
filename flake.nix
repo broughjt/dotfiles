@@ -271,13 +271,13 @@
                   
                   dconf-editor
                   discord
-                  # TODO: Weird connection issues
-                  # firefox
-                  ungoogled-chromium
+                  firefox
+                  # ungoogled-chromium
                   slack
                   spotify
                   evince
                   vlc
+                  claude-code
         
                   # Unfortunately global
                   agda
