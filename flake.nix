@@ -280,7 +280,7 @@
                   claude-code
         
                   # Unfortunately global
-                  agda
+                  # agda
         
                   # TODO: Say no to globally installed tex
                   (pkgs.texlive.combine {

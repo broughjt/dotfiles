@@ -252,8 +252,17 @@
 (use-package inheritenv
   :demand t)
 
-(load-file (let ((coding-system-for-read 'utf-8))
-             (shell-command-to-string "agda-mode locate")))
+;; (load-file (let ((coding-system-for-read 'utf-8))
+;;              (shell-command-to-string "agda-mode locate")))
+
+;; (load-file (let ((coding-system-for-read 'utf-8))
+;;                 (shell-command-to-string "agda --emacs-mode locate")))
+
+(defun jackson/agda-locate ()
+  "Run `agda --emacs-mode locate` and echo the results."
+  (interactive)
+  (let ((coding-system-for-read 'utf-8))
+    (message "%s" (shell-command-to-string "agda --emacs-mode locate"))))
 
 ;; (use-package emms
 ;;   :config
@@ -293,6 +302,8 @@
   (setq gptel-default-mode 'org-mode))
 
 (use-package typst-ts-mode
+  :hook
+  ((typst-ts-mode . eglot-ensure))
   :config
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
