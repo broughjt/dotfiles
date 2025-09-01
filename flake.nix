@@ -1,8 +1,8 @@
 {
-  description = "Are these your configuration files, Larry?";
+  description = "Are these your dotfiles, Larry?";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -11,11 +11,17 @@
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager, emacs-overlay }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      emacs-overlay,
+    }:
     rec {
       nixosModules = rec {
-        personal = { lib, ... }:
-        
+        personal =
+          { lib, ... }:
           {
             options.personal = lib.mkOption {
               type = lib.types.attrs;
@@ -23,90 +29,70 @@
                 userName = "jackson";
                 fullName = "Jackson Brough";
                 email = "jacksontbrough@gmail.com";
-                devices = {
-                  kenobi = {
-                    ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBndIK51b/o6aSjuTdoa8emnpCRg0s5y68oXAFR66D4/ jacksontbrough@gmail.com";
-                    syncthing = "7MDSHYK-QQSLKTX-LDA4VKP-EJASTEQ-V5JUGRT-ZRCNC7K-BFK6KQR-GAZ4JQV";
-                  };
-                  share1 = {
-                    ssh = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpnGMEUElcwgnuHpBXQa4xotZrRdT6VC/7b9n5TykXZ root@share1";
-                    syncthing = "CQ6ZTVZ-PWRWMW2-2BTFJ7V-XSMIHHU-VS4JIPD-HI3ALDJ-FH6HW5L-Z3WDIAX";
-                    hostName = "share1.tail662f8.ts.net";
-                  };
-                  jackson-broughs-iphone = {
-                    syncthing = "64BJT3J-XFGZYTG-TMJXAS5-4XACLPE-JUF6XHS-5G4DFYW-2QVAC4T-LLRKUAL";
-                  };
-                };
               };
             };
           };
-        packageManager = { pkgs, ... }:
-        
+        packageManager =
+          { pkgs, ... }:
           {
-            nix.package = pkgs.nix;
-            nix.settings.experimental-features = [ "nix-command" "flakes" ];
+            nix.settings.experimental-features = [
+              "nix-command"
+              "flakes"
+            ];
             nixpkgs.config.allowUnfree = true;
           };
-        murphHardware = { config, pkgs, lib, ... }:
-        
+        murphHardware =
+          {
+            config,
+            pkgs,
+            lib,
+            ...
+          }:
           {
             hardware.enableRedistributableFirmware = lib.mkDefault true;
             hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-        
+
             nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-        
-            system.stateVersion = "23.11";
-        
+
+            system.stateVersion = "25.05";
+
             boot = {
-              initrd.availableKernelModules = [ "nvme" "xhci_pci" "thunderbolt" "usb_storage" "sd_mod" ];
+              initrd.availableKernelModules = [
+                "nvme"
+                "xhci_pci"
+                "thunderbolt"
+                "usb_storage"
+                "sd_mod"
+              ];
               initrd.kernelModules = [ ];
-              kernelPackages = pkgs.linuxPackages_latest;
               kernelModules = [ "kvm-amd" ];
               extraModulePackages = [ ];
               loader.systemd-boot.enable = true;
               loader.efi.canTouchEfiVariables = true;
             };
-        
-            fileSystems."/boot" = {
-              device = "/dev/disk/by-uuid/79D4-F8F1";
-              fsType = "vfat";
-              options = [ "fmask=0022" "dmask=0022" ];
-            };
+
             fileSystems."/" = {
-              device = "/dev/disk/by-uuid/570b2e37-fe1d-47d0-be0c-457f37d4bc3d";
+              device = "/dev/disk/by-uuid/fabb1331-c7e1-40fa-8945-800df616f8a4";
               fsType = "ext4";
+            };
+            fileSystems."/boot" = {
+              device = "/dev/disk/by-uuid/C736-93C5";
+              fsType = "vfat";
+              options = [
+                "fmask=0077"
+                "dmask=0077"
+              ];
             };
             swapDevices = [
               {
-                device = "/var/lib/swapfile";
-                size = 16000; # 16 Gigabytes
+                device = "/dev/disk/by-uuid/02b84575-64ce-4ce3-9c9d-608d2281cb09";
               }
             ];
-        
+
             networking.hostName = "murph";
             networking.networkmanager.enable = true;
             networking.useDHCP = lib.mkDefault true;
-        
-            security.rtkit.enable = true;
-            services.pipewire = {
-              enable = true;
-              pulse.enable = true;
-              alsa.enable = true;
-              alsa.support32Bit = true;
-            };
-        
-            hardware.bluetooth.enable = true;
-            services.blueman.enable = true;
-        
-            services.fprintd.enable = true;
-        
-            security.polkit.enable = true;
-            hardware.graphics.enable = true;
-        
-            services.fwupd.enable = true;
-        
-            time.timeZone = "America/Denver";
-        
+
             i18n.defaultLocale = "en_US.UTF-8";
             i18n.extraLocaleSettings = {
               LC_ADDRESS = "en_US.UTF-8";
@@ -119,189 +105,194 @@
               LC_TELEPHONE = "en_US.UTF-8";
               LC_TIME = "en_US.UTF-8";
             };
-        
-            services.xserver = {
-              xkb.layout = "us";
-              xkb.variant = "";
+
+            services.xserver.xkb = {
+              layout = "us";
+              variant = "";
             };
-        
-            # TODO: For ECE 3710 FPGA, remove when finished with the class
-            services.udev.extraRules = ''
-            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6001", MODE="0666"
-            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6002", MODE="0666"
-            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6003", MODE="0666"
-        
-            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6010", MODE="0666"
-            SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6810", MODE="0666"
-            '';
+
+            time.timeZone = "America/Denver";
           };
-        jacksonUserLinux = { config, pkgs, ... }:
-        
+        userLinux =
+          { config, pkgs, ... }:
           {
-            nix.settings.trusted-users = [ "root" config.personal.userName ];
-        
-            environment.systemPackages = with pkgs; [ curl git neovim ];
-            environment.shells = with pkgs; [ bashInteractive fish ];
-        
+            nix.settings.trusted-users = [
+              "root"
+              config.personal.userName
+            ];
+
+            environment.systemPackages = with pkgs; [
+              curl
+              git
+              neovim
+            ];
+            environment.shells = with pkgs; [
+              bashInteractive
+              fish
+            ];
+
             programs.fish.enable = true;
-        
+
             users.users.${config.personal.userName} = {
-              home = "/home/${config.personal.userName}";
-              extraGroups = [ "wheel" "networkmanager" "video" "input" ];
-              shell = pkgs.fish;
               isNormalUser = true;
+              description = config.personal.fullName;
+              extraGroups = [
+                "networkmanager"
+                "wheel"
+                "video"
+                "input"
+              ];
+              shell = pkgs.fish;
             };
-        
+
             services.openssh.enable = true;
           };
-        docker = { config, pkgs, ... }:
-        
+        docker =
+          { config, pkgs, ... }:
           {
             virtualisation.docker.enable = true;
-        
+
             users.users.${config.personal.userName}.extraGroups = [ "docker" ];
           };
-        homeLinux = { config, pkgs, ... }:
-          
+        defaultDirectories =
+          { config, lib, ... }:
           {
-            home-manager.users.${config.personal.userName} = let
-              homeDirectory = "/home/${config.personal.userName}";
-            in {
-              home.stateVersion = "23.05";
-              programs.home-manager.enable = true;
-              home.homeDirectory = homeDirectory;
-        
-              xdg = {
-                enable = true;
-                cacheHome = "${homeDirectory}/.cache";
-                configHome = "${homeDirectory}/.config";
-                dataHome = "${homeDirectory}/.local/share";
-                stateHome = "${homeDirectory}/.local/state";
+            options =
+              let
+                homeDirectory = "/home/${config.personal.userName}";
+              in
+              {
+                defaultDirectories.repositoriesDirectory = lib.mkOption {
+                  type = lib.types.str;
+                  default = "${homeDirectory}/repositories";
+                };
+                defaultDirectories.localDirectory = lib.mkOption {
+                  type = lib.types.str;
+                  default = "${homeDirectory}/local";
+                };
+                defaultDirectories.scratchDirectory = lib.mkOption {
+                  type = lib.types.str;
+                  default = "${homeDirectory}/scratch";
+                };
+                defaultDirectories.shareDirectory = lib.mkOption {
+                  type = lib.types.str;
+                  default = "${homeDirectory}/share";
+                };
               };
-        
-              home.packages = with pkgs; [
-                direnv
-                eza
-                fd
-                ispell
-                jq
-                killall
-                lldb
-                ripgrep
-              ];
-              
-              programs.fish = {
-                enable = true;
-                interactiveShellInit = "fish_vi_key_bindings";
-                shellAliases.ls = "eza --group-directories-first";
-              };
-              
-              programs.git = {
-                enable = true;
-                userName = config.personal.fullName;
-                userEmail = config.personal.email;
-                signing.key = "1BA5F1335AB45105";
-                signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
-                # "Are the worker threads going to unionize?"
-                extraConfig.init.defaultBranch = "main";
-              };
-              
-              programs.ssh.enable = true;
+          };
+        homeLinux =
+          { config, pkgs, ... }:
+          {
+            imports = [ defaultDirectories ];
+
+            config = {
+              home-manager.users.${config.personal.userName} =
+                let
+                  homeDirectory = "/home/${config.personal.userName}";
+                in
+                {
+                  home.stateVersion = "25.05";
+                  programs.home-manager.enable = true;
+                  home.homeDirectory = homeDirectory;
+
+                  xdg = {
+                    enable = true;
+                    cacheHome = "${homeDirectory}/.cache";
+                    configHome = "${homeDirectory}/.config";
+                    dataHome = "${homeDirectory}/.local/share";
+                    stateHome = "${homeDirectory}/.local/state";
+                    userDirs = {
+                      enable = true;
+                      desktop = config.defaultDirectories.scratchDirectory;
+                      documents = "${config.defaultDirectories.shareDirectory}/documents";
+                      download = config.defaultDirectories.scratchDirectory;
+                      music = "${config.defaultDirectories.shareDirectory}/music";
+                      pictures = "${config.defaultDirectories.shareDirectory}/pictures";
+                      publicShare = config.defaultDirectories.shareDirectory;
+                      templates = null;
+                      videos = "${config.defaultDirectories.shareDirectory}/videos";
+                    };
+                  };
+
+                  home.packages = with pkgs; [
+                    direnv
+                    eza
+                    fd
+                    ispell
+                    jq
+                    killall
+                    lldb
+                    ripgrep
+                  ];
+
+                  programs.fish = {
+                    enable = true;
+                    interactiveShellInit = "fish_vi_key_bindings";
+                    shellAliases.ls = "eza --group-directories-first";
+                  };
+
+                  programs.git = {
+                    enable = true;
+                    userName = config.personal.fullName;
+                    userEmail = config.personal.email;
+                    signing.key = "1BA5F1335AB45105";
+                    signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
+                    # "Are the worker threads going to unionize?"
+                    extraConfig.init.defaultBranch = "main";
+                  };
+
+                  programs.ssh = {
+                    enable = true;
+                    matchBlocks = {
+                      "*" = {
+                        identityFile = "~/.ssh/id_ed25519";
+                        addKeysToAgent = "yes";
+                      };
+                    };
+                  };
+                };
             };
           };
-        homeLinuxGraphical = { config, pkgs, lib, ... }:
-        
+        homeLinuxGraphical =
+          {
+            config,
+            pkgs,
+            lib,
+            ...
+          }:
           {
             imports = [ dconf ];
-        
-            options = let
-              homeDirectory = config.home-manager.users.${config.personal.userName}.home.homeDirectory; in
-              {
-                defaultDirectories.repositoriesDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/repositories"; };
-                defaultDirectories.localDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/local"; };
-                defaultDirectories.scratchDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/scratch"; };
-                defaultDirectories.shareDirectory = lib.mkOption { type = lib.types.str; default = "${homeDirectory}/share"; };
-              };
-        
+
             config = {
-              services.xserver = {
-                enable = true;
-                displayManager.gdm.enable = true;
-                displayManager.gdm.wayland = true;
-                desktopManager.gnome.enable = true;
-              };
-              hardware.pulseaudio.enable = false;
-              
-              environment.gnome.excludePackages = (with pkgs; [
-                gnome-photos
+              services.pulseaudio.enable = false;
+              services.pipewire.enable = true;
+
+              services.displayManager.gdm.enable = true;
+              services.desktopManager.gnome.enable = true;
+              services.gnome.core-apps.enable = false;
+              services.gnome.core-developer-tools.enable = false;
+              services.gnome.games.enable = false;
+              environment.gnome.excludePackages = with pkgs; [
                 gnome-tour
-                gedit
-                cheese
-                epiphany
-                evince
-                geary
-                totem
-                gnome-calculator
-                gnome-calendar
-                simple-scan
-                atomix
-                gnome-characters
-                gnome-music
-                hitori
-                iagno
-                tali
-                gnome-clocks
-                gnome-contacts
-                gnome-maps
-                gnome-weather
-              ]) ++ (with pkgs.gnome; [
-                # gnome-disk-image-mounter
-                # gnome-disks
-                # gnome-extensions
-                # gnome-extensions-app
-                # gnome-logs
-                # gnome-system-monitor
-              ]);
-        
+                gnome-user-docs
+              ];
+
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
-                  # jetbrains-mono
-                  noto-fonts
-                  julia-mono
-                  
+                  claude-code
                   dconf-editor
                   discord
+                  evince
                   firefox
-                  # ungoogled-chromium
+                  julia-mono
+                  nautilus
+                  noto-fonts
                   slack
                   spotify
-                  evince
                   vlc
-                  claude-code
-        
-                  # Unfortunately global
-                  # agda
-        
-                  # TODO: Say no to globally installed tex
-                  (pkgs.texlive.combine {
-                    inherit (pkgs.texlive) scheme-basic
-                      dvisvgm dvipng
-                      wrapfig amsmath ulem hyperref capt-of
-                      bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
-                  })
                 ];
                 home.sessionVariables.NIXOS_OZONE_WL = "1";
-                
-                xdg.userDirs = {
-                  createDirectories = true;
-                  documents = config.defaultDirectories.scratchDirectory;
-                  download = config.defaultDirectories.scratchDirectory;
-                  music = "${config.defaultDirectories.shareDirectory}/music";
-                  pictures = "${config.defaultDirectories.shareDirectory}/pictures";
-                  publicShare = config.defaultDirectories.scratchDirectory;
-                  templates = config.defaultDirectories.scratchDirectory;
-                  videos = "${config.defaultDirectories.shareDirectory}/videos";
-                };
+
                 xdg.portal = {
                   enable = true;
                   config = {
@@ -316,39 +307,29 @@
                     xdg-desktop-portal-gtk
                   ];
                 };
-                
-                # programs.beets = {
-                #   enable = true;
-                #   settings = {
-                #     directory = "${config.defaultDirectories.shareDirectory}/music";
-                #     import.move = true;
-                #   };
-                # };
-        
+
                 fonts.fontconfig = {
                   enable = true;
-                  defaultFonts.monospace = [ "JuliaMono" "Noto Sans Mono" ];
+                  defaultFonts.monospace = [
+                    "JuliaMono"
+                    "Noto Sans Mono"
+                  ];
                   defaultFonts.sansSerif = [ "Noto Sans" ];
                   defaultFonts.serif = [ "Noto Serif" ];
                 };
-        
-                # services.mpd = {
-                # enable = true;
-                # musicDirectory = "${config.defaultDirectories.shareDirectory}/music";
-                # extraConfig = ''
-                # audio_output {
-                # type "pipewire"
-                # name "pipewire"
-                # }
-                # '';
-                # };
-                
-                # services.mpd-mpris.enable = true;
-                # services.playerctld.enable = true;
+
+                programs.ghostty = {
+                  enable = true;
+                  settings = {
+                    theme = "3024 Night";
+                    font-family = "JuliaMono";
+                  };
+                };
               };
             };
           };
-        dconf = { config, lib, ... }:
+        dconf =
+          { config, lib, ... }:
           {
             home-manager.users.${config.personal.userName}.dconf = {
               enable = true;
@@ -393,6 +374,7 @@
                 };
                 "org/gnome/mutter/keybindings" = {
                   switch-monitor = [ ];
+                  dynamic-workspaces = true;
                 };
                 "org/gnome/shell" = {
                   disabled-user-extension = false;
@@ -412,8 +394,8 @@
               };
             };
           };
-        gh = { config, pkgs, ... }:
-        
+        gh =
+          { config, pkgs, ... }:
           {
             home-manager.users.${config.personal.userName} = {
               programs.gh = {
@@ -422,34 +404,37 @@
               };
             };
           };
-        gpg = { config, pkgs, ... }:
-        
+        gpg =
+          { config, pkgs, ... }:
           {
             home-manager.users.${config.personal.userName} = {
               home.packages = with pkgs; [ pinentry-gnome3 ];
-              
+
               services.ssh-agent.enable = pkgs.stdenv.isLinux;
-              
+
               programs.gpg = {
                 enable = true;
-                homedir = let xdgDataHome = config.home-manager.users.${config.personal.userName}.xdg.dataHome;
-                          in "${xdgDataHome}/gnupg";
+                homedir =
+                  let
+                    xdgDataHome = config.home-manager.users.${config.personal.userName}.xdg.dataHome;
+                  in
+                  "${xdgDataHome}/gnupg";
               };
               services.gpg-agent = {
                 enable = pkgs.stdenv.isLinux;
-                pinentryPackage = pkgs.pinentry-gnome3;
+                pinentry.package = pkgs.pinentry-gnome3;
                 # https://superuser.com/questions/624343/keep-gnupg-credentials-cached-for-entire-user-session
                 defaultCacheTtl = 34560000;
                 maxCacheTtl = 34560000;
               };
             };
           };
-        gopass = { config, pkgs, ... }:
-        
+        gopass =
+          { config, pkgs, ... }:
           {
             home-manager.users.${config.personal.userName} = {
               home.packages = [ pkgs.gopass ];
-              
+
               xdg.configFile.gopass = {
                 target = "gopass/config";
                 text = ''
@@ -461,16 +446,20 @@
               };
             };
           };
-        tailscale = { config, ... }:
+        tailscale =
+          { config, ... }:
           {
             services.tailscale.enable = true;
             services.tailscale.useRoutingFeatures = "client";
           };
-        emacsConfiguration = { config, pkgs, ... }:
-        
+        emacsConfiguration =
+          { config, pkgs, ... }:
           {
-            nixpkgs.overlays = with emacs-overlay.overlays; [ emacs package ];
-        
+            nixpkgs.overlays = with emacs-overlay.overlays; [
+              emacs
+              package
+            ];
+
             home-manager.users.${config.personal.userName} = {
               programs.emacs = {
                 enable = true;
@@ -478,29 +467,39 @@
                   package = pkgs.emacs-unstable-pgtk;
                   config = ./emacs.el;
                   defaultInitFile = true;
-                  extraEmacsPackages = epkgs: with epkgs; [
-                    treesit-grammars.with-all-grammars
-                  ];
-                  override = epkgs: epkgs // {
-                    lean4-mode = epkgs.trivialBuild rec {
-                      pname = "lean4-mode";
-                      version = "1";
-                      src = pkgs.fetchFromGitHub {
-                        owner = "bustercopley";
-                        repo = "lean4-mode";
-                        rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
-                        sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc";
+                  extraEmacsPackages =
+                    epkgs: with epkgs; [
+                      treesit-grammars.with-all-grammars
+                    ];
+                  override =
+                    epkgs:
+                    epkgs
+                    // {
+                      lean4-mode = epkgs.trivialBuild rec {
+                        pname = "lean4-mode";
+                        version = "1";
+                        src = pkgs.fetchFromGitHub {
+                          owner = "bustercopley";
+                          repo = "lean4-mode";
+                          rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
+                          sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc";
+                        };
+                        propagatedUserEnvPkgs = with epkgs; [
+                          dash
+                          f
+                          flycheck
+                          lsp-mode
+                          magit-section
+                          s
+                        ];
+                        buildInputs = propagatedUserEnvPkgs;
+                        postInstall = ''
+                          DATADIR=$out/share/emacs/site-lisp/data
+                          mkdir $DATADIR
+                          install ./data/abbreviations.json $DATADIR
+                        '';
                       };
-                      propagatedUserEnvPkgs = with epkgs;
-                        [ dash f flycheck lsp-mode magit-section s ];
-                      buildInputs = propagatedUserEnvPkgs;
-                      postInstall = ''
-                        DATADIR=$out/share/emacs/site-lisp/data
-                        mkdir $DATADIR
-                        install ./data/abbreviations.json $DATADIR
-                      '';
                     };
-                  };
                   alwaysEnsure = true;
                 };
               };
@@ -516,10 +515,8 @@
         modules = with nixosModules; [
           murphHardware
           packageManager
-          jacksonUserLinux
+          userLinux
           docker
-          # TODO:
-          # tailscale
           home-manager.nixosModules.home-manager
           personal
           homeLinux
@@ -530,6 +527,15 @@
           emacsConfiguration
         ];
       };
+      devShells.x86_64-linux.default =
+        let
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        in
+        pkgs.mkShell {
+          buildInputs = with pkgs; [
+            nixfmt
+          ];
+        };
       templates.rust = {
         path = ./templates/rust;
         description = "Rust template";
