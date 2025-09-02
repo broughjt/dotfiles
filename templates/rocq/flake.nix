@@ -1,5 +1,5 @@
 {
-  description = "Software Foundations";
+  description = "Rocq template";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
