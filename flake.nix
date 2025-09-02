@@ -9,6 +9,8 @@
 
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
+
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
@@ -17,6 +19,7 @@
       nixpkgs,
       home-manager,
       emacs-overlay,
+      flake-utils
     }:
     rec {
       nixosModules = rec {
@@ -539,15 +542,6 @@
           emacsConfiguration
         ];
       };
-      devShells.x86_64-linux.default =
-        let
-          pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        in
-        pkgs.mkShell {
-          buildInputs = with pkgs; [
-            nixfmt
-          ];
-        };
       templates.rust = {
         path = ./templates/rust;
         description = "Rust template";
@@ -564,5 +558,12 @@
         path = ./templates/coq;
         description = "Coq template";
       };
-    };
+    } // flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      in {
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [ nixfmt ];
+        };
+      });
 }
