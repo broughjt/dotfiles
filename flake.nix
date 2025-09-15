@@ -286,6 +286,7 @@
                   dconf-editor
                   discord
                   evince
+                  firefox
                   julia-mono
                   nautilus
                   noto-fonts
@@ -323,21 +324,8 @@
                 programs.ghostty = {
                   enable = true;
                   settings = {
-                    theme = "3024 Night";
+                    theme = "3024 Day";
                     font-family = "JuliaMono";
-                  };
-                };
-
-                programs.firefox = {
-                  enable = true;
-                  profiles.default = {
-                    id = 0;
-                    name = "default";
-                    isDefault = true;
-                    search.default = "ddg";
-                    settings = {
-                      browser.startup.homepage = "https://duckduckgo.com/";
-                    };
                   };
                 };
               };
