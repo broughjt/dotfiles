@@ -226,6 +226,13 @@
                     killall
                     lldb
                     ripgrep
+
+                    (pkgs.texlive.combine {
+                      inherit (pkgs.texlive) scheme-basic
+                        dvisvgm dvipng
+                        wrapfig amsmath ulem hyperref capt-of
+                        bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
+                    })
                   ];
 
                   programs.fish = {
@@ -324,7 +331,7 @@
                 programs.ghostty = {
                   enable = true;
                   settings = {
-                    theme = "3024 Day";
+                    theme = "3024 Night";
                     font-family = "JuliaMono";
                   };
                 };
@@ -502,6 +509,30 @@
                           install ./data/abbreviations.json $DATADIR
                         '';
                       };
+                      # If we really wanted to do this, we should check the org mode build
+                      # org = epkgs.trivialBuild rec {
+                      #   pname = "org";
+                      #   version = "1";
+                      #   src = builtins.fetchGit {
+                      #     url = "https://git.tecosaur.net/tec/org-mode.git";
+                      #     ref = "dev";
+                      #     rev = "f9f909681a051c73c64cc7b030aa54d70bb78f80";
+                      #   };
+                        # sourceRoot = "lisp";
+                        # TODO: Need to include some etc directory
+                        # postInstall = ''
+                        #   DATADIR=$out/share/emacs/site-lisp/data
+                        #   mkdir $DATADIR
+                        #   install ./data/abbreviations.json $DATADIR
+                        # '';
+                      # };
+                      # org = epkgs.org.overrideAttrs (old: {
+                      #   src = builtins.fetchGit {
+                      #     url = "https://git.tecosaur.net/tec/org-mode.git";
+                      #     ref = "dev";
+                      #     rev = "f9f909681a051c73c64cc7b030aa54d70bb78f80";
+                      #   };
+                      # });
                     };
                   alwaysEnsure = true;
                 };
@@ -542,8 +573,8 @@
         path = ./templates/herbie;
         description = "Herbie template";
       };
-      templates.coq = {
-        path = ./templates/coq;
+      templates.rocq = {
+        path = ./templates/rocq;
         description = "Coq template";
       };
     } // flake-utils.lib.eachDefaultSystem (system:

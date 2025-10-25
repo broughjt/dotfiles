@@ -66,15 +66,15 @@
 
 (setq
  org-latex-create-formula-image-program 'dvisvgm
- org-preview-latex-image-directory temporary-file-directory
- org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t) ("" "notes" t))
+ org-preview-latex-image-directory (concat local-directory "latex-previews/")
+ org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t)) ;; ("" "notes" t)
  org-startup-with-latex-preview t
  org-startup-with-inline-images t)
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent")
   ;; TODO: Works for now?
   (plist-put org-format-latex-options :scale 0.5))
-(setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
+;; (setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
@@ -207,12 +207,13 @@
 
 (use-package racket-mode)
 
-(use-package rust-mode
+(use-package rustic
   :hook
-  ((rust-mode . eglot-ensure)
+  ((rustic-mode . eglot-ensure)
    ;; (rust-mode . flycheck-mode)
    )
   :config
+  (setq rustic-lsp-client 'eglot)
   (setq-default eglot-workspace-configuration
                 '(:rust-analyzer (:check (:command "clippy")))))
 
