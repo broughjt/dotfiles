@@ -294,12 +294,15 @@
                   discord
                   evince
                   firefox
+                  gemini-cli
                   julia-mono
                   nautilus
+                  nicotine-plus
                   noto-fonts
                   slack
                   spotify
                   vlc
+                  strawberry
                 ];
                 home.sessionVariables.NIXOS_OZONE_WL = "1";
 
@@ -333,6 +336,22 @@
                   settings = {
                     theme = "3024 Night";
                     font-family = "JuliaMono";
+                  };
+                };
+
+                programs.zed-editor = {
+                  enable = true;
+                  userSettings = {
+                    vim_mode = true;
+                  };
+                };
+
+                programs.beets = {
+                  enable = true;
+                  settings = {
+                    directory = "${config.defaultDirectories.shareDirectory}/music";
+                    import.copy = "yes";
+                    plugins = [ "musicbrainz" ];
                   };
                 };
               };
