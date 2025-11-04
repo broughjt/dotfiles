@@ -350,7 +350,7 @@
                   enable = true;
                   settings = {
                     directory = "${config.defaultDirectories.shareDirectory}/music";
-                    import.copy = "yes";
+                    import.move = "yes";
                     plugins = [ "musicbrainz" ];
                   };
                 };
