@@ -33,7 +33,14 @@
 (unless (eq system-type 'windows-nt)
   (use-package exec-path-from-shell
     :config
-    (dolist (var '("SSH_AUTH_SOCK" "SSH_AGENT_PID" "GPG_AGENT_INFO" "GNUPGHOME" "LANG" "LC_CTYPE" "NIX_SSL_CERT_FILE" "NIX_PATH"))
+    (dolist (var '("SSH_AUTH_SOCK"
+                   "SSH_AGENT_PID"
+                   "GPG_AGENT_INFO"
+                   "GNUPGHOME"
+                   "LANG"
+                   "LC_CTYPE"
+                   "NIX_SSL_CERT_FILE"
+                   "NIX_PATH"))
       (add-to-list 'exec-path-from-shell-variables var))
     (exec-path-from-shell-initialize)))
 
@@ -67,14 +74,14 @@
 (setq
  org-latex-create-formula-image-program 'dvisvgm
  org-preview-latex-image-directory (concat local-directory "latex-previews/")
- org-latex-packages-alist '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t)) ;; ("" "notes" t)
+ org-latex-packages-alist
+ '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t)) ;; ("" "notes" t)
  org-startup-with-latex-preview t
  org-startup-with-inline-images t)
 (with-eval-after-load 'org
   (plist-put org-format-latex-options :background "Transparent")
   ;; TODO: Works for now?
   (plist-put org-format-latex-options :scale 0.5))
-;; (setenv "TEXINPUTS" (concat (expand-file-name "~/repositories/notes/tex/") ":" (getenv "TEXINPUTS")))
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
@@ -265,11 +272,14 @@
   (let ((coding-system-for-read 'utf-8))
     (message "%s" (shell-command-to-string "agda --emacs-mode locate"))))
 
+(setq agda2-highlight-level 'interactive)
+
 ;; (use-package emms
 ;;   :config
 ;;   (require 'emms-setup)
 ;;   (emms-all)
-;;   (setq emms-source-file-default-directory (expand-file-name "~/share/music/"))
+;;   (setq emms-source-file-default-directory
+;;     (expand-file-name "~/share/music/"))
 ;;   (setq emms-player-mpd-server-name "localhost")
 ;;   (setq emms-player-mpd-server-port "6600")
 ;;   (setq emms-player-mpd-music-directory "~/share/music")
@@ -298,9 +308,16 @@
       (let ((exit-code (call-process "gopass" nil t nil "show" key)))
         (if (= exit-code 0)
             (string-trim (buffer-string))
-          (error "gopass show failed with exit code %d and message: %s" exit-code (buffer-string))))))
+          (error "gopass show failed with exit code %d and message: %s"
+                 exit-code
+                 (buffer-string))))))
   (setq gptel-api-key (lambda () (jackson/gopass-show "openai-api-key1")))
   (setq gptel-default-mode 'org-mode))
+
+(use-package agent-shell
+  :init
+  (setq agent-shell-openai-authentication
+        (agent-shell-openai-make-authentication :login t)))
 
 (use-package typst-ts-mode
   :hook
@@ -309,3 +326,57 @@
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  `((typst-ts-mode) . ,(eglot-alternatives `("tinymist"))))))
+
+;; Phelps
+
+(defconst phelps-host "127.0.0.1")
+(defconst phelps-port 3001)
+
+(defun phelps-request (host port data)
+  (let* ((request (concat (json-encode data) "\n"))
+         (buffer (generate-new-buffer "*notes-temporary*"))
+         (process (open-network-stream
+                   "notes-tcp"
+                   buffer
+                   host
+                   port
+                   :nowait nil
+                   :type 'plain)))
+    (unwind-protect
+        (progn
+          (process-send-string process request)
+          (while (accept-process-output process))
+          (with-current-buffer buffer
+            (goto-char (point-min))
+            (let ((string (buffer-substring-no-properties
+                           (point-min) (point-max))))
+              (ignore-errors (json-read-from-string string)))))
+      (delete-process process)
+      (kill-buffer buffer))))
+
+(defun phelps-get-notes-list ()
+  (let* ((request '(("tag" . "get_notes")))
+         (response (phelps-request
+                    phelps-host phelps-port request))
+         (ok (assoc 'items response))
+         (items (cdr (car (cdr ok)))))
+    items))
+
+(defun phelps-note-read (notes)
+  "Return the selected note item from the notes list"
+  (let* ((table (mapcar (lambda (note)
+                          (cons (alist-get 'title note) note))
+                        notes))
+         (choice (completing-read "Note: " table)))
+    (alist-get choice table)))
+
+(defun phelps-find-note ()
+  "Select a note and visit its Typst file."
+  (interactive)
+  (let* ((notes (phelps-get-notes-list))
+         (note (phelps-note-read notes))
+         (path (alist-get 'path note)))
+    (if path
+        (find-file path)
+      (message "Note has no path!"))))
+         

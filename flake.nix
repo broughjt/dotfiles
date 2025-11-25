@@ -290,6 +290,7 @@
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
                   claude-code
+                  codex
                   dconf-editor
                   discord
                   evince
@@ -301,8 +302,8 @@
                   noto-fonts
                   slack
                   spotify
-                  vlc
                   strawberry
+                  vlc
                 ];
                 home.sessionVariables.NIXOS_OZONE_WL = "1";
 
