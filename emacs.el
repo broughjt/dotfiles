@@ -3,6 +3,7 @@
 (setq package-archives nil)
 
 (require 'bind-key)
+(require 'seq)
 
 (menu-bar-mode 0)
 (tool-bar-mode 0)
@@ -368,7 +369,62 @@
                           (cons (alist-get 'title note) note))
                         notes))
          (choice (completing-read "Note: " table)))
-    (alist-get choice table)))
+    (alist-get choice table nil nil #'string=)))
+
+(defun phelps-goto-note (note)
+  "Open NOTE's Typst file and jump to its labeled heading.
+NOTE is an alist containing at least `id' and `path' entries."
+  (let* ((path (alist-get 'path note))
+         (id (alist-get 'id note)))
+    (unless path
+      (user-error "Note missing path: %S" note))
+    (unless id
+      (user-error "Note missing id: %S" note))
+    (find-file path)
+    (goto-char (point-min))
+    (if (search-forward (format "<note:%s>" id) nil t)
+        (beginning-of-line)
+      (message "Label not found for note id %s in %s" id path))))
+
+(defconst phelps-link-regex
+  (rx "#link("
+      (? "\"")
+      "note://"
+      (group (repeat 8 hex-digit) "-" (repeat 4 hex-digit) "-" (repeat 4 hex-digit)
+             "-" (repeat 4 hex-digit) "-" (repeat 12 hex-digit))
+      (? "\"")
+      ")"
+      (? "[" (*? (or "\n" nonl)) "]")))
+
+(defun phelps-node-id-at-point ()
+  "Return plist the uuid for the #link containing point, or nil."
+  (let* ((p (point))
+         (hit nil))
+    (save-excursion
+      (goto-char (point-min))
+      (while (and (not hit) (re-search-forward phelps-link-regex nil t))
+        (let ((start (match-beginning 0))
+              (end   (match-end 0)))
+          (if (< p start)
+              (setq hit nil) ; beyond point; stop
+            (when (<= p end)
+              (setq hit (match-string-no-properties 1)))))))
+    hit))
+
+;; Phelps commands
+
+(defun phelps-follow-note-link ()
+  "Follow the note link under point to its Typst heading."
+  (interactive)
+  (let* ((id (phelps-node-id-at-point)))
+    (unless id
+      (user-error "No note id in link at point"))
+    (let* ((notes (phelps-get-notes-list))
+           (note (seq-find (lambda (n) (string= (alist-get 'id n) id))
+                           notes)))
+      (unless note
+        (user-error "No note found for id %s" id))
+      (phelps-goto-note note))))
 
 (defun phelps-find-note ()
   "Select a note and visit its Typst file."
@@ -377,6 +433,5 @@
          (note (phelps-note-read notes))
          (path (alist-get 'path note)))
     (if path
-        (find-file path)
-      (message "Note has no path!"))))
-         
+        (phelps-goto-note note)
+      (message "No path for note: %S" note))))

@@ -291,6 +291,7 @@
                 home.packages = with pkgs; [
                   claude-code
                   codex
+                  codex-acp
                   dconf-editor
                   discord
                   evince
