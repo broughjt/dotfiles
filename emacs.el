@@ -111,15 +111,15 @@
       '(("d" "default" entry (file inbox-file)
          "* %?\n%U\n")))
 
-(bind-key "C-c d d"
-          (lambda (&optional GOTO)
-            (interactive)
-            (org-capture GOTO "d")))
-(bind-key "C-c r t"
-          (lambda ()
-            (interactive)
-            (org-refile nil nil (list nil tasks-file nil nil))))
-(bind-key "C-c a" 'org-agenda)
+;; (bind-key "C-c d d"
+;;           (lambda (&optional GOTO)
+;;             (interactive)
+;;             (org-capture GOTO "d")))
+;; (bind-key "C-c r t"
+;;           (lambda ()
+;;             (interactive)
+;;             (org-refile nil nil (list nil tasks-file nil nil))))
+;; (bind-key "C-c a" 'org-agenda)
 
 (setq org-todo-keywords '((sequence "TODO(!)" "DONE(!)")))
 (setq org-log-into-drawer t)
@@ -136,9 +136,9 @@
   :custom
   (org-roam-directory "~/repositories/notes")
   (org-roam-file-exclude-regexp nil)
-  :bind
-  (("C-c n f" . org-roam-node-find)
-   ("C-c n i" . org-roam-node-insert))
+  ;; :bind
+  ;; (("C-c n f" . org-roam-node-find)
+  ;;  ("C-c n i" . org-roam-node-insert))
   :config
   ;; TODO: Buggy
   ;; (org-roam-db-autosync-mode)
@@ -333,7 +333,28 @@
 (defconst phelps-host "127.0.0.1")
 (defconst phelps-port 3001)
 
-(defun phelps-request (host port data)
+(defvar phelps-notes-directory nil
+  "Directory where Phelps note files are stored.")
+
+(setq phelps-notes-directory "~/repositories/notes2/notes/")
+
+(defun phelps--generate-uuid ()
+  "Return a UUID string.
+Uses `uuidgen' when available, otherwise falls back to the `uuidgen' shell command."
+  (cond
+   ((executable-find "uuidgen")
+    (string-trim (shell-command-to-string "uuidgen")))
+   (t (user-error "No UUID generator available"))))
+
+(defun phelps--slugify (string)
+  "Return a filesystem-safe slug from STRING."
+  (let* ((lower (downcase string))
+         (clean (replace-regexp-in-string "[^a-z0-9]+" "-" lower))
+         (squeezed (replace-regexp-in-string "-+" "-" clean))
+         (trimmed (replace-regexp-in-string "^-\\|-$" "" squeezed)))
+    trimmed))
+
+(defun phelps--request (host port data)
   (let* ((request (concat (json-encode data) "\n"))
          (buffer (generate-new-buffer "*notes-temporary*"))
          (process (open-network-stream
@@ -435,3 +456,44 @@ NOTE is an alist containing at least `id' and `path' entries."
     (if path
         (phelps-goto-note note)
       (message "No path for note: %S" note))))
+
+(defun phelps-insert-note-link ()
+  "Select a note and insert a #link(\"note://...\")[...] at point."
+  (interactive)
+  (let* ((notes (phelps-get-notes-list))
+         (note (phelps-note-read notes))
+         (id (alist-get 'id note))
+         (title (alist-get 'title note)))
+    (unless id
+      (user-error "Selected note is missing an id"))
+    (insert (format "#link(\"note://%s\")[%s]" id title))))
+
+(defun phelps-create-note ()
+  "Prompt for a title, create a Typst note file, and open it."
+  (interactive)
+  (unless phelps-notes-directory
+    (user-error "Set `phelps-notes-directory' to create notes"))
+  (let* ((title (read-string "Note title: "))
+         (uuid (phelps--generate-uuid))
+         (slug-base (phelps--slugify title))
+         (slug (if (string-empty-p slug-base)
+                   uuid
+                 (format "%s-%s" uuid slug-base)))
+         (directory (file-name-as-directory
+                     (expand-file-name phelps-notes-directory)))
+         (path (expand-file-name (format "%s.typ" slug) directory)))
+    (unless (file-directory-p directory)
+      (make-directory directory t))
+    (when (file-exists-p path)
+      (user-error "Note file already exists: %s" path))
+    (with-temp-file path
+      (insert (format "= %s <note:%s>\n\n" title uuid)))
+    (find-file path)
+    (goto-char (point-min))
+    (forward-line 2)))
+
+;; Keybindings
+(bind-key "C-c n f" #'phelps-find-note)
+(bind-key "C-c n i" #'phelps-insert-note-link)
+(bind-key "C-c n g" #'phelps-follow-note-link)
+(bind-key "C-c n c" #'phelps-create-note)
