@@ -355,7 +355,8 @@ Uses `uuidgen' when available, otherwise falls back to the `uuidgen' shell comma
     trimmed))
 
 (defun phelps--request (host port data)
-  (let* ((request (concat (json-encode data) "\n"))
+  (let* ((request (concat (json-serialize data) "\n"))
+         (message request)
          (buffer (generate-new-buffer "*notes-temporary*"))
          (process (open-network-stream
                    "notes-tcp"
@@ -377,12 +378,19 @@ Uses `uuidgen' when available, otherwise falls back to the `uuidgen' shell comma
       (kill-buffer buffer))))
 
 (defun phelps-get-notes-list ()
-  (let* ((request '(("tag" . "get_notes")))
-         (response (phelps-request
+  (let* ((request '(('tag . "get_notes")))
+         (response (phelps--request
                     phelps-host phelps-port request))
          (ok (assoc 'items response))
          (items (cdr (car (cdr ok)))))
     items))
+
+(defun phelps-focus-id (id)
+  (let* ((request `((tag . "focus_note")
+                    (id . ,id))))
+    ;; Eh just assume it worked
+    (phelps--request phelps-host phelps-port request)
+    nil))
 
 (defun phelps-note-read (notes)
   "Return the selected note item from the notes list"
@@ -417,7 +425,7 @@ NOTE is an alist containing at least `id' and `path' entries."
       ")"
       (? "[" (*? (or "\n" nonl)) "]")))
 
-(defun phelps-node-id-at-point ()
+(defun phelps-link-id-at-point ()
   "Return plist the uuid for the #link containing point, or nil."
   (let* ((p (point))
          (hit nil))
@@ -432,12 +440,79 @@ NOTE is an alist containing at least `id' and `path' entries."
               (setq hit (match-string-no-properties 1)))))))
     hit))
 
+(defconst phelps-note-uuid-regex
+  (rx "<note:"
+      (group (repeat 8 hex-digit) "-" (repeat 4 hex-digit) "-"
+             (repeat 4 hex-digit) "-" (repeat 4 hex-digit) "-"
+             (repeat 12 hex-digit))
+      ">"))
+
+(defun phelps-note-id-at-point ()
+  "Return the UUID of the closest <note:...> label to point, or nil."
+  (let* ((p (point))
+         (best-id nil)
+         (best-distance nil))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward phelps-note-uuid-regex nil t)
+        (let* ((start (match-beginning 0))
+               (distance (abs (- p start))))
+          (when (or (null best-distance) (< distance best-distance))
+            (setq best-distance distance)
+            (setq best-id (match-string-no-properties 1))))))
+    best-id))
+  ;; (save-excursion
+  ;;   (let* ((p (point)))
+  ;;     (goto-char (point-min))
+  ;;     (let (best-id best-distance)
+  ;;       (while (re-search-forward phelps-note-uuid-regex nil t)
+  ;;         (let* ((start (match-beginning 0))
+  ;;                (distance (abs (- p start))))
+  ;;           (when (or (null best-distance) (< distance best-distance))
+  ;;             (setq best-distance distance)
+  ;;             (setq best-id (match-string-no-properties 1)))))
+  ;;         best-id))))
+
+;; (defun phelps-note-id-at-point ()
+;;   "Return the Typst note UUID for the section containing point, or nil."
+;;   (save-excursion
+;;     (let* ((heading (rx line-start (* space) (= 1 6 "=") (+ space)))
+;;            (label   (rx "<note:"
+;;                         (group (repeat 8 hex-digit) "-" (repeat 4 hex-digit) "-"
+;;                                (repeat 4 hex-digit) "-" (repeat 4 hex-digit) "-"
+;;                                (repeat 12 hex-digit))
+;;                         ">")))
+;;       (when (re-search-backward heading nil t)
+;;         (let ((line (buffer-substring-no-properties
+;;                      (line-beginning-position) (line-end-position))))
+;;           (when (string-match label line)
+;;             (match-string 1 line)))))))
+
+;; (defun phelps-note-id-at-point ()
+;;   "Return the UUID for the closest heading above point that has a <note:…> label, or nil."
+;;   (save-excursion
+;;     (beginning-of-line)
+;;     (let ((heading-re (rx line-start (* space) (= 1 6 "=") (+ space)))
+;;           (label-re   (rx "<note:"
+;;                           (group (repeat 8 hex-digit) "-" (repeat 4 hex-digit) "-"
+;;                                  (repeat 4 hex-digit) "-" (repeat 4 hex-digit) "-"
+;;                                  (repeat 12 hex-digit))
+;;                           ">")))
+;;       (save-match-data
+;;         (catch 'found
+;;           (while (re-search-backward heading-re nil t)
+;;             (let ((line (buffer-substring-no-properties
+;;                          (line-beginning-position) (line-end-position))))
+;;               (when (string-match label-re line)
+;;                 (throw 'found (match-string 1 line)))))
+;;           nil)))))
+
 ;; Phelps commands
 
 (defun phelps-follow-note-link ()
   "Follow the note link under point to its Typst heading."
   (interactive)
-  (let* ((id (phelps-node-id-at-point)))
+  (let* ((id (phelps-link-id-at-point)))
     (unless id
       (user-error "No note id in link at point"))
     (let* ((notes (phelps-get-notes-list))
@@ -492,8 +567,15 @@ NOTE is an alist containing at least `id' and `path' entries."
     (goto-char (point-min))
     (forward-line 2)))
 
+(defun phelps-focus-note-at-point ()
+  "Navigate the frontend to the note at the point"
+  (interactive)
+  (let* ((id (phelps-note-id-at-point)))
+    (phelps-focus-id id)))
+
 ;; Keybindings
 (bind-key "C-c n f" #'phelps-find-note)
 (bind-key "C-c n i" #'phelps-insert-note-link)
 (bind-key "C-c n g" #'phelps-follow-note-link)
 (bind-key "C-c n c" #'phelps-create-note)
+(bind-key "C-c n n" #'phelps-focus-note-at-point)
