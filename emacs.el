@@ -378,7 +378,7 @@ Uses `uuidgen' when available, otherwise falls back to the `uuidgen' shell comma
       (kill-buffer buffer))))
 
 (defun phelps-get-notes-list ()
-  (let* ((request '(('tag . "get_notes")))
+  (let* ((request '((tag . "get_notes")))
          (response (phelps--request
                     phelps-host phelps-port request))
          (ok (assoc 'items response))
@@ -461,51 +461,6 @@ NOTE is an alist containing at least `id' and `path' entries."
             (setq best-distance distance)
             (setq best-id (match-string-no-properties 1))))))
     best-id))
-  ;; (save-excursion
-  ;;   (let* ((p (point)))
-  ;;     (goto-char (point-min))
-  ;;     (let (best-id best-distance)
-  ;;       (while (re-search-forward phelps-note-uuid-regex nil t)
-  ;;         (let* ((start (match-beginning 0))
-  ;;                (distance (abs (- p start))))
-  ;;           (when (or (null best-distance) (< distance best-distance))
-  ;;             (setq best-distance distance)
-  ;;             (setq best-id (match-string-no-properties 1)))))
-  ;;         best-id))))
-
-;; (defun phelps-note-id-at-point ()
-;;   "Return the Typst note UUID for the section containing point, or nil."
-;;   (save-excursion
-;;     (let* ((heading (rx line-start (* space) (= 1 6 "=") (+ space)))
-;;            (label   (rx "<note:"
-;;                         (group (repeat 8 hex-digit) "-" (repeat 4 hex-digit) "-"
-;;                                (repeat 4 hex-digit) "-" (repeat 4 hex-digit) "-"
-;;                                (repeat 12 hex-digit))
-;;                         ">")))
-;;       (when (re-search-backward heading nil t)
-;;         (let ((line (buffer-substring-no-properties
-;;                      (line-beginning-position) (line-end-position))))
-;;           (when (string-match label line)
-;;             (match-string 1 line)))))))
-
-;; (defun phelps-note-id-at-point ()
-;;   "Return the UUID for the closest heading above point that has a <note:…> label, or nil."
-;;   (save-excursion
-;;     (beginning-of-line)
-;;     (let ((heading-re (rx line-start (* space) (= 1 6 "=") (+ space)))
-;;           (label-re   (rx "<note:"
-;;                           (group (repeat 8 hex-digit) "-" (repeat 4 hex-digit) "-"
-;;                                  (repeat 4 hex-digit) "-" (repeat 4 hex-digit) "-"
-;;                                  (repeat 12 hex-digit))
-;;                           ">")))
-;;       (save-match-data
-;;         (catch 'found
-;;           (while (re-search-backward heading-re nil t)
-;;             (let ((line (buffer-substring-no-properties
-;;                          (line-beginning-position) (line-end-position))))
-;;               (when (string-match label-re line)
-;;                 (throw 'found (match-string 1 line)))))
-;;           nil)))))
 
 ;; Phelps commands
 
