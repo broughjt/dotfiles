@@ -517,10 +517,9 @@ NOTE is an alist containing at least `id' and `path' entries."
     (when (file-exists-p path)
       (user-error "Note file already exists: %s" path))
     (with-temp-file path
-      (insert (format "= %s <note:%s>\n\n" title uuid)))
+      (insert (format "#import(\"../library/template.typ\"): template\n\n#show: template\n\n= %s <note:%s>\n\n" title uuid)))
     (find-file path)
-    (goto-char (point-min))
-    (forward-line 2)))
+    (goto-char (point-max))))
 
 (defun phelps-focus-note-at-point ()
   "Navigate the frontend to the note at the point"
@@ -528,7 +527,6 @@ NOTE is an alist containing at least `id' and `path' entries."
   (let* ((id (phelps-note-id-at-point)))
     (phelps-focus-id id)))
 
-;; Keybindings
 (bind-key "C-c n f" #'phelps-find-note)
 (bind-key "C-c n i" #'phelps-insert-note-link)
 (bind-key "C-c n g" #'phelps-follow-note-link)
