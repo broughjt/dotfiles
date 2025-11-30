@@ -493,10 +493,16 @@ NOTE is an alist containing at least `id' and `path' entries."
   (let* ((notes (phelps-get-notes-list))
          (note (phelps-note-read notes))
          (id (alist-get 'id note))
-         (title (alist-get 'title note)))
+         (title (alist-get 'title note))
+         (selection (when (use-region-p)
+                      (buffer-substring-no-properties
+                       (region-beginning) (region-end))))
+         (description (or selection title)))
     (unless id
       (user-error "Selected note is missing an id"))
-    (insert (format "#link(\"note://%s\")[%s]" id title))))
+    (when selection
+      (delete-region (region-beginning) (region-end)))
+    (insert (format "#link(\"note://%s\")[%s]" id description))))
 
 (defun phelps-create-note ()
   "Prompt for a title, create a Typst note file, and open it."
