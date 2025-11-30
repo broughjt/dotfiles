@@ -336,7 +336,7 @@
 (defvar phelps-notes-directory nil
   "Directory where Phelps note files are stored.")
 
-(setq phelps-notes-directory "~/repositories/notes2/notes/")
+(setq phelps-notes-directory "~/repositories/notes/notes/")
 
 (defun phelps--generate-uuid ()
   "Return a UUID string.
@@ -517,7 +517,7 @@ NOTE is an alist containing at least `id' and `path' entries."
     (when (file-exists-p path)
       (user-error "Note file already exists: %s" path))
     (with-temp-file path
-      (insert (format "#import(\"../library/template.typ\"): template\n\n#show: template\n\n= %s <note:%s>\n\n" title uuid)))
+      (insert (format "#import(\"../library/template.typ\"): *\n\n#show: template\n\n= %s <note:%s>\n\n" title uuid)))
     (find-file path)
     (goto-char (point-max))))
 
