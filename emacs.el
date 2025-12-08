@@ -345,10 +345,8 @@
 
 (setq phelps-notes-directory "~/repositories/notes/notes/")
 
-(defvar phelps-notes-label-file nil
+(defvar phelps-label-file "~/repositories/notes/labels"
   "File where Phelps labels are stored.")
-
-(setq phelps-notes-label-file "~/repositories/notes/labels")
 
 (defun phelps--generate-uuid ()
   "Return a UUID string.
@@ -478,8 +476,43 @@ NOTE is an alist containing at least `id' and `path' entries."
   (math-read-number (concat "36#" s)))
 
 (defun base36-format (n)
-  (let ((calc-number-radix 36))
-    (substring (math-format-number n) 3 nil)))
+  (let* ((calc-number-radix 36)
+         (digits (substring (math-format-number n) 3 nil)))
+    (if (< (length digits) 4)
+        (concat (make-string (- 4 (length digits)) ?0) digits)
+      digits)))
+
+(defun phelps-new-label ()
+  "Increment the last base-36 label in `phelps-label-file` and copy it.
+Reads the last line of `phelps-label-file` as a base-36 number, appends the
+incremented value, and saves it to the kill ring."
+  (interactive)
+  (unless phelps-label-file
+    (user-error "Set `phelps-label-file' to create a new label"))
+  (unless (file-exists-p phelps-label-file)
+    (user-error "Label file does not exist: %s" phelps-label-file))
+  (let (last-line ends-with-newline)
+    (with-temp-buffer
+      (insert-file-contents phelps-label-file)
+      (when (zerop (buffer-size))
+        (user-error "Label file %s is empty" phelps-label-file))
+      (goto-char (point-max))
+      (setq ends-with-newline (eq (char-before) ?\n))
+      (forward-line 0)
+      (setq last-line (string-trim (buffer-substring-no-properties
+                                    (point) (line-end-position)))))
+    (let* ((current (base36-parse last-line))
+           (next (1+ current))
+           (next-label (base36-format next)))
+      (with-temp-buffer
+        (unless ends-with-newline
+          (insert "\n"))
+        (insert next-label "\n")
+        (write-region (point-min) (point-max)
+                      phelps-label-file t 'silent))
+      (kill-new next-label)
+      (message "%s" next-label)
+      next-label)))
 
 ;; Phelps commands
 
