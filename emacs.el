@@ -498,6 +498,11 @@ incremented value, and saves it to the kill ring."
         (user-error "Label file %s is empty" phelps-label-file))
       (goto-char (point-max))
       (setq ends-with-newline (eq (char-before) ?\n))
+      (while (and (not (bobp))
+                  (memq (char-before) '(?\n ?\r)))
+        (backward-char))
+      (when (bobp)
+        (user-error "Label file %s has no labels" phelps-label-file))
       (forward-line 0)
       (setq last-line (string-trim (buffer-substring-no-properties
                                     (point) (line-end-position)))))
