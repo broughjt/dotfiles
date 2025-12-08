@@ -192,6 +192,13 @@
   :init
   (global-company-mode))
 
+(use-package yasnippet
+  :config
+  (yas-global-mode 1)
+  (yas-define-snippets
+   'typst-ts-mode
+   '(("sa" "```agda\n{$0}\n```"))))
+
 ;; (use-package dap-mode
 ;;   :after lsp-mode
 ;;   :commands dap-debug
@@ -337,6 +344,11 @@
   "Directory where Phelps note files are stored.")
 
 (setq phelps-notes-directory "~/repositories/notes/notes/")
+
+(defvar phelps-notes-label-file nil
+  "File where Phelps labels are stored.")
+
+(setq phelps-notes-label-file "~/repositories/notes/labels")
 
 (defun phelps--generate-uuid ()
   "Return a UUID string.
