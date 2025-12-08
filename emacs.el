@@ -197,7 +197,7 @@
   (yas-global-mode 1)
   (yas-define-snippets
    'typst-ts-mode
-   '(("sa" "```agda\n{$0}\n```"))))
+   '(("sa" "\\`\\`\\`agda\n$0\n\\`\\`\\`"))))
 
 ;; (use-package dap-mode
 ;;   :after lsp-mode
@@ -473,6 +473,13 @@ NOTE is an alist containing at least `id' and `path' entries."
             (setq best-distance distance)
             (setq best-id (match-string-no-properties 1))))))
     best-id))
+
+(defun base36-parse (s)
+  (math-read-number (concat "36#" s)))
+
+(defun base36-format (n)
+  (let ((calc-number-radix 36))
+    (substring (math-format-number n) 3 nil)))
 
 ;; Phelps commands
 
