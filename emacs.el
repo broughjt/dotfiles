@@ -278,7 +278,7 @@
   "Run `agda --emacs-mode locate` and echo the results."
   (interactive)
   (let ((coding-system-for-read 'utf-8))
-    (message "%s" (shell-command-to-string "agda --emacs-mode locate"))))
+    (load-file (shell-command-to-string "agda --emacs-mode locate"))))
 
 (setq agda2-highlight-level 'interactive)
 

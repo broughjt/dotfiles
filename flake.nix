@@ -149,6 +149,13 @@
             };
 
             services.openssh.enable = true;
+
+            nix.optimise.automatic = true;
+            nix.gc = {
+              automatic = true;
+              dates = "weekly";
+              options = "--delete-older-than 30d";
+            };
           };
         docker =
           { config, pkgs, ... }:
@@ -227,12 +234,12 @@
                     lldb
                     ripgrep
 
-                    (pkgs.texlive.combine {
-                      inherit (pkgs.texlive) scheme-basic
-                        dvisvgm dvipng
-                        wrapfig amsmath ulem hyperref capt-of
-                        bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
-                    })
+                    # (pkgs.texlive.combine {
+                    #   inherit (pkgs.texlive) scheme-basic
+                    #     dvisvgm dvipng
+                    #     wrapfig amsmath ulem hyperref capt-of
+                    #     bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
+                    # })
                   ];
 
                   programs.fish = {
