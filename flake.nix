@@ -11,6 +11,8 @@
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
 
     flake-utils.url = "github:numtide/flake-utils";
+
+    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
   };
 
   outputs =
@@ -19,7 +21,8 @@
       nixpkgs,
       home-manager,
       emacs-overlay,
-      flake-utils
+      flake-utils,
+      codex-cli-nix
     }:
     rec {
       nixosModules = rec {
@@ -297,7 +300,8 @@
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
                   claude-code
-                  codex
+                  codex-cli-nix.packages.${pkgs.system}.default
+                  # codex
                   codex-acp
                   claude-code-acp
                   dconf-editor
