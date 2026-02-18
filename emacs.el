@@ -62,54 +62,54 @@
  :init
  (evil-collection-init))
 
-(setq org-src-preserve-indentation nil
-      org-edit-src-content-indentation 0)
+;; (setq org-src-preserve-indentation nil
+;;       org-edit-src-content-indentation 0)
 
-(setq
- org-confirm-babel-evaluate nil
- org-babel-load-languages
- '((emacs-lisp . t)
-   (shell . t)
-   (python . t)))
+;; (setq
+;;  org-confirm-babel-evaluate nil
+;;  org-babel-load-languages
+;;  '((emacs-lisp . t)
+;;    (shell . t)
+;;    (python . t)))
 
-(setq
- org-latex-create-formula-image-program 'dvisvgm
- org-preview-latex-image-directory (concat local-directory "latex-previews/")
- org-latex-packages-alist
- '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t)) ;; ("" "notes" t)
- org-startup-with-latex-preview t
- org-startup-with-inline-images t)
-(with-eval-after-load 'org
-  (plist-put org-format-latex-options :background "Transparent")
-  ;; TODO: Works for now?
-  (plist-put org-format-latex-options :scale 0.5))
+;; (setq
+;;  org-latex-create-formula-image-program 'dvisvgm
+;;  org-preview-latex-image-directory (concat local-directory "latex-previews/")
+;;  org-latex-packages-alist
+;;  '(("" "bussproofs" t) ("" "simplebnf" t) ("" "tikz-cd" t)) ;; ("" "notes" t)
+;;  org-startup-with-latex-preview t
+;;  org-startup-with-inline-images t)
+;; (with-eval-after-load 'org
+;;   (plist-put org-format-latex-options :background "Transparent")
+;;   ;; TODO: Works for now?
+;;   (plist-put org-format-latex-options :scale 0.5))
 
-(add-hook 'org-mode-hook 'turn-on-auto-fill)
+;; (add-hook 'org-mode-hook 'turn-on-auto-fill)
 
-(setq org-directory "~/repositories/gtd/")
-(setq inbox-file (concat org-directory "inbox.org"))
-(setq tasks-file (concat org-directory "tasks.org"))
-(setq suspended-directory (concat org-directory "suspended/"))
-(setq write-file (concat suspended-directory "write.org"))
-(setq read-file (concat suspended-directory "read.org"))
-(setq other-file (concat suspended-directory "other.org"))
-(setq calendar-file (concat org-directory "calendar.org"))
-(setq archive-file (concat org-directory "archive.org"))
+;; (setq org-directory "~/repositories/gtd/")
+;; (setq inbox-file (concat org-directory "inbox.org"))
+;; (setq tasks-file (concat org-directory "tasks.org"))
+;; (setq suspended-directory (concat org-directory "suspended/"))
+;; (setq write-file (concat suspended-directory "write.org"))
+;; (setq read-file (concat suspended-directory "read.org"))
+;; (setq other-file (concat suspended-directory "other.org"))
+;; (setq calendar-file (concat org-directory "calendar.org"))
+;; (setq archive-file (concat org-directory "archive.org"))
 
-(setq org-agenda-files (list tasks-file calendar-file
-                             ;; TODO: These probably are a seperate thing
-                             write-file read-file other-file))
-(setq org-refile-targets
-      '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
-(setq org-outline-path-complete-in-steps nil)
-(setq org-refile-use-outline-path 'file)
-(setq org-archive-location (concat archive-file "::"))
+;; (setq org-agenda-files (list tasks-file calendar-file
+;;                              ;; TODO: These probably are a seperate thing
+;;                              write-file read-file other-file))
+;; (setq org-refile-targets
+;;       '((nil :maxlevel . 9) (org-agenda-files :maxlevel . 9)))
+;; (setq org-outline-path-complete-in-steps nil)
+;; (setq org-refile-use-outline-path 'file)
+;; (setq org-archive-location (concat archive-file "::"))
 
-(setq org-tag-alist '(("next" . ?n) ("wait" . ?w)))
+;; (setq org-tag-alist '(("next" . ?n) ("wait" . ?w)))
 
-(setq org-capture-templates
-      '(("d" "default" entry (file inbox-file)
-         "* %?\n%U\n")))
+;; (setq org-capture-templates
+;;       '(("d" "default" entry (file inbox-file)
+;;          "* %?\n%U\n")))
 
 ;; (bind-key "C-c d d"
 ;;           (lambda (&optional GOTO)
@@ -121,35 +121,35 @@
 ;;             (org-refile nil nil (list nil tasks-file nil nil))))
 ;; (bind-key "C-c a" 'org-agenda)
 
-(setq org-todo-keywords '((sequence "TODO(!)" "DONE(!)")))
-(setq org-log-into-drawer t)
-(setq org-log-done 'time)
+;; (setq org-todo-keywords '((sequence "TODO(!)" "DONE(!)")))
+;; (setq org-log-into-drawer t)
+;; (setq org-log-done 'time)
 
-(with-eval-after-load 'org
-  (add-to-list 'org-modules 'org-habit t))
+;; (with-eval-after-load 'org
+;;   (add-to-list 'org-modules 'org-habit t))
 
-(with-eval-after-load 'org
-  (require 'oc-basic))
-(setq org-cite-global-bibliography '("~/repositories/notes/citations.bib"))
+;; (with-eval-after-load 'org
+;;   (require 'oc-basic))
+;; (setq org-cite-global-bibliography '("~/repositories/notes/citations.bib"))
 
-(use-package org-roam
-  :custom
-  (org-roam-directory "~/repositories/notes")
-  (org-roam-file-exclude-regexp nil)
-  ;; :bind
-  ;; (("C-c n f" . org-roam-node-find)
-  ;;  ("C-c n i" . org-roam-node-insert))
-  :config
-  ;; TODO: Buggy
-  ;; (org-roam-db-autosync-mode)
-  )
+;; (use-package org-roam
+;;   :custom
+;;   (org-roam-directory "~/repositories/notes")
+;;   (org-roam-file-exclude-regexp nil)
+;;   ;; :bind
+;;   ;; (("C-c n f" . org-roam-node-find)
+;;   ;;  ("C-c n i" . org-roam-node-insert))
+;;   :config
+;;   ;; TODO: Buggy
+;;   ;; (org-roam-db-autosync-mode)
+;;   )
 
-(use-package org-roam-ui
-  :config
-  (setq org-roam-ui-sync-theme t
-        org-roam-ui-follow t
-        org-roam-ui-update-on-save t
-        org-roam-ui-open-on-start t))
+;; (use-package org-roam-ui
+;;   :config
+;;   (setq org-roam-ui-sync-theme t
+;;         org-roam-ui-follow t
+;;         org-roam-ui-update-on-save t
+;;         org-roam-ui-open-on-start t))
 
 (use-package git-auto-commit-mode)
 
@@ -308,24 +308,26 @@
 (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
 (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
 
-(use-package gptel
-  :init
-  (defun jackson/gopass-show (key)
-    "Call `gopass show KEY` and return its output as a string."
-    (with-temp-buffer
-      (let ((exit-code (call-process "gopass" nil t nil "show" key)))
-        (if (= exit-code 0)
-            (string-trim (buffer-string))
-          (error "gopass show failed with exit code %d and message: %s"
-                 exit-code
-                 (buffer-string))))))
-  (setq gptel-api-key (lambda () (jackson/gopass-show "openai-api-key1")))
-  (setq gptel-default-mode 'org-mode))
+;; (use-package gptel
+;;   :init
+;;   (defun jackson/gopass-show (key)
+;;     "Call `gopass show KEY` and return its output as a string."
+;;     (with-temp-buffer
+;;       (let ((exit-code (call-process "gopass" nil t nil "show" key)))
+;;         (if (= exit-code 0)
+;;             (string-trim (buffer-string))
+;;           (error "gopass show failed with exit code %d and message: %s"
+;;                  exit-code
+;;                  (buffer-string))))))
+;;   (setq gptel-api-key (lambda () (jackson/gopass-show "openai-api-key1")))
+;;   (setq gptel-default-mode 'org-mode))
 
 (use-package agent-shell
   :init
   (setq agent-shell-openai-authentication
-        (agent-shell-openai-make-authentication :login t)))
+        (agent-shell-openai-make-authentication :login t))
+  (setq agent-shell-anthropic-authentication
+        (agent-shell-anthropic-make-authentication :login t)))
 
 (use-package typst-ts-mode
   :hook

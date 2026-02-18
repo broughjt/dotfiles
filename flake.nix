@@ -299,6 +299,7 @@
                   claude-code
                   codex
                   codex-acp
+                  claude-code-acp
                   dconf-editor
                   discord
                   evince
