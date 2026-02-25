@@ -199,6 +199,7 @@
             imports = [ defaultDirectories ];
 
             config = {
+              home-manager.useGlobalPkgs = true;
               home-manager.users.${config.personal.userName} =
                 let
                   homeDirectory = "/home/${config.personal.userName}";
@@ -236,13 +237,6 @@
                     killall
                     lldb
                     ripgrep
-
-                    # (pkgs.texlive.combine {
-                    #   inherit (pkgs.texlive) scheme-basic
-                    #     dvisvgm dvipng
-                    #     wrapfig amsmath ulem hyperref capt-of
-                    #     bussproofs simplebnf tabularray mathtools pgf tikz-cd ninecolors;
-                    # })
                   ];
 
                   programs.fish = {
@@ -300,10 +294,9 @@
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
                   claude-code
-                  codex-cli-nix.packages.${pkgs.system}.default
-                  # codex
-                  codex-acp
                   claude-code-acp
+                  codex-acp
+                  codex-cli-nix.packages.${pkgs.system}.default
                   dconf-editor
                   discord
                   evince
@@ -360,14 +353,21 @@
                   };
                 };
 
-                programs.beets = {
+                programs.vscode = {
                   enable = true;
-                  settings = {
-                    directory = "${config.defaultDirectories.shareDirectory}/music";
-                    import.move = "yes";
-                    plugins = [ "musicbrainz" ];
-                  };
+                  extensions = with pkgs.vscode-extensions; [
+                  ];
                 };
+
+                # TODO: Broken?
+                # programs.beets = {
+                #   enable = true;
+                #   settings = {
+                #     directory = "${config.defaultDirectories.shareDirectory}/music";
+                #     import.move = "yes";
+                #     plugins = [ "musicbrainz" ];
+                #   };
+                # };
               };
             };
           };
