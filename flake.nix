@@ -247,16 +247,21 @@
 
                   programs.git = {
                     enable = true;
-                    userName = config.personal.fullName;
-                    userEmail = config.personal.email;
+                    settings = {
+                      user = {
+                        name = config.personal.fullName;
+                        email = config.personal.email;
+                      };
+                      # "Are the worker threads going to unionize?"
+                      init.defaultBranch = "main";
+                    };
                     signing.key = "1BA5F1335AB45105";
                     signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
-                    # "Are the worker threads going to unionize?"
-                    extraConfig.init.defaultBranch = "main";
                   };
 
                   programs.ssh = {
                     enable = true;
+                    enableDefaultConfig = false;
                     matchBlocks = {
                       "*" = {
                         identityFile = "~/.ssh/id_ed25519";
@@ -296,7 +301,7 @@
                   claude-code
                   claude-code-acp
                   codex-acp
-                  codex-cli-nix.packages.${pkgs.system}.default
+                  codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
                   dconf-editor
                   discord
                   evince
@@ -355,7 +360,7 @@
 
                 programs.vscode = {
                   enable = true;
-                  extensions = with pkgs.vscode-extensions; [
+                  profiles.default.extensions = with pkgs.vscode-extensions; [
                     banacorn.agda-mode
                   ];
                 };
