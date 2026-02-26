@@ -92,8 +92,3 @@
   (yas-define-snippets
    'typst-ts-mode
    '(("sa" "\\`\\`\\`agda\n$0\n\\`\\`\\`"))))
-
-(use-package jinx
-  :hook (emacs-startup . global-jinx-mode)
-  :bind (("M-$" . jinx-correct)
-         ("C-M-$" . jinx-languages)))
