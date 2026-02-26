@@ -1,0 +1,55 @@
+(setq package-enable-at-startup nil)
+(setq use-package-ensure-function 'ignore)
+(setq package-archives nil)
+
+(require 'bind-key)
+(require 'seq)
+
+(setq local-directory (expand-file-name "~/.local/data/emacs/"))
+(setq custom-file (concat local-directory "custom.el"))
+(load custom-file)
+
+(setq backup-directory (concat local-directory "backups/"))
+(setq auto-save-directory (concat local-directory "auto-saves/"))
+
+(setq backup-directory-alist `((".*" . ,backup-directory)))
+(setq auto-save-file-name-transforms `((".*" ,auto-save-directory t)))
+
+(setq create-lockfiles nil)
+
+(unless (eq system-type 'windows-nt)
+  (use-package exec-path-from-shell
+    :config
+    (dolist (var '("SSH_AUTH_SOCK"
+                   "SSH_AGENT_PID"
+                   "GPG_AGENT_INFO"
+                   "GNUPGHOME"
+                   "LANG"
+                   "LC_CTYPE"
+                   "NIX_SSL_CERT_FILE"
+                   "NIX_PATH"))
+      (add-to-list 'exec-path-from-shell-variables var))
+    (exec-path-from-shell-initialize)))
+
+(use-package envrc
+  :config
+  (envrc-global-mode))
+
+(use-package inheritenv
+  :demand t)
+
+(load (expand-file-name "modules/ui.el" user-emacs-directory))
+(load (expand-file-name "modules/editing.el" user-emacs-directory))
+(load (expand-file-name "modules/completion.el" user-emacs-directory))
+(load (expand-file-name "modules/agent-shell.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/tex.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/racket.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/rust.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/lean.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/haskell.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/nix.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/agda.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/javascript-typescript.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/typst.el" user-emacs-directory))
+(load (expand-file-name "modules/langs/verilog.el" user-emacs-directory))
+(load (expand-file-name "modules/phelps.el" user-emacs-directory))

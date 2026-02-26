@@ -503,6 +503,27 @@
           };
         emacsConfiguration =
           { config, pkgs, ... }:
+          let
+            emacsRoot =
+              if builtins.pathExists ./emacs then
+                ./emacs
+              else
+                throw "Missing ./emacs in flake source. If you split your config, run: git add emacs";
+            emacsFiles = builtins.sort
+              (a: b: (toString a) < (toString b))
+              (pkgs.lib.filesystem.listFilesRecursive emacsRoot);
+            emacsElFiles = builtins.filter
+              (file: pkgs.lib.strings.hasSuffix ".el" (toString file))
+              emacsFiles;
+            emacsXdgConfigFiles = builtins.listToAttrs (
+              map
+                (file: {
+                  name = "emacs/${pkgs.lib.strings.removePrefix "${toString emacsRoot}/" (toString file)}";
+                  value = { source = file; };
+                })
+                emacsFiles
+            );
+          in
           {
             nixpkgs.overlays = with emacs-overlay.overlays; [
               emacs
@@ -514,8 +535,8 @@
                 enable = true;
                 package = pkgs.emacsWithPackagesFromUsePackage {
                   package = pkgs.emacs-unstable-pgtk;
-                  config = ./emacs.el;
-                  defaultInitFile = true;
+                  config = builtins.concatStringsSep "\n\n" (map builtins.readFile emacsElFiles);
+                  defaultInitFile = false;
                   extraEmacsPackages =
                     epkgs: with epkgs; [
                       treesit-grammars.with-all-grammars
@@ -548,34 +569,11 @@
                           install ./data/abbreviations.json $DATADIR
                         '';
                       };
-                      # If we really wanted to do this, we should check the org mode build
-                      # org = epkgs.trivialBuild rec {
-                      #   pname = "org";
-                      #   version = "1";
-                      #   src = builtins.fetchGit {
-                      #     url = "https://git.tecosaur.net/tec/org-mode.git";
-                      #     ref = "dev";
-                      #     rev = "f9f909681a051c73c64cc7b030aa54d70bb78f80";
-                      #   };
-                        # sourceRoot = "lisp";
-                        # TODO: Need to include some etc directory
-                        # postInstall = ''
-                        #   DATADIR=$out/share/emacs/site-lisp/data
-                        #   mkdir $DATADIR
-                        #   install ./data/abbreviations.json $DATADIR
-                        # '';
-                      # };
-                      # org = epkgs.org.overrideAttrs (old: {
-                      #   src = builtins.fetchGit {
-                      #     url = "https://git.tecosaur.net/tec/org-mode.git";
-                      #     ref = "dev";
-                      #     rev = "f9f909681a051c73c64cc7b030aa54d70bb78f80";
-                      #   };
-                      # });
                     };
                   alwaysEnsure = true;
                 };
               };
+              xdg.configFile = emacsXdgConfigFiles;
               services.emacs = {
                 enable = pkgs.stdenv.isLinux;
                 package = config.home-manager.users.${config.personal.userName}.programs.emacs.package;
