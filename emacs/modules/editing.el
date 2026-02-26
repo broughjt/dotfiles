@@ -8,7 +8,7 @@
 
 (use-package evil-collection
  :after evil
- :init
+ :config
  (evil-collection-init))
 
 (use-package magit)

@@ -19,5 +19,5 @@
 (use-package standard-themes)
 (use-package modus-themes)
 (use-package ef-themes
-  :init
+  :config
   (load-theme 'ef-dark t))

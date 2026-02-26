@@ -515,10 +515,10 @@
             emacsElFiles = builtins.filter
               (file: pkgs.lib.strings.hasSuffix ".el" (toString file))
               emacsFiles;
-            emacsXdgConfigFiles = builtins.listToAttrs (
+            emacsHomeFiles = builtins.listToAttrs (
               map
                 (file: {
-                  name = "emacs/${pkgs.lib.strings.removePrefix "${toString emacsRoot}/" (toString file)}";
+                  name = ".emacs.d/${pkgs.lib.strings.removePrefix "${toString emacsRoot}/" (toString file)}";
                   value = { source = file; };
                 })
                 emacsFiles
@@ -573,7 +573,7 @@
                   alwaysEnsure = true;
                 };
               };
-              xdg.configFile = emacsXdgConfigFiles;
+              home.file = emacsHomeFiles;
               services.emacs = {
                 enable = pkgs.stdenv.isLinux;
                 package = config.home-manager.users.${config.personal.userName}.programs.emacs.package;

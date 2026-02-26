@@ -1,10 +1,10 @@
 (use-package vertico
-  :init
+  :config
   (vertico-mode)
   :hook ((rfn-eshadow-update-overlay . #'vertico-directory-tidy)))
 
 (use-package marginalia
-  :init
+  :config
   (marginalia-mode))
 
 (use-package consult
@@ -30,7 +30,7 @@
   (:map company-active-map
         ("C-n" . company-select-next)
         ("C-p" . company-select-previous))
-  :init
+  :config
   (global-company-mode))
 
 (use-package yasnippet

@@ -1,5 +1,5 @@
 (use-package agent-shell
-  :init
+  :config
   (setq agent-shell-openai-authentication
         (agent-shell-openai-make-authentication :login t))
   (setq agent-shell-anthropic-authentication
