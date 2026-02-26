@@ -59,15 +59,32 @@
 (use-package which-key
   :config (which-key-mode 1))
 
-(use-package company
+(setq tab-always-indent 'complete)
+;; TODO: says it's undefined
+;; (text-mode-ispell-word-completion nil)
+;; (read-extended-command-predicate #'command-completion-default-include-p)
+
+(use-package corfu
   :custom
-  (company-idle-delay 0.1)
-  :bind
-  (:map company-active-map
-        ("C-n" . company-select-next)
-        ("C-p" . company-select-previous))
+  (corfu-cycle t)
+  ;; (corfu-quit-no-match t)
+  ;; (corfu-quit-at-boundary t)
   :config
-  (global-company-mode))
+  (setq corfu-popupinfo-delay '(1.25 . 0.5))
+  (corfu-popupinfo-mode 1) ; shows documentation next to completions
+
+  :init
+  (global-corfu-mode))
+
+(setq completion-category-overrides '((eglot (styles orderless))
+                                      (eglot-capf (styles orderless))))
+(advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+
+(use-package cape
+  :defer 1
+  :config
+  (add-hook 'completion-at-point-functions #'cape-dabbrev 20)
+  (add-hook 'completion-at-point-functions #'cape-file 20))
 
 (use-package yasnippet
   :config
@@ -75,3 +92,8 @@
   (yas-define-snippets
    'typst-ts-mode
    '(("sa" "\\`\\`\\`agda\n$0\n\\`\\`\\`"))))
+
+(use-package jinx
+  :hook (emacs-startup . global-jinx-mode)
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages)))
