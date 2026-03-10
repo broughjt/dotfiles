@@ -1,3 +1,17 @@
+;;; -*- lexical-binding: t; -*-
+
+(defvar affe-find-command)
+
+(declare-function marginalia-mode "marginalia" (&optional arg))
+(declare-function affe-find "affe" (&optional dir))
+(declare-function global-corfu-mode "corfu" (&optional arg))
+(declare-function corfu-popupinfo-mode "corfu-popupinfo" (&optional arg))
+(declare-function cape-wrap-buster "cape" (fn &rest args))
+(declare-function cape-dabbrev "cape" ())
+(declare-function cape-file "cape" ())
+(declare-function yas-global-mode "yasnippet" (&optional arg))
+(declare-function yas-define-snippets "yasnippet" (mode snippets))
+
 (use-package vertico
   :config
   (vertico-mode)

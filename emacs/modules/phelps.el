@@ -1,4 +1,9 @@
+;;; -*- lexical-binding: t; -*-
+
 ;; Phelps
+
+(require 'json)
+(require 'calc)
 
 (defconst phelps-host "127.0.0.1")
 (defconst phelps-port 3001)
@@ -13,7 +18,8 @@
 
 (defun phelps--generate-uuid ()
   "Return a UUID string.
-Uses `uuidgen' when available, otherwise falls back to the `uuidgen' shell command."
+Uses `uuidgen' when available, otherwise falls back to running
+the `uuidgen' shell command."
   (cond
    ((executable-find "uuidgen")
     (string-trim (shell-command-to-string "uuidgen")))
@@ -29,7 +35,6 @@ Uses `uuidgen' when available, otherwise falls back to the `uuidgen' shell comma
 
 (defun phelps--request (host port data)
   (let* ((request (concat (json-serialize data) "\n"))
-         (message request)
          (buffer (generate-new-buffer "*notes-temporary*"))
          (process (open-network-stream
                    "notes-tcp"

@@ -1,12 +1,16 @@
+;;; -*- lexical-binding: t; -*-
+
 (menu-bar-mode 0)
 (tool-bar-mode 0)
 (scroll-bar-mode 0)
+
+(require 'display-line-numbers)
 
 (set-face-attribute 'default nil :family "JuliaMono" :height 100)
 
 (setq visible-bell t)
 
-(setq display-line-numbers-type 'visual)
+(setq-default display-line-numbers-type 'visual)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
 

@@ -1,3 +1,5 @@
+;;; -*- lexical-binding: t; -*-
+
 ;; (use-package rustic
 ;;   :hook
 ;;   ((rustic-mode . eglot-ensure))

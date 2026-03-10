@@ -1,3 +1,5 @@
+;;; -*- lexical-binding: t; -*-
+
 (use-package typst-ts-mode
   :hook
   ((typst-ts-mode . eglot-ensure))

@@ -1,3 +1,15 @@
+;;; -*- lexical-binding: t; -*-
+
+(require 'package)
+
+(defvar use-package-ensure-function)
+(defvar local-directory)
+(defvar backup-directory)
+(defvar auto-save-directory)
+
+(declare-function exec-path-from-shell-initialize "exec-path-from-shell")
+(declare-function envrc-global-mode "envrc" (&optional arg))
+
 (setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
 (setq package-archives nil)
@@ -45,13 +57,13 @@
 (load (expand-file-name "modules/ui.el" emacs-config-directory))
 (load (expand-file-name "modules/editing.el" emacs-config-directory))
 (load (expand-file-name "modules/completion.el" emacs-config-directory))
-(load (expand-file-name "modules/agent-shell.el" emacs-config-directory))
+(load (expand-file-name "modules/agent-shell-config.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/tex.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/racket.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/rust.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/lean.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/haskell.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/nix.el" emacs-config-directory))
+(load (expand-file-name "modules/languages/nix-config.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/agda.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/javascript.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/typst.el" emacs-config-directory))

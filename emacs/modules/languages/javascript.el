@@ -1,4 +1,9 @@
-(setq js-indent-level 2)
+;;; -*- lexical-binding: t; -*-
+
+(use-package js
+  :custom
+  (js-indent-level 2))
+
 (add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.mjs\\'" . typescript-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.cjs\\'" . typescript-ts-mode))

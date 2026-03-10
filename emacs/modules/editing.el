@@ -1,6 +1,14 @@
+;;; -*- lexical-binding: t; -*-
+
+(eval-and-compile
+  (defvar evil-want-keybinding)
+  (setq evil-want-keybinding nil))
+
+(declare-function evil-mode "evil" (&optional arg))
+(declare-function evil-collection-init "evil-collection")
+
 (use-package evil
  :init
- (setq evil-want-keybinding nil)
  :custom
  (evil-undo-system 'undo-redo)
  :config

@@ -1,3 +1,5 @@
+;;; -*- lexical-binding: t; -*-
+
 (defun markdown-live-preview-mode-window-function (file)
   "Preview FILE in the external browser for live preview mode.
 Return a buffer as required by `markdown-live-preview-window-function'."
