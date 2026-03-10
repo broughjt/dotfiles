@@ -56,4 +56,5 @@
 (load (expand-file-name "modules/languages/javascript.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/typst.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/verilog.el" emacs-config-directory))
+(load (expand-file-name "modules/languages/markdown.el" emacs-config-directory))
 (load (expand-file-name "modules/phelps.el" emacs-config-directory))

@@ -326,6 +326,7 @@
                   nautilus
                   nicotine-plus
                   noto-fonts
+                  pulldown-cmark
                   slack
                   spotify
                   strawberry
