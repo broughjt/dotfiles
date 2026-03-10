@@ -61,16 +61,17 @@
 
 (setq tab-always-indent 'complete)
 ;; TODO: says it's undefined
-;; (text-mode-ispell-word-completion nil)
+(setq text-mode-ispell-word-completion nil)
 ;; (read-extended-command-predicate #'command-completion-default-include-p)
 
 (use-package corfu
   :custom
   (corfu-cycle t)
+  (corfu-auto t)
   ;; (corfu-quit-no-match t)
   ;; (corfu-quit-at-boundary t)
   :config
-  (setq corfu-popupinfo-delay '(1.25 . 0.5))
+  ;; (setq corfu-popupinfo-delay '(1.25 . 0.5))
   (corfu-popupinfo-mode 1) ; shows documentation next to completions
 
   :init
