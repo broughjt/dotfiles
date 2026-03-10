@@ -24,6 +24,77 @@
       flake-utils,
       codex-cli-nix
     }:
+    let
+      emacsRoot = ./emacs;
+
+      emacsSourceFiles =
+        pkgs:
+        let
+          emacsFiles = builtins.sort
+            (a: b: (toString a) < (toString b))
+            (pkgs.lib.filesystem.listFilesRecursive emacsRoot);
+          emacsElFiles = builtins.filter
+            (file: pkgs.lib.strings.hasSuffix ".el" (toString file))
+            emacsFiles;
+          emacsHomeFiles = builtins.listToAttrs (
+            map
+              (file: {
+                name = ".emacs.d/${pkgs.lib.strings.removePrefix "${toString emacsRoot}/" (toString file)}";
+                value = { source = file; };
+              })
+              emacsFiles
+          );
+        in
+        {
+          inherit emacsFiles emacsElFiles emacsHomeFiles;
+          emacsConfigText = builtins.concatStringsSep "\n\n" (map builtins.readFile emacsElFiles);
+        };
+
+      configureEmacsPackage =
+        pkgs:
+        let
+          emacsSources = emacsSourceFiles pkgs;
+        in
+        pkgs.emacsWithPackagesFromUsePackage {
+          package = pkgs.emacs-unstable-pgtk;
+          config = emacsSources.emacsConfigText;
+          defaultInitFile = false;
+          extraEmacsPackages =
+            epkgs: with epkgs; [
+              treesit-grammars.with-all-grammars
+            ];
+          override =
+            epkgs:
+            epkgs
+            // {
+              lean4-mode = epkgs.trivialBuild rec {
+                pname = "lean4-mode";
+                version = "1";
+                src = pkgs.fetchFromGitHub {
+                  owner = "bustercopley";
+                  repo = "lean4-mode";
+                  rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
+                  sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc";
+                };
+                propagatedUserEnvPkgs = with epkgs; [
+                  dash
+                  f
+                  flycheck
+                  lsp-mode
+                  magit-section
+                  s
+                ];
+                buildInputs = propagatedUserEnvPkgs;
+                postInstall = ''
+                  DATADIR=$out/share/emacs/site-lisp/data
+                  mkdir $DATADIR
+                  install ./data/abbreviations.json $DATADIR
+                '';
+              };
+            };
+          alwaysEnsure = true;
+        };
+    in
     rec {
       nixosModules = rec {
         personal =
@@ -359,13 +430,6 @@
                   };
                 };
 
-                programs.vscode = {
-                  enable = true;
-                  profiles.default.extensions = with pkgs.vscode-extensions; [
-                    banacorn.agda-mode
-                  ];
-                };
-
                 # TODO: Broken?
                 # programs.beets = {
                 #   enable = true;
@@ -505,25 +569,7 @@
         emacsConfiguration =
           { config, pkgs, ... }:
           let
-            emacsRoot =
-              if builtins.pathExists ./emacs then
-                ./emacs
-              else
-                throw "Missing ./emacs in flake source. If you split your config, run: git add emacs";
-            emacsFiles = builtins.sort
-              (a: b: (toString a) < (toString b))
-              (pkgs.lib.filesystem.listFilesRecursive emacsRoot);
-            emacsElFiles = builtins.filter
-              (file: pkgs.lib.strings.hasSuffix ".el" (toString file))
-              emacsFiles;
-            emacsHomeFiles = builtins.listToAttrs (
-              map
-                (file: {
-                  name = ".emacs.d/${pkgs.lib.strings.removePrefix "${toString emacsRoot}/" (toString file)}";
-                  value = { source = file; };
-                })
-                emacsFiles
-            );
+            emacsData = emacsSourceFiles pkgs;
           in
           {
             nixpkgs.overlays = with emacs-overlay.overlays; [
@@ -534,47 +580,9 @@
             home-manager.users.${config.personal.userName} = {
               programs.emacs = {
                 enable = true;
-                package = pkgs.emacsWithPackagesFromUsePackage {
-                  package = pkgs.emacs-unstable-pgtk;
-                  config = builtins.concatStringsSep "\n\n" (map builtins.readFile emacsElFiles);
-                  defaultInitFile = false;
-                  extraEmacsPackages =
-                    epkgs: with epkgs; [
-                      treesit-grammars.with-all-grammars
-                    ];
-                  override =
-                    epkgs:
-                    epkgs
-                    // {
-                      lean4-mode = epkgs.trivialBuild rec {
-                        pname = "lean4-mode";
-                        version = "1";
-                        src = pkgs.fetchFromGitHub {
-                          owner = "bustercopley";
-                          repo = "lean4-mode";
-                          rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
-                          sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc";
-                        };
-                        propagatedUserEnvPkgs = with epkgs; [
-                          dash
-                          f
-                          flycheck
-                          lsp-mode
-                          magit-section
-                          s
-                        ];
-                        buildInputs = propagatedUserEnvPkgs;
-                        postInstall = ''
-                          DATADIR=$out/share/emacs/site-lisp/data
-                          mkdir $DATADIR
-                          install ./data/abbreviations.json $DATADIR
-                        '';
-                      };
-                    };
-                  alwaysEnsure = true;
-                };
+                package = configureEmacsPackage pkgs;
               };
-              home.file = emacsHomeFiles;
+              home.file = emacsData.emacsHomeFiles;
               services.emacs = {
                 enable = pkgs.stdenv.isLinux;
                 package = config.home-manager.users.${config.personal.userName}.programs.emacs.package;
@@ -617,10 +625,31 @@
       };
     } // flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = with emacs-overlay.overlays; [
+            emacs
+            package
+          ];
+          config.allowUnfree = true;
+        };
+        emacsPackage = configureEmacsPackage pkgs;
       in {
         devShells.default = pkgs.mkShell {
-          packages = with pkgs; [ nixfmt ];
+          packages = with pkgs; [
+            nil
+            nixfmt
+          ];
         };
+        checks.emacs-byte-compile = pkgs.runCommand "emacs-byte-compile-check" { src = ./.; } ''
+          cp -r "$src/emacs" .
+          chmod -R u+w emacs
+          HOME="$TMPDIR" ${emacsPackage}/bin/emacs --batch \
+            -L emacs -L emacs/modules -L emacs/modules/languages \
+            --eval "(setq byte-compile-error-on-warn t)" \
+            -f batch-byte-compile \
+            emacs/init.el emacs/modules/*.el emacs/modules/languages/*.el
+          mkdir -p "$out"
+        '';
       });
 }
