@@ -91,12 +91,12 @@ Return a buffer as required by `markdown-live-preview-window-function'."
   :mode
   (("README\\.md\\'" . gfm-mode)
    ("\\.md\\'" . markdown-mode))
-  :init
-  (setq markdown-command '("pulldown-cmark")
-        markdown-live-preview-window-function
-        #'markdown-live-preview-mode-window-function
-        markdown-enable-wiki-links t
-        markdown-fontify-code-blocks-natively t)
+  :custom
+  (markdown-command '("pulldown-cmark"))
+  (markdown-live-preview-window-function
+   #'markdown-live-preview-mode-window-function)
+  (markdown-enable-wiki-links t)
+  (markdown-fontify-code-blocks-natively t)
   :config
   (advice-remove 'markdown-live-preview-get-filename
                  #'jackson/markdown-live-preview-get-filename)
