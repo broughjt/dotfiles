@@ -4,8 +4,9 @@
 (declare-function agent-shell-anthropic-make-authentication "agent-shell-anthropic")
 
 (use-package agent-shell
-  :config
-  (setq agent-shell-openai-authentication
-        (agent-shell-openai-make-authentication :login t))
-  (setq agent-shell-anthropic-authentication
-        (agent-shell-anthropic-make-authentication :login t)))
+  :custom
+  (agent-shell-openai-authentication
+   (agent-shell-openai-make-authentication :login t))
+  (agent-shell-anthropic-authentication
+   (agent-shell-anthropic-make-authentication :login t))
+  (agent-shell-anthropic-claude-acp-command '("claude-agent-acp")))

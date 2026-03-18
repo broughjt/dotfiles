@@ -13,6 +13,10 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
+    codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    claude-code-nix.url = "github:sadjow/claude-code-nix";
+    claude-code-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -22,7 +26,8 @@
       home-manager,
       emacs-overlay,
       flake-utils,
-      codex-cli-nix
+      codex-cli-nix,
+      claude-code-nix,
     }:
     let
       emacsRoot = ./emacs;
@@ -30,19 +35,17 @@
       emacsSourceFiles =
         pkgs:
         let
-          emacsFiles = builtins.sort
-            (a: b: (toString a) < (toString b))
-            (pkgs.lib.filesystem.listFilesRecursive emacsRoot);
-          emacsElFiles = builtins.filter
-            (file: pkgs.lib.strings.hasSuffix ".el" (toString file))
-            emacsFiles;
+          emacsFiles = builtins.sort (a: b: (toString a) < (toString b)) (
+            pkgs.lib.filesystem.listFilesRecursive emacsRoot
+          );
+          emacsElFiles = builtins.filter (file: pkgs.lib.strings.hasSuffix ".el" (toString file)) emacsFiles;
           emacsHomeFiles = builtins.listToAttrs (
-            map
-              (file: {
-                name = ".emacs.d/${pkgs.lib.strings.removePrefix "${toString emacsRoot}/" (toString file)}";
-                value = { source = file; };
-              })
-              emacsFiles
+            map (file: {
+              name = ".emacs.d/${pkgs.lib.strings.removePrefix "${toString emacsRoot}/" (toString file)}";
+              value = {
+                source = file;
+              };
+            }) emacsFiles
           );
         in
         {
@@ -94,6 +97,69 @@
             };
           alwaysEnsure = true;
         };
+      claudeAgentAcpPackage =
+        pkgs:
+        pkgs.buildNpmPackage (finalAttrs: {
+          pname = "claude-agent-acp";
+          version = "0.22.1";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "zed-industries";
+            repo = "claude-agent-acp";
+            rev = "v${finalAttrs.version}";
+            hash = "sha256-ysj3knicwW9TK2Gr/N5MsXS5Sm8nGMDRc0rNsrMo9mA=";
+          };
+
+          npmDepsHash = "sha256-xPHAKcbiuDV4Nyt8HqmKJ0SbzvXu5hfqCRtlTo4tbNE=";
+
+          meta = with pkgs.lib; {
+            description = "ACP adapter for the Claude Agent SDK";
+            homepage = "https://github.com/zed-industries/claude-agent-acp";
+            license = licenses.asl20;
+            mainProgram = "claude-agent-acp";
+          };
+        });
+      # TODO: Slow to build for some reason
+      # codexAcpPackage =
+      #   pkgs:
+      #   pkgs.rustPlatform.buildRustPackage rec {
+      #     pname = "codex-acp";
+      #     version = "0.10.0";
+
+      #     src = pkgs.fetchFromGitHub {
+      #       owner = "zed-industries";
+      #       repo = "codex-acp";
+      #       tag = "v${version}";
+      #       hash = "sha256-pFlQ1ETjSfZ9oDhJ3J6AWgTyfLSPWf6oFJ/UiOTqVU8=";
+      #     };
+
+      #     cargoHash = "sha256-70CHZYLRRQJE42ZqARVl4gUryuUGFwhKBHGCALWdCJ4=";
+
+      #     nativeBuildInputs = [ pkgs.pkg-config ];
+      #     buildInputs = [
+      #       pkgs.openssl
+      #       pkgs.libcap
+      #       pkgs.libseccomp
+      #     ];
+      #     # codex-acp >= 0.10 builds codex-linux-sandbox, which expects bubblewrap sources.
+      #     CODEX_BWRAP_SOURCE_DIR = pkgs.bubblewrap.src;
+      #     postPatch = ''
+      #       # codex-core expects this workspace file to exist one level above vendored crates.
+      #       echo "22.22.0" > "$NIX_BUILD_TOP/codex-acp-${version}-vendor/node-version.txt"
+      #     '';
+
+      #     doCheck = false;
+
+      #     meta = with pkgs.lib; {
+      #       description = "An ACP-compatible coding agent powered by Codex";
+      #       homepage = "https://github.com/zed-industries/codex-acp";
+      #       changelog = "https://github.com/zed-industries/codex-acp/releases/tag/v${version}";
+      #       license = licenses.asl20;
+      #       platforms = platforms.unix;
+      #       sourceProvenance = with sourceTypes; [ fromSource ];
+      #       mainProgram = "codex-acp";
+      #     };
+      #   };
     in
     rec {
       nixosModules = rec {
@@ -383,8 +449,8 @@
 
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
-                  claude-code
-                  claude-code-acp
+                  (claudeAgentAcpPackage pkgs)
+                  claude-code-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
                   codex-acp
                   codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
                   dconf-editor
@@ -624,7 +690,9 @@
         path = ./templates/rocq;
         description = "Coq template";
       };
-    } // flake-utils.lib.eachDefaultSystem (system:
+    }
+    // flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -635,7 +703,8 @@
           config.allowUnfree = true;
         };
         emacsPackage = configureEmacsPackage pkgs;
-      in {
+      in
+      {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             nil
@@ -652,5 +721,6 @@
             emacs/init.el emacs/modules/*.el emacs/modules/languages/*.el
           mkdir -p "$out"
         '';
-      });
+      }
+    );
 }
