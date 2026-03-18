@@ -75,7 +75,7 @@
 
 (setq tab-always-indent 'complete)
 ;; TODO: says it's undefined
-(setq text-mode-ispell-word-completion nil)
+;; (setq text-mode-ispell-word-completion nil)
 ;; (read-extended-command-predicate #'command-completion-default-include-p)
 
 (use-package corfu
@@ -107,3 +107,8 @@
   (yas-define-snippets
    'typst-ts-mode
    '(("sa" "\\`\\`\\`agda\n$0\n\\`\\`\\`"))))
+
+(use-package jinx
+  :hook (emacs-startup . global-jinx-mode)
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages)))

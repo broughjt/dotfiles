@@ -303,7 +303,6 @@
                     direnv
                     eza
                     fd
-                    ispell
                     jq
                     killall
                     lldb
@@ -393,6 +392,8 @@
                   evince
                   firefox
                   gemini-cli
+                  hunspell
+                  hunspellDicts.en_US
                   julia-mono
                   nautilus
                   nicotine-plus
