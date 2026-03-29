@@ -341,6 +341,7 @@
                     stateHome = "${homeDirectory}/.local/state";
                     userDirs = {
                       enable = true;
+                      setSessionVariables = false;
                       desktop = config.defaultDirectories.scratchDirectory;
                       documents = "${config.defaultDirectories.shareDirectory}/documents";
                       download = config.defaultDirectories.scratchDirectory;
