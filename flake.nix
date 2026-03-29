@@ -73,35 +73,7 @@
             epkgs: with epkgs; [
               treesit-grammars.with-all-grammars
             ];
-          override =
-            epkgs:
-            epkgs
-            // {
-              lean4-mode = epkgs.trivialBuild rec {
-                pname = "lean4-mode";
-                version = "1";
-                src = pkgs.fetchFromGitHub {
-                  owner = "bustercopley";
-                  repo = "lean4-mode";
-                  rev = "f6166f65ac3a50ba32282ccf2c883d61b5843a2b";
-                  sha256 = "sha256-mVZh+rP9IWLs2QiPysIuQ3uNAQsuJ63xgUY5akaJjXc";
-                };
-                propagatedUserEnvPkgs = with epkgs; [
-                  dash
-                  f
-                  flycheck
-                  lsp-mode
-                  magit-section
-                  s
-                ];
-                buildInputs = propagatedUserEnvPkgs;
-                postInstall = ''
-                  DATADIR=$out/share/emacs/site-lisp/data
-                  mkdir $DATADIR
-                  install ./data/abbreviations.json $DATADIR
-                '';
-              };
-            };
+
           alwaysEnsure = true;
         };
       claudeAgentAcpPackage =
