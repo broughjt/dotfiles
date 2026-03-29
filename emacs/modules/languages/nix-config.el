@@ -1,5 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 
+(defvar eglot-server-programs)
+
 (use-package nix-mode
   :mode "\\.nix\\'"
   :hook (nix-mode . eglot-ensure)

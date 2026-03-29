@@ -1,5 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 
+(defvar markdown-live-preview-mode)
+
 (defconst jackson/markdown-live-preview-bun-port 4173
   "Port for Bun-based markdown live preview.")
 

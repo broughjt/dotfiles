@@ -1,5 +1,8 @@
 ;;; -*- lexical-binding: t; -*-
 
+(defvar eglot-server-programs)
+(declare-function eglot-alternatives "eglot" (servers))
+
 (use-package typst-ts-mode
   :hook
   ((typst-ts-mode . eglot-ensure))
