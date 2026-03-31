@@ -61,7 +61,6 @@
 (load (expand-file-name "modules/languages/tex.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/racket.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/rust.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/lean.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/haskell.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/nix-config.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/agda.el" emacs-config-directory))
