@@ -438,6 +438,7 @@
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
                   (claudeAgentAcpPackage pkgs)
+                  bubblewrap # Needed by Codex apparently
                   claude-code-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
                   codex-acp
                   codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
