@@ -2,8 +2,12 @@
   description = "Are these your dotfiles, Larry?";
 
   nixConfig = {
-    extra-substituters = [ "https://nix-community.cachix.org" ];
+    extra-substituters = [
+      "https://cache.numtide.com"
+      "https://nix-community.cachix.org"
+    ];
     extra-trusted-public-keys = [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
   };
@@ -19,14 +23,8 @@
 
     flake-utils.url = "github:numtide/flake-utils";
 
-    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
-    codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
-
-    claude-code-nix.url = "github:sadjow/claude-code-nix";
-    claude-code-nix.inputs.nixpkgs.follows = "nixpkgs";
-
-    goose.url = "github:block/goose";
-    goose.inputs.nixpkgs.follows = "nixpkgs";
+    llm-agents-nix.url = "github:numtide/llm-agents.nix";
+    llm-agents-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -36,9 +34,7 @@
       home-manager,
       emacs-overlay,
       flake-utils,
-      codex-cli-nix,
-      claude-code-nix,
-      goose,
+      llm-agents-nix,
     }:
     let
       emacsRoot = ./emacs;
@@ -80,69 +76,6 @@
 
           alwaysEnsure = true;
         };
-      claudeAgentAcpPackage =
-        pkgs:
-        pkgs.buildNpmPackage (finalAttrs: {
-          pname = "claude-agent-acp";
-          version = "0.22.1";
-
-          src = pkgs.fetchFromGitHub {
-            owner = "zed-industries";
-            repo = "claude-agent-acp";
-            rev = "v${finalAttrs.version}";
-            hash = "sha256-ysj3knicwW9TK2Gr/N5MsXS5Sm8nGMDRc0rNsrMo9mA=";
-          };
-
-          npmDepsHash = "sha256-xPHAKcbiuDV4Nyt8HqmKJ0SbzvXu5hfqCRtlTo4tbNE=";
-
-          meta = with pkgs.lib; {
-            description = "ACP adapter for the Claude Agent SDK";
-            homepage = "https://github.com/zed-industries/claude-agent-acp";
-            license = licenses.asl20;
-            mainProgram = "claude-agent-acp";
-          };
-        });
-      # TODO: Slow to build for some reason
-      # codexAcpPackage =
-      #   pkgs:
-      #   pkgs.rustPlatform.buildRustPackage rec {
-      #     pname = "codex-acp";
-      #     version = "0.10.0";
-
-      #     src = pkgs.fetchFromGitHub {
-      #       owner = "zed-industries";
-      #       repo = "codex-acp";
-      #       tag = "v${version}";
-      #       hash = "sha256-pFlQ1ETjSfZ9oDhJ3J6AWgTyfLSPWf6oFJ/UiOTqVU8=";
-      #     };
-
-      #     cargoHash = "sha256-70CHZYLRRQJE42ZqARVl4gUryuUGFwhKBHGCALWdCJ4=";
-
-      #     nativeBuildInputs = [ pkgs.pkg-config ];
-      #     buildInputs = [
-      #       pkgs.openssl
-      #       pkgs.libcap
-      #       pkgs.libseccomp
-      #     ];
-      #     # codex-acp >= 0.10 builds codex-linux-sandbox, which expects bubblewrap sources.
-      #     CODEX_BWRAP_SOURCE_DIR = pkgs.bubblewrap.src;
-      #     postPatch = ''
-      #       # codex-core expects this workspace file to exist one level above vendored crates.
-      #       echo "22.22.0" > "$NIX_BUILD_TOP/codex-acp-${version}-vendor/node-version.txt"
-      #     '';
-
-      #     doCheck = false;
-
-      #     meta = with pkgs.lib; {
-      #       description = "An ACP-compatible coding agent powered by Codex";
-      #       homepage = "https://github.com/zed-industries/codex-acp";
-      #       changelog = "https://github.com/zed-industries/codex-acp/releases/tag/v${version}";
-      #       license = licenses.asl20;
-      #       platforms = platforms.unix;
-      #       sourceProvenance = with sourceTypes; [ fromSource ];
-      #       mainProgram = "codex-acp";
-      #     };
-      #   };
     in
     rec {
       nixosModules = rec {
@@ -166,13 +99,16 @@
               "flakes"
             ];
             nix.settings.substituters = [
+              "https://cache.numtide.com"
               "https://cache.nixos.org"
               "https://nix-community.cachix.org"
             ];
             nix.settings.trusted-public-keys = [
+              "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
               "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
               "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
             ];
+            nixpkgs.overlays = [ llm-agents-nix.overlays.default ];
             nixpkgs.config.allowUnfree = true;
           };
         murphHardware =
@@ -441,17 +377,22 @@
 
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
-                  (claudeAgentAcpPackage pkgs)
-                  bubblewrap # Needed by Codex apparently
-                  claude-code-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
-                  codex-acp
-                  codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
+                  bubblewrap
+                  llm-agents.amp
+                  llm-agents.claude-code
+                  llm-agents.claude-code-acp
+                  llm-agents.codex
+                  llm-agents.codex-acp
+                  llm-agents.gemini-cli
+                  llm-agents.goose-cli
+                  llm-agents.jules
+                  llm-agents.letta-code
+                  llm-agents.opencode
+                  llm-agents.qwen-code
                   dconf-editor
                   discord
                   evince
                   firefox
-                  gemini-cli
-                  goose.packages.${pkgs.stdenv.hostPlatform.system}.default
                   hunspell
                   hunspellDicts.en_US
                   julia-mono
@@ -689,10 +630,12 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = with emacs-overlay.overlays; [
-            emacs
-            package
-          ];
+          overlays =
+            [ llm-agents-nix.overlays.default ]
+            ++ (with emacs-overlay.overlays; [
+              emacs
+              package
+            ]);
           config.allowUnfree = true;
         };
         emacsPackage = configureEmacsPackage pkgs;
