@@ -24,6 +24,9 @@
 
     claude-code-nix.url = "github:sadjow/claude-code-nix";
     claude-code-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    goose.url = "github:block/goose";
+    goose.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -35,6 +38,7 @@
       flake-utils,
       codex-cli-nix,
       claude-code-nix,
+      goose,
     }:
     let
       emacsRoot = ./emacs;
@@ -447,6 +451,7 @@
                   evince
                   firefox
                   gemini-cli
+                  goose.packages.${pkgs.stdenv.hostPlatform.system}.default
                   hunspell
                   hunspellDicts.en_US
                   julia-mono
