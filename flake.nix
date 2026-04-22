@@ -377,18 +377,8 @@
 
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
+                  beets
                   bubblewrap
-                  llm-agents.amp
-                  llm-agents.claude-code
-                  llm-agents.claude-code-acp
-                  llm-agents.codex
-                  llm-agents.codex-acp
-                  llm-agents.gemini-cli
-                  llm-agents.goose-cli
-                  llm-agents.jules
-                  llm-agents.letta-code
-                  llm-agents.opencode
-                  llm-agents.qwen-code
                   dconf-editor
                   discord
                   evince
@@ -396,6 +386,15 @@
                   hunspell
                   hunspellDicts.en_US
                   julia-mono
+                  llm-agents.claude-code
+                  llm-agents.claude-code-acp
+                  llm-agents.codex
+                  llm-agents.codex-acp
+                  llm-agents.gemini-cli
+                  llm-agents.goose-cli
+                  llm-agents.letta-code
+                  llm-agents.opencode
+                  llm-agents.qwen-code
                   nautilus
                   nicotine-plus
                   noto-fonts
@@ -403,6 +402,7 @@
                   spotify
                   strawberry
                   vlc
+                  wl-clipboard
                 ];
                 home.sessionVariables.NIXOS_OZONE_WL = "1";
 
@@ -544,20 +544,15 @@
               };
             };
           };
-        gopass =
-          { config, pkgs, ... }:
+        pass =
+          { config, ... }:
           {
             home-manager.users.${config.personal.userName} = {
-              home.packages = [ pkgs.gopass ];
-
-              xdg.configFile.gopass = {
-                target = "gopass/config";
-                text = ''
-                  [mounts]
-                  path = ${config.defaultDirectories.repositoriesDirectory}/passwords
-                  [recipients]
-                  hash = c9903be2bdd11ffec04509345292bfa567e6b28e7e6aa866933254c5d1344326
-                '';
+              programs.password-store = {
+                enable = true;
+                settings = {
+                  PASSWORD_STORE_DIR = "${config.defaultDirectories.repositoriesDirectory}/passwords";
+                };
               };
             };
           };
@@ -604,7 +599,7 @@
           homeLinuxGraphical
           gh
           gpg
-          gopass
+          pass
           emacsConfiguration
         ];
       };
