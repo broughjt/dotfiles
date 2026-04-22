@@ -181,6 +181,8 @@
               variant = "";
             };
 
+            services.fprintd.enable = true;
+
             time.timeZone = "America/Denver";
           };
         userLinux =
