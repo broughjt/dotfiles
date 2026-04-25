@@ -4,7 +4,8 @@
 
 (use-package rust-mode
   :custom
-  (rust-mode-treesitter-derive t)
+  ;; TODO:
+  ;; (rust-mode-treesitter-derive t)
   (rust-format-on-save t)
   :hook (rust-mode . eglot-ensure)
   :config 
