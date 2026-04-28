@@ -388,7 +388,7 @@
                   hunspellDicts.en_US
                   julia-mono
                   llm-agents.claude-code
-                  llm-agents.claude-code-acp
+                  llm-agents.claude-agent-acp
                   llm-agents.codex
                   llm-agents.codex-acp
                   llm-agents.gemini-cli
