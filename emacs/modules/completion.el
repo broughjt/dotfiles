@@ -26,6 +26,7 @@
          ("C-x p b" . consult-project-buffer)
          ("M-g i" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
+         ("M-g l" . consult-line)
          ;; ("M-s d" . consult-find)
          ("M-s g" . consult-ripgrep)))
 
