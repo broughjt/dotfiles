@@ -25,6 +25,9 @@
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
     llm-agents-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    claude-desktop-debian.url = "github:aaddrick/claude-desktop-debian";
+    claude-desktop-debian.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -35,6 +38,7 @@
       emacs-overlay,
       flake-utils,
       llm-agents-nix,
+      claude-desktop-debian,
     }:
     let
       emacsRoot = ./emacs;
@@ -108,7 +112,10 @@
               "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
               "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
             ];
-            nixpkgs.overlays = [ llm-agents-nix.overlays.default ];
+            nixpkgs.overlays = [
+              llm-agents-nix.overlays.default
+              claude-desktop-debian.overlays.default
+            ];
             nixpkgs.config.allowUnfree = true;
           };
         murphHardware =
@@ -380,6 +387,7 @@
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
                   bubblewrap
+                  claude-desktop
                   dconf-editor
                   discord
                   evince
