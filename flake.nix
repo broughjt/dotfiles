@@ -149,6 +149,23 @@
 
             security.sudo.wheelNeedsPassword = false;
           };
+        tarsBase = {
+          imports = [
+            tarsHardware
+            packageManager
+            userLinux
+            home-manager.nixosModules.home-manager
+            personal
+            homeLinux
+            tarsAccess
+          ];
+        };
+        tarsImage = {
+          imports = [
+            tarsBase
+            nixos-raspberrypi.nixosModules.sd-image
+          ];
+        };
         murphHardware =
           {
             config,
@@ -729,31 +746,13 @@
       nixosConfigurations.tars = nixos-raspberrypi.lib.nixosSystem {
         inherit nixpkgs;
         specialArgs = inputs;
-        modules = with nixosModules; [
-          tarsHardware
-          packageManager
-          userLinux
-          home-manager.nixosModules.home-manager
-          personal
-          homeLinux
-          tarsAccess
-        ];
+        modules = [ nixosModules.tarsBase ];
       };
       nixosConfigurations.tarsImage = nixos-raspberrypi.lib.nixosSystem {
         inherit nixpkgs;
         specialArgs = inputs;
-        modules = with nixosModules; [
-          tarsHardware
-          packageManager
-          userLinux
-          home-manager.nixosModules.home-manager
-          personal
-          homeLinux
-          tarsAccess
-          nixos-raspberrypi.nixosModules.sd-image
-        ];
+        modules = [ nixosModules.tarsImage ];
       };
-      packages.aarch64-linux.tarsImage = nixosConfigurations.tarsImage.config.system.build.sdImage;
       templates.rust = {
         path = ./templates/rust;
         description = "Rust template";
@@ -804,6 +803,26 @@
             emacs/init.el emacs/modules/*.el emacs/modules/languages/*.el
           mkdir -p "$out"
         '';
+        packages = nixpkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          tarsImage =
+            (nixos-raspberrypi.lib.nixosSystem {
+              inherit nixpkgs;
+              specialArgs = inputs;
+              modules = [
+                self.nixosModules.tarsImage
+              ]
+              ++ nixpkgs.lib.optionals (system != "aarch64-linux") [
+                (
+                  { lib, pkgs, ... }:
+                  {
+                    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_rpi5;
+                    boot.loader.raspberry-pi.firmwarePackage = lib.mkForce pkgs.raspberrypifw;
+                    nixpkgs.buildPlatform = system;
+                  }
+                )
+              ];
+            }).config.system.build.sdImage;
+        };
       }
     );
 }
