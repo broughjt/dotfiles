@@ -5,10 +5,12 @@
     extra-substituters = [
       "https://cache.numtide.com"
       "https://nix-community.cachix.org"
+      "https://nixos-raspberrypi.cachix.org"
     ];
     extra-trusted-public-keys = [
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
     ];
   };
 
@@ -28,10 +30,12 @@
 
     claude-desktop-debian.url = "github:aaddrick/claude-desktop-debian";
     claude-desktop-debian.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
   };
 
   outputs =
-    {
+    inputs@{
       self,
       nixpkgs,
       home-manager,
@@ -39,6 +43,7 @@
       flake-utils,
       llm-agents-nix,
       claude-desktop-debian,
+      nixos-raspberrypi,
     }:
     let
       emacsRoot = ./emacs;
@@ -117,6 +122,32 @@
               claude-desktop-debian.overlays.default
             ];
             nixpkgs.config.allowUnfree = true;
+          };
+        tarsHardware =
+          { lib, nixos-raspberrypi, ... }:
+          {
+            imports = with nixos-raspberrypi.nixosModules; [
+              raspberry-pi-5.base
+              raspberry-pi-5.page-size-16k
+            ];
+
+            networking.hostName = "tars";
+            networking.useDHCP = lib.mkDefault true;
+
+            boot.loader.raspberry-pi.bootloader = "kernel";
+
+            system.stateVersion = "25.11";
+          };
+        tarsAccess =
+          { config, ... }:
+          let
+            jacksonSshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGwFAXp70zd8VHaNEmQ+txSDFCZENuY4yNReGMVyVM61 jacksontbrough@gmail.com";
+          in
+          {
+            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [ jacksonSshKey ];
+            users.users.root.openssh.authorizedKeys.keys = [ jacksonSshKey ];
+
+            security.sudo.wheelNeedsPassword = false;
           };
         murphHardware =
           {
@@ -630,13 +661,13 @@
                   lsp-enable
 
                   map global user l ':enter-user-mode lsp<ret>' -docstring 'LSP mode'
-                  
+
                   map global goto d <esc>:lsp-definition<ret> -docstring 'LSP definition'
                   map global goto r <esc>:lsp-references<ret> -docstring 'LSP references'
                   map global goto y <esc>:lsp-type-definition<ret> -docstring 'LSP type definition'
-                  
+
                   map global insert <tab> '<a-;>:try lsp-snippets-select-next-placeholders catch %{ execute-keys -with-hooks <lt>tab> }<ret>' -docstring 'Select next snippet placeholder'
-                  
+
                   map global object a '<a-semicolon>lsp-object<ret>' -docstring 'LSP any symbol'
                   map global object <a-a> '<a-semicolon>lsp-object<ret>' -docstring 'LSP any symbol'
                   map global object f '<a-semicolon>lsp-object Function Method<ret>' -docstring 'LSP function or method'
@@ -695,6 +726,34 @@
           emacsConfiguration
         ];
       };
+      nixosConfigurations.tars = nixos-raspberrypi.lib.nixosSystem {
+        inherit nixpkgs;
+        specialArgs = inputs;
+        modules = with nixosModules; [
+          tarsHardware
+          packageManager
+          userLinux
+          home-manager.nixosModules.home-manager
+          personal
+          homeLinux
+          tarsAccess
+        ];
+      };
+      nixosConfigurations.tarsImage = nixos-raspberrypi.lib.nixosSystem {
+        inherit nixpkgs;
+        specialArgs = inputs;
+        modules = with nixosModules; [
+          tarsHardware
+          packageManager
+          userLinux
+          home-manager.nixosModules.home-manager
+          personal
+          homeLinux
+          tarsAccess
+          nixos-raspberrypi.nixosModules.sd-image
+        ];
+      };
+      packages.aarch64-linux.tarsImage = nixosConfigurations.tarsImage.config.system.build.sdImage;
       templates.rust = {
         path = ./templates/rust;
         description = "Rust template";
@@ -717,12 +776,13 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays =
-            [ llm-agents-nix.overlays.default ]
-            ++ (with emacs-overlay.overlays; [
-              emacs
-              package
-            ]);
+          overlays = [
+            llm-agents-nix.overlays.default
+          ]
+          ++ (with emacs-overlay.overlays; [
+            emacs
+            package
+          ]);
           config.allowUnfree = true;
         };
         emacsPackage = configureEmacsPackage pkgs;
