@@ -135,6 +135,27 @@
             networking.useDHCP = lib.mkDefault true;
 
             boot.loader.raspberry-pi.bootloader = "kernel";
+            boot.supportedFilesystems.zfs = lib.mkForce false;
+
+            fileSystems."/" = {
+              device = lib.mkDefault "/dev/disk/by-label/NIXOS_SD";
+              fsType = lib.mkDefault "ext4";
+              options = lib.mkForce [
+                "x-initrd.mount"
+                "noatime"
+              ];
+            };
+
+            fileSystems."/boot/firmware" = {
+              device = lib.mkDefault "/dev/disk/by-label/FIRMWARE";
+              fsType = lib.mkDefault "vfat";
+              options = lib.mkDefault [
+                "noatime"
+                "noauto"
+                "x-systemd.automount"
+                "x-systemd.idle-timeout=1min"
+              ];
+            };
 
             system.stateVersion = "25.11";
           };
@@ -158,12 +179,6 @@
             personal
             homeLinux
             tarsAccess
-          ];
-        };
-        tarsImage = {
-          imports = [
-            tarsBase
-            nixos-raspberrypi.nixosModules.sd-image
           ];
         };
         murphHardware =
@@ -748,11 +763,6 @@
         specialArgs = inputs;
         modules = [ nixosModules.tarsBase ];
       };
-      nixosConfigurations.tarsImage = nixos-raspberrypi.lib.nixosSystem {
-        inherit nixpkgs;
-        specialArgs = inputs;
-        modules = [ nixosModules.tarsImage ];
-      };
       templates.rust = {
         path = ./templates/rust;
         description = "Rust template";
@@ -803,26 +813,6 @@
             emacs/init.el emacs/modules/*.el emacs/modules/languages/*.el
           mkdir -p "$out"
         '';
-        packages = nixpkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-          tarsImage =
-            (nixos-raspberrypi.lib.nixosSystem {
-              inherit nixpkgs;
-              specialArgs = inputs;
-              modules = [
-                self.nixosModules.tarsImage
-              ]
-              ++ nixpkgs.lib.optionals (system != "aarch64-linux") [
-                (
-                  { lib, pkgs, ... }:
-                  {
-                    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_rpi5;
-                    boot.loader.raspberry-pi.firmwarePackage = lib.mkForce pkgs.raspberrypifw;
-                    nixpkgs.buildPlatform = system;
-                  }
-                )
-              ];
-            }).config.system.build.sdImage;
-        };
       }
     );
 }
