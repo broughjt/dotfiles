@@ -463,10 +463,8 @@
                   llm-agents.codex
                   llm-agents.codex-acp
                   llm-agents.gemini-cli
-                  llm-agents.goose-cli
-                  llm-agents.letta-code
                   llm-agents.opencode
-                  llm-agents.qwen-code
+                  llm-agents.pi
                   nautilus
                   nicotine-plus
                   noto-fonts
