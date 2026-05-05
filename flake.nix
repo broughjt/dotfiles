@@ -77,6 +77,7 @@
           extraEmacsPackages =
             epkgs: with epkgs; [
               ghostel
+              pi-coding-agent
               treesit-grammars.with-all-grammars
             ];
 
