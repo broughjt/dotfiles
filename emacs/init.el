@@ -58,6 +58,7 @@
 (load (expand-file-name "modules/editing.el" emacs-config-directory))
 (load (expand-file-name "modules/completion.el" emacs-config-directory))
 (load (expand-file-name "modules/agent-shell-config.el" emacs-config-directory))
+(load (expand-file-name "modules/terminal.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/tex.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/racket.el" emacs-config-directory))
 (load (expand-file-name "modules/languages/rust.el" emacs-config-directory))

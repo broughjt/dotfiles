@@ -76,6 +76,7 @@
           defaultInitFile = false;
           extraEmacsPackages =
             epkgs: with epkgs; [
+              ghostel
               treesit-grammars.with-all-grammars
             ];
 
