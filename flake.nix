@@ -362,7 +362,6 @@
                   };
 
                   home.packages = with pkgs; [
-                    brave-search-cli
                     direnv
                     eza
                     fd
