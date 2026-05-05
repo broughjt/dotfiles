@@ -28,9 +28,6 @@
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
     llm-agents-nix.inputs.nixpkgs.follows = "nixpkgs";
 
-    claude-desktop-debian.url = "github:aaddrick/claude-desktop-debian";
-    claude-desktop-debian.inputs.nixpkgs.follows = "nixpkgs";
-
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
   };
 
@@ -42,7 +39,6 @@
       emacs-overlay,
       flake-utils,
       llm-agents-nix,
-      claude-desktop-debian,
       nixos-raspberrypi,
     }:
     let
@@ -119,7 +115,6 @@
             ];
             nixpkgs.overlays = [
               llm-agents-nix.overlays.default
-              claude-desktop-debian.overlays.default
             ];
             nixpkgs.config.allowUnfree = true;
           };
@@ -450,7 +445,6 @@
               home-manager.users.${config.personal.userName} = {
                 home.packages = with pkgs; [
                   bubblewrap
-                  claude-desktop
                   dconf-editor
                   discord
                   evince
