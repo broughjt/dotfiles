@@ -100,6 +100,7 @@
                 userName = "jackson";
                 fullName = "Jackson Brough";
                 email = "jacksontbrough@gmail.com";
+                sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGwFAXp70zd8VHaNEmQ+txSDFCZENuY4yNReGMVyVM61 jacksontbrough@gmail.com";
               };
             };
           };
@@ -163,12 +164,11 @@
           };
         tarsAccess =
           { config, ... }:
-          let
-            jacksonSshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGwFAXp70zd8VHaNEmQ+txSDFCZENuY4yNReGMVyVM61 jacksontbrough@gmail.com";
-          in
           {
-            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [ jacksonSshKey ];
-            users.users.root.openssh.authorizedKeys.keys = [ jacksonSshKey ];
+            users.users.${config.personal.userName}.openssh.authorizedKeys.keys = [
+              config.personal.sshPublicKey
+            ];
+            users.users.root.openssh.authorizedKeys.keys = [ config.personal.sshPublicKey ];
 
             security.sudo.wheelNeedsPassword = false;
           };
@@ -313,6 +313,10 @@
                 homeDirectory = "/home/${config.personal.userName}";
               in
               {
+                defaultDirectories.homeDirectory = lib.mkOption {
+                  type = lib.types.str;
+                  default = homeDirectory;
+                };
                 defaultDirectories.repositoriesDirectory = lib.mkOption {
                   type = lib.types.str;
                   default = "${homeDirectory}/repositories";
@@ -340,7 +344,7 @@
               home-manager.useGlobalPkgs = true;
               home-manager.users.${config.personal.userName} =
                 let
-                  homeDirectory = "/home/${config.personal.userName}";
+                  homeDirectory = config.defaultDirectories.homeDirectory;
                 in
                 {
                   home.stateVersion = "25.05";
@@ -631,12 +635,10 @@
           let
             user = config.personal.userName;
             group = "users";
-            homeDirectory = "/home/${user}";
+            homeDirectory = config.defaultDirectories.homeDirectory;
             secretsDirectory = ./secrets;
             exaApiKeySecret = secretsDirectory + "/exa-api-key.age";
-            geminiApiKeySecret = secretsDirectory + "/gemini-api-key.age";
-            piWebSearchSecretsAvailable =
-              builtins.pathExists exaApiKeySecret && builtins.pathExists geminiApiKeySecret;
+            piWebSearchSecretsAvailable = builtins.pathExists exaApiKeySecret;
           in
           {
             imports = [ vaultixInput.nixosModules.default ];
@@ -648,7 +650,6 @@
 
             vaultix.secrets = lib.optionalAttrs piWebSearchSecretsAvailable {
               exaApiKey.file = exaApiKeySecret;
-              geminiApiKey.file = geminiApiKeySecret;
             };
 
             vaultix.templates = lib.optionalAttrs piWebSearchSecretsAvailable {
@@ -661,9 +662,7 @@
                   provider = "auto";
                   workflow = "none";
                   allowBrowserCookies = false;
-                  searchModel = "gemini-flash-latest";
                   exaApiKey = config.vaultix.placeholder.exaApiKey;
-                  geminiApiKey = config.vaultix.placeholder.geminiApiKey;
                 };
               };
             };
