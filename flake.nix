@@ -643,8 +643,9 @@
           {
             imports = [ vaultixInput.nixosModules.default ];
 
-            # Vaultix requires either systemd.sysusers or services.userborn.
-            systemd.sysusers.enable = true;
+            # Vaultix requires either systemd.sysusers or services.userborn. This config has a
+            # normal user, so use userborn rather than systemd.sysusers.
+            services.userborn.enable = true;
 
             vaultix.settings.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBJaEBK0rIuwE7GqwgeWKA/DvBxIXOcAMDhiORaK9OSf root@murph";
 
