@@ -95,16 +95,14 @@
           pname = "pi-web-access";
           version = "0.10.7";
 
-          src = pkgs.fetchurl {
-            url = "https://registry.npmjs.org/pi-web-access/-/pi-web-access-${version}.tgz";
-            hash = "sha256-v0CQxc2TySwdlGYCha3cazQpMgHQCaipjGVpW49H2Pk=";
+          src = pkgs.fetchFromGitHub {
+            owner = "nicobailon";
+            repo = "pi-web-access";
+            rev = "v${version}";
+            hash = "sha256-D9no4SLigH/t3/WfirixMbTEjcEwZwJXld8j7pwBCew=";
           };
 
-          postPatch = ''
-            cp ${./pi/pi-web-access/package-lock.json} package-lock.json
-          '';
-
-          npmDepsHash = "sha256-RJh6MeUL80FBC96h6UtdG6AzQyzF59N8b4wex38j3Sc=";
+          npmDepsHash = "sha256-QKmgVmIvqLbqnUmKBKniT0CvNIgZWZ9mUkha0LJMMVQ=";
           dontNpmBuild = true;
 
           installPhase = ''
