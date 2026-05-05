@@ -88,6 +88,32 @@
 
           alwaysEnsure = true;
         };
+
+      piWebAccessPackage =
+        pkgs:
+        pkgs.buildNpmPackage rec {
+          pname = "pi-web-access";
+          version = "0.10.7";
+
+          src = pkgs.fetchurl {
+            url = "https://registry.npmjs.org/pi-web-access/-/pi-web-access-${version}.tgz";
+            hash = "sha256-v0CQxc2TySwdlGYCha3cazQpMgHQCaipjGVpW49H2Pk=";
+          };
+
+          postPatch = ''
+            cp ${./pi/pi-web-access/package-lock.json} package-lock.json
+          '';
+
+          npmDepsHash = "sha256-RJh6MeUL80FBC96h6UtdG6AzQyzF59N8b4wex38j3Sc=";
+          dontNpmBuild = true;
+
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out
+            cp -r package.json README.md CHANGELOG.md *.ts skills node_modules $out/
+            runHook postInstall
+          '';
+        };
     in
     rec {
       nixosModules = rec {
@@ -675,6 +701,43 @@
               "L+ ${homeDirectory}/.pi/web-search.json - - - - ${config.vaultix.templates.pi-web-search-json.path}"
             ];
           };
+        piConfiguration =
+          { config, pkgs, ... }:
+          let
+            piWebAccess = piWebAccessPackage pkgs;
+          in
+          {
+            home-manager.users.${config.personal.userName} = {
+              home.file.".pi/agent/AGENTS.md" = {
+                source = ./pi/AGENTS.md;
+                force = true;
+              };
+
+              home.file.".pi/agent/bin/npm-nix" = {
+                executable = true;
+                force = true;
+                text = ''
+                  #!/usr/bin/env bash
+                  set -euo pipefail
+                  export NPM_CONFIG_PREFIX="''${NPM_CONFIG_PREFIX:-$HOME/.pi/agent/npm-global}"
+                  mkdir -p "$NPM_CONFIG_PREFIX"
+                  exec ${pkgs.nodejs}/bin/npm "$@"
+                '';
+              };
+
+              home.file.".pi/agent/settings.json" = {
+                force = true;
+                text = builtins.toJSON {
+                  defaultProvider = "openai-codex";
+                  defaultModel = "gpt-5.5";
+                  defaultThinkingLevel = "high";
+                  enableInstallTelemetry = false;
+                  npmCommand = [ "${config.defaultDirectories.homeDirectory}/.pi/agent/bin/npm-nix" ];
+                  packages = [ "${piWebAccess}" ];
+                };
+              };
+            };
+          };
         kakouneConfiguration =
           { config, pkgs, ... }:
           {
@@ -806,6 +869,7 @@
           gpg
           pass
           vaultixConfiguration
+          piConfiguration
           kakouneConfiguration
           emacsConfiguration
         ];
