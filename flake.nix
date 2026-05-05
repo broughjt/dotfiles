@@ -28,6 +28,9 @@
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
     llm-agents-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    vaultix.url = "github:milieuim/vaultix";
+    vaultix.inputs.nixpkgs.follows = "nixpkgs";
+
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
   };
 
@@ -39,10 +42,12 @@
       emacs-overlay,
       flake-utils,
       llm-agents-nix,
+      vaultix,
       nixos-raspberrypi,
     }:
     let
       emacsRoot = ./emacs;
+      vaultixInput = vaultix;
 
       emacsSourceFiles =
         pkgs:
@@ -621,6 +626,55 @@
               };
             };
           };
+        vaultixConfiguration =
+          { config, lib, ... }:
+          let
+            user = config.personal.userName;
+            group = "users";
+            homeDirectory = "/home/${user}";
+            secretsDirectory = ./secrets;
+            exaApiKeySecret = secretsDirectory + "/exa-api-key.age";
+            geminiApiKeySecret = secretsDirectory + "/gemini-api-key.age";
+            piWebSearchSecretsAvailable =
+              builtins.pathExists exaApiKeySecret && builtins.pathExists geminiApiKeySecret;
+          in
+          {
+            imports = [ vaultixInput.nixosModules.default ];
+
+            # Vaultix requires either systemd.sysusers or services.userborn.
+            systemd.sysusers.enable = true;
+
+            vaultix.settings.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBJaEBK0rIuwE7GqwgeWKA/DvBxIXOcAMDhiORaK9OSf root@murph";
+
+            vaultix.secrets = lib.optionalAttrs piWebSearchSecretsAvailable {
+              exaApiKey.file = exaApiKeySecret;
+              geminiApiKey.file = geminiApiKeySecret;
+            };
+
+            vaultix.templates = lib.optionalAttrs piWebSearchSecretsAvailable {
+              pi-web-search-json = {
+                name = "pi-web-search.json";
+                owner = user;
+                inherit group;
+                mode = "0600";
+                content = builtins.toJSON {
+                  provider = "auto";
+                  workflow = "none";
+                  allowBrowserCookies = false;
+                  searchModel = "gemini-flash-latest";
+                  exaApiKey = config.vaultix.placeholder.exaApiKey;
+                  geminiApiKey = config.vaultix.placeholder.geminiApiKey;
+                };
+              };
+            };
+
+            systemd.tmpfiles.rules = [
+              "d ${homeDirectory}/.pi 0700 ${user} ${group} -"
+            ]
+            ++ lib.optionals piWebSearchSecretsAvailable [
+              "L+ ${homeDirectory}/.pi/web-search.json - - - - ${config.vaultix.templates.pi-web-search-json.path}"
+            ];
+          };
         kakouneConfiguration =
           { config, pkgs, ... }:
           {
@@ -736,6 +790,9 @@
           };
       };
       nixosConfigurations.murph = nixpkgs.lib.nixosSystem {
+        specialArgs = {
+          inherit inputs self;
+        };
         modules = with nixosModules; [
           murphHardware
           packageManager
@@ -748,6 +805,7 @@
           gh
           gpg
           pass
+          vaultixConfiguration
           kakouneConfiguration
           emacsConfiguration
         ];
@@ -756,6 +814,19 @@
         inherit nixpkgs;
         specialArgs = inputs;
         modules = [ nixosModules.tarsBase ];
+      };
+      vaultix = vaultixInput.configure {
+        nodes = {
+          inherit (self.nixosConfigurations) murph;
+        };
+        # String path, not a Nix path literal: keeps the private key out of the Nix store.
+        identity = "/home/jackson/.ssh/id_ed25519";
+        cache = "./secrets/cache";
+        defaultSecretDirectory = "./secrets";
+        systems = [
+          "x86_64-linux"
+          "aarch64-linux"
+        ];
       };
       templates.rust = {
         path = ./templates/rust;
