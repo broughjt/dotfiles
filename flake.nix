@@ -403,6 +403,7 @@
                     killall
                     lldb
                     ripgrep
+                    tmux
                   ];
 
                   programs.fish = {
