@@ -23,6 +23,10 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
 
+    pi-coding-agent.url = "github:broughjt/pi-coding-agent";
+    pi-coding-agent.inputs.nixpkgs.follows = "nixpkgs";
+    pi-coding-agent.inputs.flake-utils.follows = "flake-utils";
+
     flake-utils.url = "github:numtide/flake-utils";
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
@@ -40,6 +44,7 @@
       nixpkgs,
       home-manager,
       emacs-overlay,
+      pi-coding-agent,
       flake-utils,
       llm-agents-nix,
       vaultix,
@@ -79,6 +84,9 @@
           package = pkgs.emacs-unstable-pgtk;
           config = emacsSources.emacsConfigText;
           defaultInitFile = false;
+          override = final: _prev: {
+            pi-coding-agent = pi-coding-agent.lib.mkPackage pkgs final;
+          };
           extraEmacsPackages =
             epkgs: with epkgs; [
               ghostel

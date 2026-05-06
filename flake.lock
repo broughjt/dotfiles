@@ -393,6 +393,29 @@
         "type": "github"
       }
     },
+    "pi-coding-agent": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1778053138,
+        "narHash": "sha256-pimkzdU7aLDH9NNQ8yMNJBbTyKSDpBpMbYqwF3iwc9k=",
+        "owner": "broughjt",
+        "repo": "pi-coding-agent",
+        "rev": "0a8480d8c8977e2800e8c5539e3d449ba2f2999a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "broughjt",
+        "repo": "pi-coding-agent",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -424,6 +447,7 @@
         "llm-agents-nix": "llm-agents-nix",
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixpkgs": "nixpkgs_2",
+        "pi-coding-agent": "pi-coding-agent",
         "vaultix": "vaultix"
       }
     },
