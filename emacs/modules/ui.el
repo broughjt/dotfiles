@@ -6,7 +6,7 @@
 
 (require 'display-line-numbers)
 
-(set-face-attribute 'default nil :family "JuliaMono" :height 100)
+(set-face-attribute 'default nil :family "JuliaMono" :height 120)
 
 (setq visible-bell t)
 
@@ -24,4 +24,4 @@
 (use-package modus-themes)
 (use-package ef-themes
   :config
-  (load-theme 'ef-dark t))
+  (load-theme 'standard-dark t))
