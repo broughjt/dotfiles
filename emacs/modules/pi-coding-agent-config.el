@@ -33,12 +33,25 @@
   (when-let* ((input (jackson/pi-coding-agent-current-input chat)))
     (get-buffer-window input nil)))
 
+(defun jackson/pi-coding-agent-visible-chat (&optional frame preferred)
+  "Return a visible pi chat buffer in FRAME, preferring PREFERRED."
+  (let ((frame (or frame (selected-frame))))
+    (or (and (buffer-live-p preferred)
+             (get-buffer-window preferred frame)
+             preferred)
+        (let (found)
+          (dolist (window (window-list frame 'no-minibuf) found)
+            (let ((buffer (window-buffer window)))
+              (when (with-current-buffer buffer
+                      (derived-mode-p 'pi-coding-agent-chat-mode))
+                (setq found buffer))))))))
+
 (defun jackson/pi-coding-agent-input--last-chat (&optional frame)
-  "Return FRAME's last selected pi chat buffer."
+  "Return FRAME's last visible pi chat buffer."
   (frame-parameter frame 'jackson/pi-coding-agent-input--last-chat))
 
 (defun jackson/pi-coding-agent-input--set-last-chat (chat &optional frame)
-  "Set CHAT as FRAME's last selected pi chat buffer."
+  "Set CHAT as FRAME's last visible pi chat buffer."
   (set-frame-parameter frame 'jackson/pi-coding-agent-input--last-chat chat))
 
 (defun jackson/pi-coding-agent-input--suppressed-chat (&optional frame)
@@ -84,9 +97,10 @@ When MANUAL is non-nil, clear any manual suppression for this frame."
 (defun jackson/pi-coding-agent-toggle-input ()
   "Toggle the current pi session's input window."
   (interactive)
-  (let ((chat (jackson/pi-coding-agent-current-chat)))
+  (let ((chat (or (jackson/pi-coding-agent-current-chat)
+                  (jackson/pi-coding-agent-visible-chat))))
     (unless chat
-      (user-error "Not in a pi session"))
+      (user-error "No visible pi session"))
     (if (jackson/pi-coding-agent-input-visible-p chat)
         (jackson/pi-coding-agent-hide-input chat t)
       (jackson/pi-coding-agent-show-input chat t))))
@@ -100,23 +114,22 @@ When MANUAL is non-nil, clear any manual suppression for this frame."
       (condition-case err
           (let* ((frame (selected-frame))
                  (buffer (window-buffer (selected-window)))
-                 (chat (jackson/pi-coding-agent-current-chat buffer))
-                 (last-chat (jackson/pi-coding-agent-input--last-chat frame)))
-            (cond
-             (chat
-              (unless (eq chat last-chat)
-                (jackson/pi-coding-agent-hide-input last-chat))
-              (jackson/pi-coding-agent-input--set-last-chat chat frame)
-              (with-current-buffer buffer
-                (when (and (derived-mode-p 'pi-coding-agent-chat-mode)
-                           (not (eq chat
-                                    (jackson/pi-coding-agent-input--suppressed-chat
-                                     frame))))
-                  (jackson/pi-coding-agent-show-input chat))))
-             (t
+                 (selected-chat (jackson/pi-coding-agent-current-chat buffer))
+                 (last-chat (jackson/pi-coding-agent-input--last-chat frame))
+                 (visible-chat (jackson/pi-coding-agent-visible-chat
+                                frame (or selected-chat last-chat))))
+            (if visible-chat
+                (progn
+                  (unless (eq visible-chat last-chat)
+                    (jackson/pi-coding-agent-hide-input last-chat))
+                  (jackson/pi-coding-agent-input--set-last-chat visible-chat frame)
+                  (unless (eq visible-chat
+                              (jackson/pi-coding-agent-input--suppressed-chat
+                               frame))
+                    (jackson/pi-coding-agent-show-input visible-chat)))
               (jackson/pi-coding-agent-hide-input last-chat)
               (jackson/pi-coding-agent-input--set-last-chat nil frame)
-              (jackson/pi-coding-agent-input--set-suppressed-chat nil frame))))
+              (jackson/pi-coding-agent-input--set-suppressed-chat nil frame)))
         (error
          (message "pi auto input: %s" (error-message-string err)))))))
 
@@ -141,8 +154,6 @@ the redisplay-related code has finished."
   :bind
   ("C-c p t" . jackson/pi-coding-agent-toggle-input)
   :config
-  ;; Keep pi's prompt buffer paired with the selected chat buffer, but hide
-  ;; just the prompt window when leaving the pi session.
   ;; (add-hook 'window-selection-change-functions
   ;;           #'jackson/pi-coding-agent-input--schedule)
   (add-hook 'window-buffer-change-functions
