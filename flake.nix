@@ -82,7 +82,7 @@
           emacsSources = emacsSourceFiles pkgs;
         in
         pkgs.emacsWithPackagesFromUsePackage {
-          package = pkgs.emacs-unstable-pgtk;
+          package = pkgs.emacs-git-pgtk;
           config = emacsSources.emacsConfigText;
           defaultInitFile = false;
           override = final: _prev: {
