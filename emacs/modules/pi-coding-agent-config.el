@@ -7,6 +7,7 @@
 (defvar jackson/pi-coding-agent-input--busy nil
   "Non-nil while pi input-window synchronization is running.")
 
+(declare-function pi-coding-agent-project-buffers "pi-coding-agent-ui")
 (declare-function pi-coding-agent--get-chat-buffer "pi-coding-agent-ui")
 (declare-function pi-coding-agent--get-input-buffer "pi-coding-agent-ui")
 (declare-function pi-coding-agent--input-height-for-window "pi-coding-agent-ui")
@@ -153,6 +154,31 @@ With prefix ARG, enable when ARG is positive and disable otherwise."
         (error
          (message "pi auto input: %s" (error-message-string err)))))))
 
+(defun jackson/pi-coding-agent-chat-buffer-p (candidate)
+  "Return non-nil when CANDIDATE names a `pi-coding-agent' chat buffer."
+  (when-let* ((name (if (consp candidate) (car candidate) candidate))
+              (buffer (get-buffer name)))
+    (with-current-buffer buffer
+      (derived-mode-p 'pi-coding-agent-chat-mode))))
+
+(defun jackson/pi-coding-agent-switch-to-chat ()
+  "Switch to any open `pi-coding-agent' chat buffer."
+  (interactive)
+  (switch-to-buffer
+   (read-buffer "Pi chat buffer: " nil t
+                #'jackson/pi-coding-agent-chat-buffer-p)))
+
+(defun jackson/pi-coding-agent-switch-to-project-chat ()
+  "Switch to a current-project `pi-coding-agent' chat buffer."
+  (interactive)
+  (require 'pi-coding-agent)
+  (let* ((buffers (pi-coding-agent-project-buffers))
+         (names (mapcar #'buffer-name buffers)))
+    (unless names
+      (user-error "No pi chat buffers for this project"))
+    (switch-to-buffer
+     (completing-read "Project pi chat: " names nil t nil nil (car names)))))
+
 (defun jackson/pi-coding-agent-input--schedule (&rest _)
   "Schedule `jackson/pi-coding-agent-input--sync' to run as soon as soon as
 the redisplay-related code has finished."
@@ -161,7 +187,7 @@ the redisplay-related code has finished."
   ;;
   ;; I think the idea is that timers are not preemptive. They get registered,
   ;; and Emacs will run the function once it gets to the part of the interaction
-  ;; loop that runs timmers. So the idea here is that the redisplay/window
+  ;; loop that runs timers. So the idea here is that the redisplay/window
   ;; bookkeeping code will run, and then `jackson/pi-coding-agent-input--sync'
   ;; will run.
   (when jackson/pi-coding-agent-input-auto-enabled
@@ -173,7 +199,10 @@ the redisplay-related code has finished."
   :commands
   (pi-coding-agent pi-coding-agent-toggle pi-coding-agent-install-grammars)
   :bind
-  (("C-c p t" . jackson/pi-coding-agent-toggle-input-auto))
+  (("C-c p b" . jackson/pi-coding-agent-switch-to-chat)
+   ("C-c p i" . jackson/pi-coding-agent-toggle-input)
+   ("C-c p t" . jackson/pi-coding-agent-toggle-input-auto)
+   ("C-x p P" . jackson/pi-coding-agent-switch-to-project-chat))
   :config
   ;; (add-hook 'window-selection-change-functions
   ;;           #'jackson/pi-coding-agent-input--schedule)
