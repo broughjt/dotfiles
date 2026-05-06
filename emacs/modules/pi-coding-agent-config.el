@@ -7,24 +7,15 @@
 (defvar jackson/pi-coding-agent-input--busy nil
   "Non-nil while pi input-window synchronization is running.")
 
-(declare-function pi-coding-agent--get-chat-buffer "pi-coding-agent-ui")
+(declare-function pi-coding-agent--chat-buffer-for-buffer
+                  "pi-coding-agent-ui" (&optional buffer))
 (declare-function pi-coding-agent--get-input-buffer "pi-coding-agent-ui")
 (declare-function pi-coding-agent--input-height-for-window "pi-coding-agent-ui")
 (declare-function pi-coding-agent--window-can-split-for-input-p "pi-coding-agent-ui")
 
-(defun jackson/pi-coding-agent-current-chat (&optional buffer)
-  "Return BUFFER's associated pi chat buffer or nil."
-  (let ((buffer (or buffer (current-buffer))))
-    (when (buffer-live-p buffer)
-      (with-current-buffer buffer
-        (when (derived-mode-p 'pi-coding-agent-chat-mode
-                              'pi-coding-agent-input-mode)
-          (let ((chat (pi-coding-agent--get-chat-buffer)))
-            (and (buffer-live-p chat) chat)))))))
-
 (defun jackson/pi-coding-agent-current-input (&optional chat)
   "Return CHAT's associated pi input buffer or nil."
-  (let ((chat (or chat (jackson/pi-coding-agent-current-chat))))
+  (let ((chat (or chat (pi-coding-agent--chat-buffer-for-buffer))))
     (when (buffer-live-p chat)
       (with-current-buffer chat
         (let ((input (pi-coding-agent--get-input-buffer)))
@@ -68,7 +59,7 @@
   "Delete CHAT's pi input windows in the selected frame.
 When MANUAL is non-nil, keep automatic sync from reopening the input window
 until this frame leaves and re-enters the pi session."
-  (let ((chat (or chat (jackson/pi-coding-agent-current-chat))))
+  (let ((chat (or chat (pi-coding-agent--chat-buffer-for-buffer))))
     (when (buffer-live-p chat)
       (when manual
         (jackson/pi-coding-agent-input--set-suppressed-chat chat))
@@ -79,7 +70,7 @@ until this frame leaves and re-enters the pi session."
 (defun jackson/pi-coding-agent-show-input (&optional chat manual)
   "Show CHAT's pi input buffer below its selected-frame chat window.
 When MANUAL is non-nil, clear any manual suppression for this frame."
-  (let* ((chat (or chat (jackson/pi-coding-agent-current-chat)))
+  (let* ((chat (or chat (pi-coding-agent--chat-buffer-for-buffer)))
          (input (jackson/pi-coding-agent-current-input chat))
          (chat-window (and (buffer-live-p chat) (get-buffer-window chat nil))))
     (when manual
@@ -99,7 +90,7 @@ When MANUAL is non-nil, clear any manual suppression for this frame."
 (defun jackson/pi-coding-agent-toggle-input ()
   "Toggle the current pi session's input window."
   (interactive)
-  (let ((chat (or (jackson/pi-coding-agent-current-chat)
+  (let ((chat (or (pi-coding-agent--chat-buffer-for-buffer)
                   (jackson/pi-coding-agent-visible-chat))))
     (unless chat
       (user-error "No visible pi session"))
@@ -134,7 +125,7 @@ With prefix ARG, enable when ARG is positive and disable otherwise."
       (condition-case err
           (let* ((frame (selected-frame))
                  (buffer (window-buffer (selected-window)))
-                 (selected-chat (jackson/pi-coding-agent-current-chat buffer))
+                 (selected-chat (pi-coding-agent--chat-buffer-for-buffer buffer))
                  (last-chat (jackson/pi-coding-agent-input--last-chat frame))
                  (visible-chat (jackson/pi-coding-agent-visible-chat
                                 frame (or selected-chat last-chat))))
