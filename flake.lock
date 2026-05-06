@@ -403,17 +403,14 @@
         ]
       },
       "locked": {
-        "lastModified": 1778053138,
-        "narHash": "sha256-pimkzdU7aLDH9NNQ8yMNJBbTyKSDpBpMbYqwF3iwc9k=",
-        "owner": "broughjt",
-        "repo": "pi-coding-agent",
-        "rev": "0a8480d8c8977e2800e8c5539e3d449ba2f2999a",
-        "type": "github"
+        "lastModified": 1778090627,
+        "narHash": "sha256-VBOvxaf+cWbsyNLDM7qTOClSqDrr6Nalj+QDHFMu9FI=",
+        "path": "/home/jackson/repositories/pi-coding-agent",
+        "type": "path"
       },
       "original": {
-        "owner": "broughjt",
-        "repo": "pi-coding-agent",
-        "type": "github"
+        "path": "/home/jackson/repositories/pi-coding-agent",
+        "type": "path"
       }
     },
     "pre-commit-hooks": {

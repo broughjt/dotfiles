@@ -23,7 +23,8 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
 
-    pi-coding-agent.url = "github:broughjt/pi-coding-agent";
+    # pi-coding-agent.url = "github:broughjt/pi-coding-agent";
+    pi-coding-agent.url = "path:/home/jackson/repositories/pi-coding-agent";
     pi-coding-agent.inputs.nixpkgs.follows = "nixpkgs";
     pi-coding-agent.inputs.flake-utils.follows = "flake-utils";
 
