@@ -1,5 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 
+(defvar jackson/pi-coding-agent-input-auto-enabled t
+  "Non-nil when pi input windows automatically follow visible chat windows.")
 (defvar jackson/pi-coding-agent-input--pending nil
   "Pending timer for pi input-window synchronization.")
 (defvar jackson/pi-coding-agent-input--busy nil
@@ -105,10 +107,28 @@ When MANUAL is non-nil, clear any manual suppression for this frame."
         (jackson/pi-coding-agent-hide-input chat t)
       (jackson/pi-coding-agent-show-input chat t))))
 
+(defun jackson/pi-coding-agent-toggle-input-auto (&optional arg)
+  "Toggle automatic pi input-window management.
+With prefix ARG, enable when ARG is positive and disable otherwise."
+  (interactive "P")
+  (setq jackson/pi-coding-agent-input-auto-enabled
+        (if arg
+            (> (prefix-numeric-value arg) 0)
+          (not jackson/pi-coding-agent-input-auto-enabled)))
+  (if jackson/pi-coding-agent-input-auto-enabled
+      (progn
+        (jackson/pi-coding-agent-input--schedule)
+        (message "Pi input auto-follow enabled"))
+    (when (timerp jackson/pi-coding-agent-input--pending)
+      (cancel-timer jackson/pi-coding-agent-input--pending)
+      (setq jackson/pi-coding-agent-input--pending nil))
+    (message "Pi input auto-follow disabled")))
+
 (defun jackson/pi-coding-agent-input--sync ()
   "Synchronize pi input-window visibility with the selected window."
   (setq jackson/pi-coding-agent-input--pending nil)
-  (unless (or jackson/pi-coding-agent-input--busy
+  (unless (or (not jackson/pi-coding-agent-input-auto-enabled)
+              jackson/pi-coding-agent-input--busy
               (minibufferp (window-buffer (selected-window))))
     (let ((jackson/pi-coding-agent-input--busy t))
       (condition-case err
@@ -144,15 +164,16 @@ the redisplay-related code has finished."
   ;; loop that runs timmers. So the idea here is that the redisplay/window
   ;; bookkeeping code will run, and then `jackson/pi-coding-agent-input--sync'
   ;; will run.
-  (unless (timerp jackson/pi-coding-agent-input--pending)
-    (setq jackson/pi-coding-agent-input--pending
-          (run-at-time nil nil #'jackson/pi-coding-agent-input--sync))))
+  (when jackson/pi-coding-agent-input-auto-enabled
+    (unless (timerp jackson/pi-coding-agent-input--pending)
+      (setq jackson/pi-coding-agent-input--pending
+            (run-at-time nil nil #'jackson/pi-coding-agent-input--sync)))))
 
 (use-package pi-coding-agent
   :commands
   (pi-coding-agent pi-coding-agent-toggle pi-coding-agent-install-grammars)
   :bind
-  ("C-c p t" . jackson/pi-coding-agent-toggle-input)
+  (("C-c p t" . jackson/pi-coding-agent-toggle-input-auto))
   :config
   ;; (add-hook 'window-selection-change-functions
   ;;           #'jackson/pi-coding-agent-input--schedule)
