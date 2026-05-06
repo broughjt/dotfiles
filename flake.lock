@@ -403,8 +403,8 @@
         ]
       },
       "locked": {
-        "lastModified": 1778090627,
-        "narHash": "sha256-VBOvxaf+cWbsyNLDM7qTOClSqDrr6Nalj+QDHFMu9FI=",
+        "lastModified": 1778091408,
+        "narHash": "sha256-l3sTlq+Wq7Pl5Co2sFRGjw6Tlrw5FX2dXTCJRj52+AU=",
         "path": "/home/jackson/repositories/pi-coding-agent",
         "type": "path"
       },

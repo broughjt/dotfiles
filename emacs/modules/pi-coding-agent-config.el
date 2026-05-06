@@ -178,6 +178,7 @@ the redisplay-related code has finished."
    pi-coding-agent-toggle)
   :bind
   (("C-c a b" . pi-coding-agent-switch-to-chat-buffer)
+   ("C-c a k" . pi-coding-agent-kill-chat-buffer)
    ("C-c a t" . jackson/pi-coding-agent-toggle-input-auto)
    ("C-x p P" . pi-coding-agent-switch-to-project-chat-buffer))
   :config
