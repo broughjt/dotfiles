@@ -54,16 +54,19 @@
     let
       vaultixInput = vaultix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
-      makePkgs = system: import nixpkgs {
-        inherit system;
-        overlays = [
-          llm-agents-nix.overlays.default
-        ] ++ (with emacs-overlay.overlays; [
-          emacs
-          package
-        ]);
-        config.allowUnfree = true;
-      };
+      makePkgs =
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = [
+            llm-agents-nix.overlays.default
+          ]
+          ++ (with emacs-overlay.overlays; [
+            emacs
+            package
+          ]);
+          config.allowUnfree = true;
+        };
 
       piWebAccessPackage = import ./nix/packages/pi-web-access.nix;
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
@@ -110,8 +113,7 @@
         nodes = {
           inherit (nixosConfigurations) murph;
         };
-        # TODO: Get this file location from the directories module somehow
-        identity = "/home/jackson/.ssh/id_ed25519";
+        identity = "${nixosConfigurations.murph.config.defaultDirectories.homeDirectory}/.ssh/id_ed25519";
         cache = "./secrets/cache";
         defaultSecretDirectory = "./secrets";
         systems = [
