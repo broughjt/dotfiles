@@ -7,10 +7,6 @@
     path = ../templates/python;
     description = "Python template";
   };
-  herbie = {
-    path = ../templates/herbie;
-    description = "Herbie template";
-  };
   rocq = {
     path = ../templates/rocq;
     description = "Coq template";

@@ -110,7 +110,7 @@
         nodes = {
           inherit (nixosConfigurations) murph;
         };
-        # String path, not a Nix path literal: keeps the private key out of the Nix store.
+        # TODO: Get this file location from the directories module somehow
         identity = "/home/jackson/.ssh/id_ed25519";
         cache = "./secrets/cache";
         defaultSecretDirectory = "./secrets";
