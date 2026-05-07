@@ -55,7 +55,6 @@
           historyLimit = 50000;
           terminal = "tmux-256color";
           plugins = with pkgs.tmuxPlugins; [
-            vim-tmux-navigator
             {
               plugin = yank;
               extraConfig = ''
