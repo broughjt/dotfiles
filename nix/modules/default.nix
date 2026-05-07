@@ -1,7 +1,8 @@
 {
   home-manager,
-  emacs-overlay,
-  llm-agents-nix,
+  nix-config,
+  llmAgentsOverlay,
+  emacsOverlays,
   vaultixInput,
   nixos-raspberrypi,
   emacsSourceFiles,
@@ -13,7 +14,7 @@
 
 rec {
   personal = import ./personal.nix;
-  nixSettings = import ./nix-settings.nix { inherit llm-agents-nix; };
+  nixSettings = import ./nix-settings.nix { inherit nix-config llmAgentsOverlay; };
 
   tarsHardware = import ./hosts/tars-hardware.nix { inherit nixos-raspberrypi; };
   tarsAccess = import ./hosts/tars-access.nix;
@@ -52,7 +53,7 @@ rec {
   tailscale = import ./tailscale.nix;
   emacs = import ./home/emacs.nix {
     inherit
-      emacs-overlay
+      emacsOverlays
       emacsSourceFiles
       configureEmacsPackage
       ;

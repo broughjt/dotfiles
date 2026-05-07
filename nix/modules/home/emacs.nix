@@ -1,5 +1,5 @@
 {
-  emacs-overlay,
+  emacsOverlays,
   emacsSourceFiles,
   configureEmacsPackage,
 }:
@@ -10,10 +10,7 @@ let
   emacsData = emacsSourceFiles pkgs;
 in
 {
-  nixpkgs.overlays = with emacs-overlay.overlays; [
-    emacs
-    package
-  ];
+  nixpkgs.overlays = emacsOverlays;
 
   home-manager.users.${config.personal.userName} = {
     programs.emacs = {

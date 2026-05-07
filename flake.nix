@@ -1,6 +1,8 @@
 {
   description = "Are these your dotfiles, Larry?";
 
+  # Nix requires `nixConfig` values to be literal, so these cannot be imported from
+  # `./nix/nix-config.nix`. Keep them in sync with the cache definitions there.
   nixConfig = {
     extra-substituters = [
       "https://cache.numtide.com"
@@ -52,20 +54,18 @@
       nixos-raspberrypi,
     }:
     let
+      nix-config = import ./nix/nix-config.nix;
       vaultixInput = vaultix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
+      llmAgentsOverlay = nix-config.llmAgentsOverlay llm-agents-nix;
+      emacsOverlays = nix-config.emacsOverlays emacs-overlay;
+      packageOverlays = [ llmAgentsOverlay ] ++ emacsOverlays;
       makePkgs =
         system:
         import nixpkgs {
           inherit system;
-          overlays = [
-            llm-agents-nix.overlays.default
-          ]
-          ++ (with emacs-overlay.overlays; [
-            emacs
-            package
-          ]);
-          config.allowUnfree = true;
+          overlays = packageOverlays;
+          config = nix-config.nixpkgsConfig;
         };
 
       piWebAccessPackage = import ./nix/packages/pi-web-access.nix;
@@ -75,8 +75,9 @@
       nixosModules = import ./nix/modules {
         inherit
           home-manager
-          emacs-overlay
-          llm-agents-nix
+          nix-config
+          llmAgentsOverlay
+          emacsOverlays
           vaultixInput
           nixos-raspberrypi
           piWebAccessPackage
