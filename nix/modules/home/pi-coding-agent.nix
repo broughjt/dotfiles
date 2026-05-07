@@ -1,5 +1,4 @@
 {
-  piWebAccessPackage,
   piWebMinimalPackage,
   piSystemPromptPackage,
 }:
@@ -7,7 +6,6 @@
 { config, pkgs, ... }:
 
 let
-  piWebAccess = piWebAccessPackage pkgs;
   piWebMinimal = piWebMinimalPackage pkgs;
   piSystemPrompt = piSystemPromptPackage pkgs;
 in
@@ -18,6 +16,7 @@ in
       force = true;
     };
 
+    # TODO: Remove, I don't think this is working
     home.file.".pi/agent/bin/npm-nix" = {
       executable = true;
       force = true;
@@ -39,12 +38,8 @@ in
         enableInstallTelemetry = false;
         npmCommand = [ "${config.defaultDirectories.homeDirectory}/.pi/agent/bin/npm-nix" ];
         packages = [
-          # {
-          #   source = "${piWebAccess}";
-          #   extensions = [];
-          #   skills = [];
-          # }
           "${piWebMinimal}"
+          # "${piSystemPrompt}"
         ];
       };
     };

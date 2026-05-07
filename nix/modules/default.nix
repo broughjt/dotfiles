@@ -7,7 +7,6 @@
   nixos-raspberrypi,
   emacsSourceFiles,
   configureEmacsPackage,
-  piWebAccessPackage,
   piWebMinimalPackage,
   piSystemPromptPackage,
 }:
@@ -44,7 +43,6 @@ rec {
   vaultixSecrets = import ./home/vaultix-secrets.nix { inherit vaultixInput; };
   piCodingAgent = import ./home/pi-coding-agent.nix {
     inherit
-      piWebAccessPackage
       piWebMinimalPackage
       piSystemPromptPackage
       ;

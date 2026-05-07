@@ -70,7 +70,6 @@
           config = nix-config.nixpkgsConfig;
         };
 
-      piWebAccessPackage = import ./nix/packages/pi-web-access.nix;
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
       piSystemPromptPackage = import ./nix/packages/pi-system-prompt.nix;
 
@@ -82,7 +81,6 @@
           emacsOverlays
           vaultixInput
           nixos-raspberrypi
-          piWebAccessPackage
           piWebMinimalPackage
           piSystemPromptPackage
           ;
