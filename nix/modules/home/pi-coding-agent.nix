@@ -1,13 +1,9 @@
-{
-  piWebMinimalPackage,
-  piSystemPromptPackage,
-}:
+{ piWebMinimalPackage }:
 
 { config, pkgs, ... }:
 
 let
   piWebMinimal = piWebMinimalPackage pkgs;
-  piSystemPrompt = piSystemPromptPackage pkgs;
 in
 {
   home-manager.users.${config.personal.userName} = {
@@ -37,10 +33,7 @@ in
         defaultThinkingLevel = "high";
         enableInstallTelemetry = false;
         npmCommand = [ "${config.defaultDirectories.homeDirectory}/.pi/agent/bin/npm-nix" ];
-        packages = [
-          "${piWebMinimal}"
-          # "${piSystemPrompt}"
-        ];
+        packages = [ "${piWebMinimal}" ];
       };
     };
   };

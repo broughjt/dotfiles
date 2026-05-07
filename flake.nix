@@ -66,12 +66,11 @@
         system:
         import nixpkgs {
           inherit system;
-          overlays = emacsOverlays;
+          overlays = [ llmAgentsOverlay ] ++ emacsOverlays;
           config = nix-config.nixpkgsConfig;
         };
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
-      piSystemPromptPackage = import ./nix/packages/pi-system-prompt.nix;
 
       nixosModules = import ./nix/modules {
         inherit
@@ -82,7 +81,6 @@
           vaultixInput
           nixos-raspberrypi
           piWebMinimalPackage
-          piSystemPromptPackage
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };
