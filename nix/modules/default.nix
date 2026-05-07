@@ -5,7 +5,6 @@
   emacsOverlays,
   vaultixInput,
   nixos-raspberrypi,
-  emacsSourceFiles,
   configureEmacsPackage,
   piWebMinimalPackage,
   piSystemPromptPackage,
@@ -52,7 +51,6 @@ rec {
   emacs = import ./home/emacs.nix {
     inherit
       emacsOverlays
-      emacsSourceFiles
       configureEmacsPackage
       ;
   };

@@ -1,49 +1,67 @@
 { pi-coding-agent }:
 
-let
-  emacsRoot = ../../emacs;
-in
-rec {
-  emacsSourceFiles =
-    pkgs:
-    let
-      emacsFiles = builtins.sort (a: b: (toString a) < (toString b)) (
-        pkgs.lib.filesystem.listFilesRecursive emacsRoot
-      );
-      emacsElFiles = builtins.filter (file: pkgs.lib.strings.hasSuffix ".el" (toString file)) emacsFiles;
-      emacsHomeFiles = builtins.listToAttrs (
-        map (file: {
-          name = ".emacs.d/${pkgs.lib.strings.removePrefix "${toString emacsRoot}/" (toString file)}";
-          value = {
-            source = file;
-          };
-        }) emacsFiles
-      );
-    in
-    {
-      inherit emacsFiles emacsElFiles emacsHomeFiles;
-      emacsConfigText = builtins.concatStringsSep "\n\n" (map builtins.readFile emacsElFiles);
-    };
-
+{
   configureEmacsPackage =
     pkgs:
     let
-      emacsSources = emacsSourceFiles pkgs;
+      emacsPackages = (pkgs.emacsPackagesFor pkgs.emacs-git-pgtk).overrideScope (
+        final: _prev: {
+          pi-coding-agent = pi-coding-agent.lib.mkPackage pkgs final;
+        }
+      );
     in
-    pkgs.emacsWithPackagesFromUsePackage {
-      package = pkgs.emacs-git-pgtk;
-      config = emacsSources.emacsConfigText;
-      defaultInitFile = false;
-      override = final: _prev: {
-        pi-coding-agent = pi-coding-agent.lib.mkPackage pkgs final;
-      };
-      extraEmacsPackages =
-        epkgs: with epkgs; [
-          ghostel
-          pi-coding-agent
-          treesit-grammars.with-all-grammars
-        ];
+    emacsPackages.emacsWithPackages (
+      epkgs: with epkgs; [
+        # init.el
+        use-package
+        bind-key
+        exec-path-from-shell
+        envrc
+        inheritenv
 
-      alwaysEnsure = true;
-    };
+        # modules/agent-shell-config.el
+        agent-shell
+
+        # modules/completion.el
+        affe
+        cape
+        consult
+        corfu
+        jinx
+        marginalia
+        orderless
+        vertico
+        which-key
+        yasnippet
+
+        # modules/editing.el
+        evil
+        evil-collection
+        magit
+
+        # modules/languages/*.el
+        auctex
+        haskell-mode
+        markdown-mode
+        nix-mode
+        racket-mode
+        rust-mode
+        typst-ts-mode
+        verilog-mode
+
+        # modules/pi-coding-agent-config.el
+        pi-coding-agent
+
+        # modules/terminal.el
+        ghostel
+
+        # modules/ui.el
+        ef-themes
+        modus-themes
+        standard-themes
+
+        # Treesitter grammars needed for pi-pi-coding-agent
+        treesit-grammars.with-all-grammars
+      ]
+    );
 }

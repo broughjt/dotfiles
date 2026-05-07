@@ -84,7 +84,7 @@
           piWebMinimalPackage
           piSystemPromptPackage
           ;
-        inherit (emacsPackages) emacsSourceFiles configureEmacsPackage;
+        inherit (emacsPackages) configureEmacsPackage;
       };
 
       nixosConfigurations = {
