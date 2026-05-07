@@ -461,8 +461,40 @@
                     killall
                     lldb
                     ripgrep
-                    tmux
                   ];
+
+                  programs.tmux = {
+                    enable = true;
+                    sensibleOnTop = true;
+                    keyMode = "vi";
+                    customPaneNavigationAndResize = true;
+                    mouse = true;
+                    historyLimit = 50000;
+                    terminal = "tmux-256color";
+                    plugins = with pkgs.tmuxPlugins; [
+                      vim-tmux-navigator
+                      {
+                        plugin = yank;
+                        extraConfig = ''
+                          set -g @copy_command '${pkgs.wl-clipboard}/bin/wl-copy'
+                        '';
+                      }
+                      {
+                        plugin = resurrect;
+                        extraConfig = ''
+                          set -g @resurrect-capture-pane-contents 'on'
+                          set -g @resurrect-strategy-nvim 'session'
+                        '';
+                      }
+                      {
+                        plugin = continuum;
+                        extraConfig = ''
+                          set -g @continuum-restore 'on'
+                          set -g @continuum-save-interval '15'
+                        '';
+                      }
+                    ];
+                  };
 
                   programs.fish = {
                     enable = true;
