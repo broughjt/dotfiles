@@ -54,12 +54,15 @@
     let
       vaultixInput = vaultix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
-      makePkgs = import ./nix/pkgs.nix {
-        inherit
-          nixpkgs
-          emacs-overlay
-          llm-agents-nix
-          ;
+      makePkgs = system: import nixpkgs {
+        inherit system;
+        overlays = [
+          llm-agents-nix.overlays.default
+        ] ++ (with emacs-overlay.overlays; [
+          emacs
+          package
+        ]);
+        config.allowUnfree = true;
       };
 
       piWebAccessPackage = import ./nix/packages/pi-web-access.nix;
