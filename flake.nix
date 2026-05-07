@@ -54,6 +54,13 @@
     let
       vaultixInput = vaultix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
+      makePkgs = import ./nix/pkgs.nix {
+        inherit
+          nixpkgs
+          emacs-overlay
+          llm-agents-nix
+          ;
+      };
 
       piWebAccessPackage = import ./nix/packages/pi-web-access.nix;
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
@@ -112,13 +119,14 @@
 
       templates = import ./nix/templates.nix;
     }
-    // import ./nix/dev.nix {
-      inherit
-        nixpkgs
-        flake-utils
-        llm-agents-nix
-        emacs-overlay
-        ;
-      inherit (emacsPackages) configureEmacsPackage;
-    };
+    // flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = makePkgs system;
+        emacsPackage = emacsPackages.configureEmacsPackage pkgs;
+      in
+      (import ./nix/shell.nix { inherit pkgs; })
+      // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
+      // (import ./nix/formatter.nix { inherit pkgs; })
+    );
 }
