@@ -2,14 +2,23 @@
 
 let
   piPrintSystemPromptScript = pkgs.writeText "pi-print-system-prompt.mjs" ''
+    import { parseArgs } from "node:util";
     import {
       createAgentSession,
       SessionManager,
     } from "${pkgs.llm-agents.pi}/lib/node_modules/@mariozechner/pi-coding-agent/dist/index.js";
 
-    const args = new Set(process.argv.slice(2));
+    const { values } = parseArgs({
+      options: {
+        "prompt-only": { type: "boolean", default: false },
+        "tools-only": { type: "boolean", default: false },
+        "all-tools": { type: "boolean", default: false },
+        help: { type: "boolean", short: "h", default: false },
+      },
+      allowPositionals: false,
+    });
 
-    if (args.has("--help") || args.has("-h")) {
+    if (values.help) {
       console.log(`Usage: pi-print-system-prompt [options]
 
     Print Pi's resolved system prompt and active tool declarations.
@@ -20,6 +29,11 @@ let
       --all-tools    Print all configured tools, including inactive tools
       --help, -h     Show this help`);
       process.exit(0);
+    }
+
+    if (values["prompt-only"] && values["tools-only"]) {
+      console.error("Cannot use --prompt-only and --tools-only together.");
+      process.exit(2);
     }
 
     const { session } = await createAgentSession({
@@ -47,17 +61,17 @@ let
     try {
       const allTools = session.getAllTools();
       const activeToolNames = new Set(session.getActiveToolNames());
-      const tools = args.has("--all-tools")
+      const tools = values["all-tools"]
         ? allTools
         : allTools.filter((tool) => activeToolNames.has(tool.name));
-      const toolLabel = args.has("--all-tools") ? "configured tools" : "active tools";
+      const toolLabel = values["all-tools"] ? "configured tools" : "active tools";
 
-      if (!args.has("--tools-only")) {
+      if (!values["tools-only"]) {
         console.log(session.systemPrompt);
       }
 
-      if (!args.has("--prompt-only")) {
-        if (!args.has("--tools-only")) {
+      if (!values["prompt-only"]) {
+        if (!values["tools-only"]) {
           console.log("\n────────────────────────────────────────\n");
         }
         console.log(formatToolDefinitions(tools, toolLabel));
