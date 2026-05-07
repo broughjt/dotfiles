@@ -66,6 +66,7 @@
     layout = "us";
     variant = "";
   };
+  console.keyMap = "us";
 
   services.fprintd.enable = true;
 
