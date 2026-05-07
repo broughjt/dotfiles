@@ -30,9 +30,6 @@ in
     inherit group;
     mode = "0600";
     content = builtins.toJSON {
-      provider = "auto";
-      workflow = "none";
-      allowBrowserCookies = false;
       exaApiKey = config.vaultix.placeholder.exaApiKey;
       context7ApiKey = config.vaultix.placeholder.context7ApiKey;
     };
