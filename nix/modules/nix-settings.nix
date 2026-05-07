@@ -1,12 +1,8 @@
-{
-  nix-config,
-  llmAgentsOverlay,
-}:
+{ nix-config }:
 
 { ... }:
 
 {
   nix.settings = nix-config.nixSettings;
-  nixpkgs.overlays = [ llmAgentsOverlay ];
   nixpkgs.config = nix-config.nixpkgsConfig;
 }

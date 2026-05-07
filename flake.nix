@@ -57,14 +57,16 @@
       nix-config = import ./nix/nix-config.nix;
       vaultixInput = vaultix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
-      llmAgentsOverlay = nix-config.llmAgentsOverlay llm-agents-nix;
-      emacsOverlays = nix-config.emacsOverlays emacs-overlay;
-      packageOverlays = [ llmAgentsOverlay ] ++ emacsOverlays;
+      llmAgentsOverlay = llm-agents-nix.overlays.default;
+      emacsOverlays = with emacs-overlay.overlays; [
+        emacs
+        package
+      ];
       makePkgs =
         system:
         import nixpkgs {
           inherit system;
-          overlays = packageOverlays;
+          overlays = emacsOverlays;
           config = nix-config.nixpkgsConfig;
         };
 

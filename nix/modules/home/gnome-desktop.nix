@@ -1,4 +1,7 @@
-{ dconf }:
+{
+  dconf,
+  llmAgentsOverlay,
+}:
 
 {
   config,
@@ -11,6 +14,8 @@
   imports = [ dconf ];
 
   config = {
+    nixpkgs.overlays = [ llmAgentsOverlay ];
+
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
     services.pipewire = {

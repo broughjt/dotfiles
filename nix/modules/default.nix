@@ -14,7 +14,7 @@
 
 rec {
   personal = import ./personal.nix;
-  nixSettings = import ./nix-settings.nix { inherit nix-config llmAgentsOverlay; };
+  nixSettings = import ./nix-settings.nix { inherit nix-config; };
 
   tarsHardware = import ./hosts/tars-hardware.nix { inherit nixos-raspberrypi; };
   tarsAccess = import ./hosts/tars-access.nix;
@@ -36,7 +36,7 @@ rec {
 
   homeDirectories = import ./home/directories.nix;
   homeLinux = import ./home/linux.nix { inherit homeDirectories; };
-  gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf; };
+  gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf llmAgentsOverlay; };
   dconf = import ./home/dconf.nix { inherit home-manager; };
   gh = import ./home/gh.nix;
   gpg = import ./home/gpg.nix;

@@ -39,11 +39,4 @@ rec {
     allowUnfree = true;
   };
 
-  llmAgentsOverlay = llm-agents-nix: llm-agents-nix.overlays.default;
-
-  emacsOverlays =
-    emacs-overlay: with emacs-overlay.overlays; [
-      emacs
-      package
-    ];
 }
