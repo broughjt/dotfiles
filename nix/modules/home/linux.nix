@@ -46,6 +46,37 @@
           ripgrep
         ];
 
+        programs.fish = {
+          enable = true;
+          interactiveShellInit = "fish_vi_key_bindings";
+          shellAliases.ls = "eza --group-directories-first";
+        };
+
+        programs.git = {
+          enable = true;
+          settings = {
+            user = {
+              name = config.personal.fullName;
+              email = config.personal.email;
+            };
+            # "Are the worker threads going to unionize?"
+            init.defaultBranch = "main";
+          };
+          signing.key = "1BA5F1335AB45105";
+          signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
+        };
+
+        programs.ssh = {
+          enable = true;
+          enableDefaultConfig = false;
+          matchBlocks = {
+            "*" = {
+              identityFile = "~/.ssh/id_ed25519";
+              addKeysToAgent = "yes";
+            };
+          };
+        };
+
         programs.tmux = {
           enable = true;
           sensibleOnTop = true;
@@ -76,37 +107,6 @@
               '';
             }
           ];
-        };
-
-        programs.fish = {
-          enable = true;
-          interactiveShellInit = "fish_vi_key_bindings";
-          shellAliases.ls = "eza --group-directories-first";
-        };
-
-        programs.git = {
-          enable = true;
-          settings = {
-            user = {
-              name = config.personal.fullName;
-              email = config.personal.email;
-            };
-            # "Are the worker threads going to unionize?"
-            init.defaultBranch = "main";
-          };
-          signing.key = "1BA5F1335AB45105";
-          signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
-        };
-
-        programs.ssh = {
-          enable = true;
-          enableDefaultConfig = false;
-          matchBlocks = {
-            "*" = {
-              identityFile = "~/.ssh/id_ed25519";
-              addKeysToAgent = "yes";
-            };
-          };
         };
       };
   };
