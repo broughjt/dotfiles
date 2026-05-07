@@ -46,6 +46,7 @@
 
     home-manager.users.${config.personal.userName} = {
       home.packages = with pkgs; [
+        # Do we still need bubblewrap for Codex?
         bubblewrap
         dconf-editor
         discord
@@ -87,13 +88,6 @@
         settings = {
           theme = "dark:3024 Night,light:3024 Day";
           font-family = "JuliaMono";
-        };
-      };
-
-      programs.zed-editor = {
-        enable = true;
-        userSettings = {
-          vim_mode = true;
         };
       };
 
