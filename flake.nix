@@ -22,6 +22,12 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    cosmic-manager = {
+      url = "github:HeitorAugustoLN/cosmic-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -46,6 +52,7 @@
       self,
       nixpkgs,
       home-manager,
+      cosmic-manager,
       emacs-overlay,
       pi-coding-agent,
       flake-utils,
@@ -80,6 +87,7 @@
           emacsOverlays
           vaultixInput
           nixos-raspberrypi
+          cosmic-manager
           piWebMinimalPackage
           ;
         inherit (emacsPackages) configureEmacsPackage;

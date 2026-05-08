@@ -5,6 +5,7 @@
   emacsOverlays,
   vaultixInput,
   nixos-raspberrypi,
+  cosmic-manager,
   configureEmacsPackage,
   piWebMinimalPackage,
 }:
@@ -33,7 +34,9 @@ rec {
 
   homeDirectories = import ./home/directories.nix;
   homeLinux = import ./home/linux.nix { inherit homeDirectories; };
-  gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf llmAgentsOverlay; };
+  desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
+  cosmicDesktop = import ./home/cosmic-desktop.nix { inherit cosmic-manager desktopApps; };
+  gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf desktopApps; };
   dconf = import ./home/dconf.nix { inherit home-manager; };
   gh = import ./home/gh.nix;
   gpg = import ./home/gpg.nix;

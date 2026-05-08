@@ -1,6 +1,6 @@
 {
   dconf,
-  llmAgentsOverlay,
+  desktopApps,
 }:
 
 {
@@ -11,11 +11,12 @@
 }:
 
 {
-  imports = [ dconf ];
+  imports = [
+    dconf
+    desktopApps
+  ];
 
   config = {
-    nixpkgs.overlays = [ llmAgentsOverlay ];
-
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
     services.pipewire = {
@@ -44,61 +45,9 @@
       config.common.default = [ "gnome" ];
     };
 
-    home-manager.users.${config.personal.userName} = {
-      home.packages = with pkgs; [
-        # Do we still need bubblewrap for Codex?
-        bubblewrap
-        dconf-editor
-        discord
-        evince
-        firefox
-        hunspell
-        hunspellDicts.en_US
-        julia-mono
-        llm-agents.claude-code
-        llm-agents.claude-agent-acp
-        llm-agents.codex
-        llm-agents.codex-acp
-        llm-agents.gemini-cli
-        llm-agents.opencode
-        llm-agents.pi
-        nautilus
-        nicotine-plus
-        noto-fonts
-        slack
-        spotify
-        strawberry
-        vlc
-        wl-clipboard
-      ];
-      home.sessionVariables.NIXOS_OZONE_WL = "1";
-
-      fonts.fontconfig = {
-        enable = true;
-        defaultFonts.monospace = [
-          "JuliaMono"
-          "Noto Sans Mono"
-        ];
-        defaultFonts.sansSerif = [ "Noto Sans" ];
-        defaultFonts.serif = [ "Noto Serif" ];
-      };
-
-      programs.ghostty = {
-        enable = true;
-        settings = {
-          theme = "dark:3024 Night,light:3024 Day";
-          font-family = "JuliaMono";
-        };
-      };
-
-      programs.beets = {
-        enable = true;
-        settings = {
-          directory = "${config.defaultDirectories.shareDirectory}/music";
-          import.move = "yes";
-          plugins = [ "musicbrainz" ];
-        };
-      };
-    };
+    home-manager.users.${config.personal.userName}.home.packages = with pkgs; [
+      dconf-editor
+      nautilus
+    ];
   };
 }

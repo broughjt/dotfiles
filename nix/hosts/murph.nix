@@ -18,7 +18,7 @@ nixpkgs.lib.nixosSystem {
     home-manager.nixosModules.home-manager
     personal
     homeLinux
-    gnomeDesktop
+    cosmicDesktop
     gh
     gpg
     pass
