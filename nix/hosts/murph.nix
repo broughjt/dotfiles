@@ -12,6 +12,10 @@ nixpkgs.lib.nixosSystem {
   };
   modules = with nixosModules; [
     murphHardware
+    diskoModule
+    impermanenceModule
+    murphDisko
+    murphImpermanence
     nixSettings
     linuxBase
     docker

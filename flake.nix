@@ -25,6 +25,11 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
 
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
+    impermanence.url = "github:nix-community/impermanence";
+
     pi-coding-agent.url = "github:broughjt/pi-coding-agent";
     # pi-coding-agent.url = "path:/home/jackson/repositories/pi-coding-agent";
     pi-coding-agent.inputs.nixpkgs.follows = "nixpkgs";
@@ -47,6 +52,8 @@
       nixpkgs,
       home-manager,
       emacs-overlay,
+      disko,
+      impermanence,
       pi-coding-agent,
       flake-utils,
       llm-agents-nix,
@@ -78,6 +85,8 @@
           nix-config
           llmAgentsOverlay
           emacsOverlays
+          disko
+          impermanence
           vaultixInput
           nixos-raspberrypi
           piWebMinimalPackage

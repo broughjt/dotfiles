@@ -3,6 +3,8 @@
   nix-config,
   llmAgentsOverlay,
   emacsOverlays,
+  disko,
+  impermanence,
   vaultixInput,
   nixos-raspberrypi,
   configureEmacsPackage,
@@ -27,6 +29,10 @@ rec {
       ;
   };
   murphHardware = import ./hosts/murph-hardware.nix;
+  murphDisko = import ./hosts/murph-disko.nix;
+  murphImpermanence = import ./hosts/murph-impermanence.nix;
+  diskoModule = disko.nixosModules.disko;
+  impermanenceModule = impermanence.nixosModules.impermanence;
 
   linuxBase = import ./linux-base.nix;
   docker = import ./docker.nix;

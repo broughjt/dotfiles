@@ -27,24 +27,6 @@
     loader.efi.canTouchEfiVariables = true;
   };
 
-  fileSystems."/" = {
-    device = "/dev/disk/by-uuid/fabb1331-c7e1-40fa-8945-800df616f8a4";
-    fsType = "ext4";
-  };
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/C736-93C5";
-    fsType = "vfat";
-    options = [
-      "fmask=0077"
-      "dmask=0077"
-    ];
-  };
-  swapDevices = [
-    {
-      device = "/dev/disk/by-uuid/02b84575-64ce-4ce3-9c9d-608d2281cb09";
-    }
-  ];
-
   networking.hostName = "murph";
   networking.networkmanager.enable = true;
   networking.useDHCP = lib.mkDefault true;
