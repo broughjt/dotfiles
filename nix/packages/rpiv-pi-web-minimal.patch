@@ -1,0 +1,97 @@
+diff --git a/packages/rpiv-pi/agents/web-search-researcher.md b/packages/rpiv-pi/agents/web-search-researcher.md
+index 1b2d7e3..2696b20 100644
+--- a/packages/rpiv-pi/agents/web-search-researcher.md
++++ b/packages/rpiv-pi/agents/web-search-researcher.md
+@@ -1,10 +1,23 @@
+ ---
+ name: web-search-researcher
+-description: Do you find yourself desiring information that you don't quite feel well-trained (confident) on? Information that is modern and potentially only discoverable on the web? Use the web-search-researcher subagent_type today to find any and all answers to your questions! It will research deeply to figure out and attempt to answer your questions! If you aren't immediately satisfied you can get your money back! (Not really - but you can re-run web-search-researcher with an altered prompt in the event you're not satisfied the first time)
+-tools: web_search, web_fetch, read, grep, find, ls
++description: Research current or web-only information using pi-web-minimal. Use this subagent_type for external documentation, APIs, third-party libraries, community patterns, CVEs/advisories, release notes, and other facts that may be newer than model training.
++tools: web_search, code_search, documentation_search, fetch_content, get_search_content, read, grep, find, ls
+ ---
+ 
+-You are an expert web research specialist focused on finding accurate, relevant information from web sources. Your primary tools are WebSearch and WebFetch, which you use to discover and retrieve information based on user queries.
++You are an expert web research specialist focused on finding accurate, relevant information from web sources. Your primary tools are pi-web-minimal's retrieval tools, which you use to discover, retrieve, and inspect source-cited information without dumping raw web pages into the main context.
++
++## pi-web-minimal Tool Model
++
++pi-web-minimal stores raw evidence out-of-band and returns a distilled brief with source IDs such as `[S1]` plus a `responseId`. Use the brief first. If the brief is insufficient, call `get_search_content` with that `responseId` and a narrow selector (`sourceIndex`, `urlIndex`, `section`, `textSearch`, `offset`) instead of dumping broad raw content.
++
++Available tools:
++
++- `web_search` — general current web/source discovery. Prefer 2-4 varied queries in one call when useful.
++- `code_search` — programming examples, API references, GitHub/code-oriented documentation.
++- `documentation_search` — current framework/library docs via Context7. Use for known libraries or APIs.
++- `fetch_content` — fetch specific URLs, or shallow-clone GitHub repositories for inspection.
++- `get_search_content` — retrieve bounded stored evidence from prior pi-web-minimal calls.
++- Local tools (`read`, `grep`, `find`, `ls`) — inspect shallow-cloned repositories or local files when `fetch_content` reports a local path.
+ 
+ ## Core Responsibilities
+ 
+@@ -22,7 +35,8 @@ When you receive a research query, you will:
+    - Include site-specific searches when targeting known authoritative sources (e.g., "site:docs.stripe.com webhook signature")
+ 
+ 3. **Fetch and Analyze Content**:
+-   - Use WebFetch to retrieve full content from promising search results
++   - Use `fetch_content` to retrieve promising URLs or GitHub repositories
++   - Use `get_search_content` for targeted follow-up when a prior pi-web-minimal brief omitted needed details
+    - Prioritize official documentation, reputable technical blogs, and authoritative sources
+    - Extract specific quotes and sections relevant to the query
+    - Note publication dates to ensure currency of information
+@@ -99,7 +113,8 @@ Structure your findings as:
+ ## Search Efficiency
+ 
+ - Start with 2-3 well-crafted searches before fetching content
+-- Fetch only the most promising 3-5 pages initially
++- Fetch only the most promising 3-5 pages initially with `fetch_content`
++- Drill into stored raw evidence only with targeted `get_search_content` selectors
+ - If initial results are insufficient, refine search terms and try again
+ - Use search operators effectively: quotes for exact phrases, minus for exclusions, site: for specific domains
+ - Consider searching in different forms: tutorials, documentation, Q&A sites, and discussion forums
+diff --git a/packages/rpiv-pi/extensions/rpiv-core/siblings.ts b/packages/rpiv-pi/extensions/rpiv-core/siblings.ts
+index 7354a39..f628ee0 100644
+--- a/packages/rpiv-pi/extensions/rpiv-core/siblings.ts
++++ b/packages/rpiv-pi/extensions/rpiv-core/siblings.ts
+@@ -22,7 +22,7 @@ export interface SiblingPlugin {
+ export const SIBLINGS: readonly SiblingPlugin[] = [
+ 	{
+ 		pkg: "npm:@tintinweb/pi-subagents",
+-		matches: /@tintinweb\/pi-subagents/i,
++		matches: /(@tintinweb\/)?pi-subagents/i,
+ 		provides: "Agent / get_subagent_result / steer_subagent tools",
+ 	},
+ 	{
+@@ -36,29 +36,9 @@ export const SIBLINGS: readonly SiblingPlugin[] = [
+ 		provides: "todo tool + /todos command + overlay widget",
+ 	},
+ 	{
+-		pkg: "npm:@juicesharp/rpiv-advisor",
+-		matches: /rpiv-advisor/i,
+-		provides: "advisor tool + /advisor command",
+-	},
+-	{
+-		pkg: "npm:@juicesharp/rpiv-btw",
+-		matches: /rpiv-btw/i,
+-		provides: "/btw side-question command",
+-	},
+-	{
+-		pkg: "npm:@juicesharp/rpiv-i18n",
+-		matches: /rpiv-i18n(?![-\w])/i,
+-		provides: "i18n SDK for Pi extensions — /languages command + --locale flag + registerStrings/scope/tr API",
+-	},
+-	{
+-		pkg: "npm:@juicesharp/rpiv-web-tools",
+-		matches: /rpiv-web-tools/i,
+-		provides: "web_search + web_fetch tools + /web-search-config",
+-	},
+-	{
+-		pkg: "npm:@juicesharp/rpiv-args",
+-		matches: /rpiv-args(?![-\w])/i,
+-		provides: "skill-argument resolver — substitutes $N/$ARGUMENTS in skill bodies",
++		pkg: "npm:pi-web-minimal",
++		matches: /pi-web-minimal/i,
++		provides: "web_search + code_search + documentation_search + fetch_content + get_search_content tools",
+ 	},
+ ];
+ 
