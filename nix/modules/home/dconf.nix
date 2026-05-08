@@ -55,6 +55,9 @@
       "org/gnome/desktop/interface" = {
         scaling-factor = home-manager.lib.hm.gvariant.mkUint32 2;
         color-scheme = "prefer-dark";
+        font-name = "Inter 11";
+        document-font-name = "Inter 11";
+        monospace-font-name = "JuliaMono 11";
         enable-hot-cornors = false;
         clock-format = "12h";
       };
