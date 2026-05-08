@@ -1,21 +1,9 @@
-{
-  piWebMinimalPackage,
-  piSubagentsPackage,
-  rpivPiPackage,
-  rpivAskUserQuestionPackage,
-  rpivTodoPackage,
-  rpivArgsPackage,
-}:
+{ piWebMinimalPackage }:
 
 { config, pkgs, ... }:
 
 let
   piWebMinimal = piWebMinimalPackage pkgs;
-  piSubagents = piSubagentsPackage pkgs;
-  rpivPi = rpivPiPackage pkgs;
-  rpivAskUserQuestion = rpivAskUserQuestionPackage pkgs;
-  rpivTodo = rpivTodoPackage pkgs;
-  rpivArgs = rpivArgsPackage pkgs;
 in
 {
   home-manager.users.${config.personal.userName} = {
@@ -45,14 +33,7 @@ in
         defaultThinkingLevel = "high";
         enableInstallTelemetry = false;
         npmCommand = [ "${config.defaultDirectories.homeDirectory}/.pi/agent/bin/npm-nix" ];
-        packages = [
-          "${piWebMinimal}"
-          "${piSubagents}"
-          "${rpivAskUserQuestion}"
-          "${rpivTodo}"
-          "${rpivArgs}"
-          "${rpivPi}"
-        ];
+        packages = [ "${piWebMinimal}" ];
       };
     };
   };

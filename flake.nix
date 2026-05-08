@@ -71,11 +71,6 @@
         };
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
-      piSubagentsPackage = import ./nix/packages/pi-subagents.nix;
-      rpivPiPackage = import ./nix/packages/rpiv-pi.nix;
-      rpivAskUserQuestionPackage = import ./nix/packages/rpiv-ask-user-question.nix;
-      rpivTodoPackage = import ./nix/packages/rpiv-todo.nix;
-      rpivArgsPackage = import ./nix/packages/rpiv-args.nix;
 
       nixosModules = import ./nix/modules {
         inherit
@@ -86,11 +81,6 @@
           vaultixInput
           nixos-raspberrypi
           piWebMinimalPackage
-          piSubagentsPackage
-          rpivPiPackage
-          rpivAskUserQuestionPackage
-          rpivTodoPackage
-          rpivArgsPackage
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };
@@ -138,26 +128,9 @@
       let
         pkgs = makePkgs system;
         emacsPackage = emacsPackages.configureEmacsPackage pkgs;
-        piWebMinimal = piWebMinimalPackage pkgs;
-        piSubagents = piSubagentsPackage pkgs;
-        rpivPi = rpivPiPackage pkgs;
-        rpivAskUserQuestion = rpivAskUserQuestionPackage pkgs;
-        rpivTodo = rpivTodoPackage pkgs;
-        rpivArgs = rpivArgsPackage pkgs;
       in
       (import ./nix/shell.nix { inherit pkgs; })
       // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
       // (import ./nix/formatter.nix { inherit pkgs; })
-      // {
-        packages = {
-          pi-web-minimal = piWebMinimal;
-          pi-subagents = piSubagents;
-          rpiv-pi = rpivPi;
-          rpiv-ask-user-question = rpivAskUserQuestion;
-          rpiv-todo = rpivTodo;
-          rpiv-args = rpivArgs;
-          default = rpivPi;
-        };
-      }
     );
 }
