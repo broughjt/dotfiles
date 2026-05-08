@@ -10,6 +10,8 @@
     curl
     git
     neovim
+    glibcInfo
+    man-pages
   ];
   environment.shells = with pkgs; [
     bashInteractive
