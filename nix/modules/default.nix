@@ -7,6 +7,11 @@
   nixos-raspberrypi,
   configureEmacsPackage,
   piWebMinimalPackage,
+  piSubagentsPackage,
+  rpivPiPackage,
+  rpivAskUserQuestionPackage,
+  rpivTodoPackage,
+  rpivArgsPackage,
 }:
 
 rec {
@@ -39,7 +44,16 @@ rec {
   gpg = import ./home/gpg.nix;
   pass = import ./home/pass.nix;
   vaultixSecrets = import ./home/vaultix-secrets.nix { inherit vaultixInput; };
-  piCodingAgent = import ./home/pi-coding-agent.nix { inherit piWebMinimalPackage; };
+  piCodingAgent = import ./home/pi-coding-agent.nix {
+    inherit
+      piWebMinimalPackage
+      piSubagentsPackage
+      rpivPiPackage
+      rpivAskUserQuestionPackage
+      rpivTodoPackage
+      rpivArgsPackage
+      ;
+  };
   kakoune = import ./home/kakoune.nix;
   tailscale = import ./tailscale.nix;
   emacs = import ./home/emacs.nix {
