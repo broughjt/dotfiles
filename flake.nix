@@ -147,7 +147,7 @@
         pkgs = makePkgs system;
         emacsPackage = emacsPackages.configureEmacsPackage pkgs;
         installMurph = pkgs.writeShellApplication {
-          name = "installMurph";
+          name = "install-murph";
           runtimeInputs = with pkgs; [
             coreutils
             disko.packages.${system}.disko-install
@@ -169,7 +169,7 @@
         packages.installMurph = installMurph;
         apps.installMurph = {
           type = "app";
-          program = "${installMurph}/bin/installMurph";
+          program = "${installMurph}/bin/install-murph";
         };
       }
     );

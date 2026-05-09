@@ -7,7 +7,7 @@ MOUNTPOINT="/mnt"
 
 usage() {
   cat <<EOF
-installMurph: destructive installer for the murph NixOS host.
+install-murph: destructive installer for the murph NixOS host.
 
 Usage:
   nix run github:broughjt/dotfiles#installMurph
@@ -45,7 +45,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 if [ "$(id -u)" -ne 0 ]; then
-  die "run as root. From the installer, use 'sudo -i' first, then run installMurph."
+  die "run as root. From the installer, use 'sudo -i' first, then run install-murph."
 fi
 
 export NIX_CONFIG="${NIX_CONFIG-}
