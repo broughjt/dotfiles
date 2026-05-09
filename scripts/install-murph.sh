@@ -32,17 +32,17 @@ warn() {
   echo "warning: $*" >&2
 }
 
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      die "unknown option: $1"
-      ;;
-  esac
-done
+case "${1-}" in
+  "")
+    ;;
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  *)
+    die "unknown option: $1"
+    ;;
+esac
 
 if [ "$(id -u)" -ne 0 ]; then
   die "run as root. From the installer, use 'sudo -i' first, then run install-murph."
