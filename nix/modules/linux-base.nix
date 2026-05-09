@@ -20,9 +20,14 @@
 
   programs.fish.enable = true;
 
+  users.mutableUsers = false;
+
+  users.users.root.hashedPasswordFile = "/persist/etc/passwords/root";
+
   users.users.${config.personal.userName} = {
     isNormalUser = true;
     description = config.personal.fullName;
+    hashedPasswordFile = "/persist/etc/passwords/${config.personal.userName}";
     extraGroups = [
       "networkmanager"
       "wheel"
@@ -30,6 +35,7 @@
       "input"
     ];
     shell = pkgs.fish;
+    openssh.authorizedKeys.keys = [ config.personal.sshPublicKey ];
   };
 
   services.openssh.enable = true;

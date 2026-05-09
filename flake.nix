@@ -104,6 +104,15 @@
             nixosModules
             ;
         };
+        murph-install = import ./nix/hosts/murph-install.nix {
+          inherit
+            inputs
+            self
+            nixpkgs
+            home-manager
+            nixosModules
+            ;
+        };
         tars = import ./nix/hosts/tars.nix {
           inherit
             inputs

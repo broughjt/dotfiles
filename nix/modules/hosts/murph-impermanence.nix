@@ -12,7 +12,7 @@ in
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs = {
     devNodes = "/dev/disk/by-id";
-    forceImportRoot = false;
+    forceImportRoot = true;
     requestEncryptionCredentials = [ "zroot/enc" ];
   };
 
@@ -51,7 +51,18 @@ in
 
   systemd.tmpfiles.rules = [
     "d /persist/etc/ssh 0755 root root -"
+    "d /persist/etc/passwords 0700 root root -"
   ];
+
+  system.activationScripts.seedPersistedMachineId = {
+    deps = [ ];
+    text = ''
+      if [ -e /persist/etc/machine-id ] && [ -f /etc/machine-id ] && [ ! -L /etc/machine-id ]; then
+        rm -f /etc/machine-id
+      fi
+    '';
+  };
+  system.activationScripts.persist-files.deps = [ "seedPersistedMachineId" ];
 
   # Keep SSH host keys out of ephemeral /etc without persisting all of /etc/ssh.
   services.openssh.hostKeys = [
@@ -71,9 +82,6 @@ in
 
     files = [
       "/etc/machine-id"
-      # User/root password hashes. Move to a declarative hashedPasswordFile later
-      # if you want passwords managed outside mutable system state.
-      "/etc/shadow"
     ];
 
     directories = [
