@@ -93,11 +93,15 @@ in
         "scratch"
         "share"
 
-        ".ssh"
+	".pi/agent/sessions"
         ".config/gh"
         ".local/share/gnupg"
         ".local/share/keyrings"
         ".mozilla/firefox"
+        ".ssh"
+      ];
+      files = [
+        ".local/share/fish/fish_history"
       ];
     };
   };
