@@ -146,9 +146,32 @@
       let
         pkgs = makePkgs system;
         emacsPackage = emacsPackages.configureEmacsPackage pkgs;
+        installMurph = pkgs.writeShellApplication {
+          name = "installMurph";
+          runtimeInputs = with pkgs; [
+            coreutils
+            disko.packages.${system}.disko-install
+            kmod
+            mkpasswd
+            procps
+            util-linux
+            zfs
+          ];
+          text = ''
+            export DOTFILES_FLAKE="${self}"
+            ${builtins.readFile ./scripts/install-murph.sh}
+          '';
+        };
       in
       (import ./nix/shell.nix { inherit pkgs; })
       // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
       // (import ./nix/formatter.nix { inherit pkgs; })
+      // {
+        packages.installMurph = installMurph;
+        apps.installMurph = {
+          type = "app";
+          program = "${installMurph}/bin/installMurph";
+        };
+      }
     );
 }
