@@ -54,15 +54,11 @@ in
     "d /persist/etc/passwords 0700 root root -"
   ];
 
-  system.activationScripts.seedPersistedMachineId = {
-    deps = [ ];
-    text = ''
-      if [ -e /persist/etc/machine-id ] && [ -f /etc/machine-id ] && [ ! -L /etc/machine-id ]; then
-        rm -f /etc/machine-id
-      fi
+  environment.etc."machine-id" = {
+    source = pkgs.runCommandLocal "machine-id-symlink" { } ''
+      ln -s /persist/etc/machine-id "$out"
     '';
   };
-  system.activationScripts.persist-files.deps = [ "seedPersistedMachineId" ];
 
   # Keep SSH host keys out of ephemeral /etc without persisting all of /etc/ssh.
   services.openssh.hostKeys = [
@@ -79,10 +75,6 @@ in
 
   environment.persistence."/persist" = {
     hideMounts = true;
-
-    files = [
-      "/etc/machine-id"
-    ];
 
     directories = [
       "/etc/NetworkManager/system-connections"
