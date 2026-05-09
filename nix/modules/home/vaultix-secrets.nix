@@ -17,7 +17,7 @@ in
   # normal user, so use userborn rather than systemd.sysusers.
   services.userborn.enable = true;
 
-  vaultix.settings.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBJaEBK0rIuwE7GqwgeWKA/DvBxIXOcAMDhiORaK9OSf root@murph";
+  vaultix.settings.hostPubkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJJ5wH1Ko+Y9NVhMEwvS830LypRo43elcsrlB29o9QeZ root@murph";
 
   vaultix.secrets = {
     exaApiKey.file = exaApiKeySecret;
