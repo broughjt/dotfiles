@@ -4,7 +4,6 @@ set -euo pipefail
 DEFAULT_DISK="/dev/disk/by-id/nvme-WD_BLACK_SN770_250GB_23013S803380"
 DISK="${MURPH_DISK:-$DEFAULT_DISK}"
 INSTALL_FLAKE="${MURPH_INSTALL_FLAKE:-${DOTFILES_FLAKE:-github:broughjt/dotfiles}}"
-INSTALL_ATTR="${MURPH_INSTALL_ATTR:-murph-install}"
 MOUNTPOINT="${MURPH_MOUNTPOINT:-/mnt}"
 SSH_HOST_KEYS_DIR="${MURPH_SSH_HOST_KEYS_DIR:-}"
 SKIP_CONFIRM="${MURPH_SKIP_CONFIRM:-0}"
@@ -20,7 +19,6 @@ Usage:
 Options:
   --disk PATH             Target disk to erase. Defaults to murph's NVMe by-id path.
   --flake REF             Flake ref/path containing #murph-install. Defaults to this flake.
-  --attr NAME             NixOS configuration attr. Default: murph-install.
   --mountpoint PATH       Target mountpoint for post-install normalization. Default: /mnt.
   --ssh-host-keys PATH    Directory containing preserved ssh_host_* files to copy.
   --yes                   Skip the destructive confirmation prompt.
@@ -28,8 +26,8 @@ Options:
   -h, --help              Show this help.
 
 Environment overrides:
-  MURPH_DISK, MURPH_INSTALL_FLAKE, MURPH_INSTALL_ATTR, MURPH_MOUNTPOINT,
-  MURPH_SSH_HOST_KEYS_DIR, MURPH_SKIP_CONFIRM=1, MURPH_KEEP_MOUNTED=1
+  MURPH_DISK, MURPH_INSTALL_FLAKE, MURPH_MOUNTPOINT, MURPH_SSH_HOST_KEYS_DIR,
+  MURPH_SKIP_CONFIRM=1, MURPH_KEEP_MOUNTED=1
 EOF
 }
 
@@ -56,11 +54,6 @@ while [ "$#" -gt 0 ]; do
     --flake)
       [ "$#" -ge 2 ] || die "--flake requires a flake ref/path"
       INSTALL_FLAKE="$2"
-      shift 2
-      ;;
-    --attr)
-      [ "$#" -ge 2 ] || die "--attr requires a configuration name"
-      INSTALL_ATTR="$2"
       shift 2
       ;;
     --mountpoint)
@@ -111,7 +104,7 @@ trap cleanup EXIT
 print_preflight() {
   info "install target"
   cat <<EOF
-flake:      ${INSTALL_FLAKE}#${INSTALL_ATTR}
+flake:      ${INSTALL_FLAKE}#murph-install
 disk:       ${DISK}
 mountpoint: ${MOUNTPOINT}
 EOF
@@ -136,7 +129,7 @@ This will ERASE the target disk and install murph from scratch:
 
   ${DISK}
 
-It will create encrypted ZFS datasets, install ${INSTALL_FLAKE}#${INSTALL_ATTR},
+It will create encrypted ZFS datasets, install ${INSTALL_FLAKE}#murph-install,
 and write new persistent password hashes and machine-id into /persist.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 EOF
@@ -204,7 +197,7 @@ run_disko_install() {
     --write-efi-boot-entries \
     --extra-files "$PASSWORD_DIR" /persist/etc/passwords \
     --extra-files "$MACHINE_ID_DIR/machine-id" /persist/etc/machine-id \
-    --flake "${INSTALL_FLAKE}#${INSTALL_ATTR}" \
+    --flake "${INSTALL_FLAKE}#murph-install" \
     --disk main "$DISK"
 }
 
