@@ -13,7 +13,7 @@ nix --extra-experimental-features "nix-command flakes" \
   run github:broughjt/dotfiles#installMurph
 ```
 
-This script will:
+The script will:
 
 - check the target disk and installer resources
 - prompt for confirmation before erasing the NVMe
@@ -22,9 +22,9 @@ This script will:
 - run `disko-install` with `#murph-install`
 - prompt for the ZFS encryption passphrase
 - remount the target at `/mnt`
-- ask whether to unmount/export the target before reboot
+- leave the target mounted so preserved keys/state can be restored manually
 
-Useful overrides:
+Useful override:
 
 ```sh
 nix run github:broughjt/dotfiles#installMurph -- \
@@ -37,35 +37,54 @@ The default target disk is:
 /dev/disk/by-id/nvme-WD_BLACK_SN770_250GB_23013S803380
 ```
 
-## Preserved keys and personal state
+## Restore preserved state before reboot
 
-If you have previous SSH host keys, restore them before rebooting into the new
-system. Either run the installer with `--keep-mounted` or answer `n` when it
-asks whether to unmount the target, then copy the keys:
+After the script finishes, the new system is mounted at `/mnt`. Mount your
+backup USB and copy preserved state into `/mnt/persist`, not `/mnt/home`.
+Adjust `/path/to/backup` as needed.
+
+Restore system SSH host keys:
 
 ```sh
 mkdir -p /mnt/persist/etc/ssh
-cp -a /path/to/murph-ssh-host-keys/ssh_host_* /mnt/persist/etc/ssh/
+rsync -a /path/to/backup/murph-ssh-host-keys/ssh_host_* /mnt/persist/etc/ssh/
 chmod 600 /mnt/persist/etc/ssh/ssh_host_*_key
 chmod 644 /mnt/persist/etc/ssh/ssh_host_*_key.pub
-umount -R /mnt
-zpool export zroot
 ```
 
-If you skip this, the installed system will generate fresh host keys and old
-clients will need their known-hosts entry updated.
-
-After the first boot, mount your backup USB and restore the personal state
-needed for the full configuration:
+Restore personal state needed for the full configuration:
 
 ```sh
-rsync -a /mnt/murph-home-backup-usb/jackson/repositories/ ~/repositories/
-rsync -a /mnt/murph-home-backup-usb/jackson/.ssh/ ~/.ssh/
-rsync -a /mnt/murph-home-backup-usb/jackson/.local/share/gnupg/ ~/.local/share/gnupg/
-rsync -a /mnt/murph-home-backup-usb/jackson/.config/gh/ ~/.config/gh/
+mkdir -p /mnt/persist/home/jackson/.local/share /mnt/persist/home/jackson/.config
+rsync -a /path/to/backup/jackson/repositories/ /mnt/persist/home/jackson/repositories/
+rsync -a /path/to/backup/jackson/.ssh/ /mnt/persist/home/jackson/.ssh/
+rsync -a --exclude 'S.gpg-agent*' /path/to/backup/jackson/.local/share/gnupg/ /mnt/persist/home/jackson/.local/share/gnupg/
+rsync -a /path/to/backup/jackson/.config/gh/ /mnt/persist/home/jackson/.config/gh/
+chown -R 1000:100 /mnt/persist/home/jackson
+chmod 700 /mnt/persist/home/jackson/.ssh /mnt/persist/home/jackson/.local/share/gnupg
 ```
 
-Then switch from the bootstrap profile to the full workstation profile:
+Optionally restore more persisted home directories now too:
+
+```sh
+rsync -a /path/to/backup/jackson/local/ /mnt/persist/home/jackson/local/
+rsync -a /path/to/backup/jackson/scratch/ /mnt/persist/home/jackson/scratch/
+rsync -a /path/to/backup/jackson/share/ /mnt/persist/home/jackson/share/
+rsync -a /path/to/backup/jackson/.mozilla/firefox/ /mnt/persist/home/jackson/.mozilla/firefox/
+chown -R 1000:100 /mnt/persist/home/jackson
+```
+
+Then unmount and reboot:
+
+```sh
+umount -R /mnt
+zpool export zroot
+reboot
+```
+
+## First boot
+
+Switch from the bootstrap profile to the full workstation profile:
 
 ```sh
 sudo nixos-rebuild switch --flake ~/repositories/dotfiles#murph
@@ -95,15 +114,6 @@ Expected after reboot:
 - `/root/should-disappear` is gone
 - `~/should-disappear` is gone
 - `~/scratch/should-persist` remains
-
-Restore additional persisted home directories as needed:
-
-```sh
-rsync -a /mnt/murph-home-backup-usb/jackson/local/ ~/local/
-rsync -a /mnt/murph-home-backup-usb/jackson/scratch/ ~/scratch/
-rsync -a /mnt/murph-home-backup-usb/jackson/share/ ~/share/
-rsync -a /mnt/murph-home-backup-usb/jackson/.mozilla/firefox/ ~/.mozilla/firefox/
-```
 
 Secure Boot/lanzaboote is intentionally left for a later phase after the base
 install boots cleanly.

@@ -6,7 +6,6 @@ DISK="${MURPH_DISK:-$DEFAULT_DISK}"
 INSTALL_FLAKE="${MURPH_INSTALL_FLAKE:-${DOTFILES_FLAKE:-github:broughjt/dotfiles}}"
 MOUNTPOINT="${MURPH_MOUNTPOINT:-/mnt}"
 SKIP_CONFIRM="${MURPH_SKIP_CONFIRM:-0}"
-KEEP_MOUNTED="${MURPH_KEEP_MOUNTED:-0}"
 
 usage() {
   cat <<'EOF'
@@ -20,12 +19,10 @@ Options:
   --flake REF             Flake ref/path containing #murph-install. Defaults to this flake.
   --mountpoint PATH       Target mountpoint for post-install normalization. Default: /mnt.
   --yes                   Skip the destructive confirmation prompt.
-  --keep-mounted          Leave target mounted at the end for manual inspection/copying.
   -h, --help              Show this help.
 
 Environment overrides:
-  MURPH_DISK, MURPH_INSTALL_FLAKE, MURPH_MOUNTPOINT, MURPH_SKIP_CONFIRM=1,
-  MURPH_KEEP_MOUNTED=1
+  MURPH_DISK, MURPH_INSTALL_FLAKE, MURPH_MOUNTPOINT, MURPH_SKIP_CONFIRM=1
 EOF
 }
 
@@ -61,10 +58,6 @@ while [ "$#" -gt 0 ]; do
       ;;
     --yes)
       SKIP_CONFIRM=1
-      shift
-      ;;
-    --keep-mounted)
-      KEEP_MOUNTED=1
       shift
       ;;
     -h|--help)
@@ -226,63 +219,53 @@ normalize_target_mount() {
   findmnt -R "$MOUNTPOINT"
 }
 
-finish_mounts() {
-  if [ "$KEEP_MOUNTED" = 1 ]; then
-    warn "leaving target mounted at ${MOUNTPOINT} because --keep-mounted was supplied"
-    return 0
-  fi
-
-  if [ -t 0 ]; then
-    echo
-    printf 'Unmount target and export zroot now? [Y/n] '
-    read -r answer
-    case "$answer" in
-      n|N|no|NO|No)
-        warn "leaving target mounted at ${MOUNTPOINT}"
-        return 0
-        ;;
-    esac
-  fi
-
-  info "unmounting target and exporting zroot"
-  umount -R "$MOUNTPOINT" 2>/dev/null || true
-  zpool export zroot 2>/dev/null || true
-}
-
 print_next_steps() {
-  cat <<'EOF'
+  cat <<EOF
 
-Install finished.
+Install finished. The target is still mounted at ${MOUNTPOINT}.
 
-Next manual steps:
+Before rebooting, mount your backup USB and restore preserved host keys and
+personal state into ${MOUNTPOINT}/persist. Adjust /path/to/backup as needed.
 
-1. Reboot into the installed bootstrap system.
+Required/recommended state:
 
-2. If needed, mount your backup USB and restore personal state:
+   mkdir -p ${MOUNTPOINT}/persist/etc/ssh
+   rsync -a /path/to/backup/murph-ssh-host-keys/ssh_host_* ${MOUNTPOINT}/persist/etc/ssh/
+   chmod 600 ${MOUNTPOINT}/persist/etc/ssh/ssh_host_*_key
+   chmod 644 ${MOUNTPOINT}/persist/etc/ssh/ssh_host_*_key.pub
 
-   rsync -a /mnt/murph-home-backup-usb/jackson/repositories/ ~/repositories/
-   rsync -a /mnt/murph-home-backup-usb/jackson/.ssh/ ~/.ssh/
-   rsync -a /mnt/murph-home-backup-usb/jackson/.local/share/gnupg/ ~/.local/share/gnupg/
-   rsync -a /mnt/murph-home-backup-usb/jackson/.config/gh/ ~/.config/gh/
+   mkdir -p ${MOUNTPOINT}/persist/home/jackson/.local/share ${MOUNTPOINT}/persist/home/jackson/.config
+   rsync -a /path/to/backup/jackson/repositories/ ${MOUNTPOINT}/persist/home/jackson/repositories/
+   rsync -a /path/to/backup/jackson/.ssh/ ${MOUNTPOINT}/persist/home/jackson/.ssh/
+   rsync -a --exclude 'S.gpg-agent*' /path/to/backup/jackson/.local/share/gnupg/ ${MOUNTPOINT}/persist/home/jackson/.local/share/gnupg/
+   rsync -a /path/to/backup/jackson/.config/gh/ ${MOUNTPOINT}/persist/home/jackson/.config/gh/
 
-3. Switch from the bootstrap profile to the full workstation profile:
+Optional extra persisted home state:
+
+   rsync -a /path/to/backup/jackson/local/ ${MOUNTPOINT}/persist/home/jackson/local/
+   rsync -a /path/to/backup/jackson/scratch/ ${MOUNTPOINT}/persist/home/jackson/scratch/
+   rsync -a /path/to/backup/jackson/share/ ${MOUNTPOINT}/persist/home/jackson/share/
+   rsync -a /path/to/backup/jackson/.mozilla/firefox/ ${MOUNTPOINT}/persist/home/jackson/.mozilla/firefox/
+
+Fix ownership/permissions, then unmount and reboot:
+
+   chown -R 1000:100 ${MOUNTPOINT}/persist/home/jackson
+   chmod 700 ${MOUNTPOINT}/persist/home/jackson/.ssh ${MOUNTPOINT}/persist/home/jackson/.local/share/gnupg
+   umount -R ${MOUNTPOINT}
+   zpool export zroot
+   reboot
+
+After first boot, switch from the bootstrap profile to the full workstation profile:
 
    sudo nixos-rebuild switch --flake ~/repositories/dotfiles#murph
 
-4. Verify persistence/rollback:
+Then verify persistence/rollback:
 
    findmnt /persist
    findmnt /nix
    findmnt /var/lib/docker
    zfs list
    zfs list -t snapshot
-
-5. Restore additional persisted home directories as desired:
-
-   rsync -a /mnt/murph-home-backup-usb/jackson/local/ ~/local/
-   rsync -a /mnt/murph-home-backup-usb/jackson/scratch/ ~/scratch/
-   rsync -a /mnt/murph-home-backup-usb/jackson/share/ ~/share/
-   rsync -a /mnt/murph-home-backup-usb/jackson/.mozilla/firefox/ ~/.mozilla/firefox/
 EOF
 }
 
@@ -292,5 +275,4 @@ confirm_destructive_install
 generate_persistent_inputs
 run_disko_install
 normalize_target_mount
-finish_mounts
 print_next_steps
