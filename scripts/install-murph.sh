@@ -5,7 +5,6 @@ DEFAULT_DISK="/dev/disk/by-id/nvme-WD_BLACK_SN770_250GB_23013S803380"
 DISK="${MURPH_DISK:-$DEFAULT_DISK}"
 INSTALL_FLAKE="${MURPH_INSTALL_FLAKE:-${DOTFILES_FLAKE:-github:broughjt/dotfiles}}"
 MOUNTPOINT="${MURPH_MOUNTPOINT:-/mnt}"
-SSH_HOST_KEYS_DIR="${MURPH_SSH_HOST_KEYS_DIR:-}"
 SKIP_CONFIRM="${MURPH_SKIP_CONFIRM:-0}"
 KEEP_MOUNTED="${MURPH_KEEP_MOUNTED:-0}"
 
@@ -20,14 +19,13 @@ Options:
   --disk PATH             Target disk to erase. Defaults to murph's NVMe by-id path.
   --flake REF             Flake ref/path containing #murph-install. Defaults to this flake.
   --mountpoint PATH       Target mountpoint for post-install normalization. Default: /mnt.
-  --ssh-host-keys PATH    Directory containing preserved ssh_host_* files to copy.
   --yes                   Skip the destructive confirmation prompt.
   --keep-mounted          Leave target mounted at the end for manual inspection/copying.
   -h, --help              Show this help.
 
 Environment overrides:
-  MURPH_DISK, MURPH_INSTALL_FLAKE, MURPH_MOUNTPOINT, MURPH_SSH_HOST_KEYS_DIR,
-  MURPH_SKIP_CONFIRM=1, MURPH_KEEP_MOUNTED=1
+  MURPH_DISK, MURPH_INSTALL_FLAKE, MURPH_MOUNTPOINT, MURPH_SKIP_CONFIRM=1,
+  MURPH_KEEP_MOUNTED=1
 EOF
 }
 
@@ -59,11 +57,6 @@ while [ "$#" -gt 0 ]; do
     --mountpoint)
       [ "$#" -ge 2 ] || die "--mountpoint requires a path"
       MOUNTPOINT="$2"
-      shift 2
-      ;;
-    --ssh-host-keys)
-      [ "$#" -ge 2 ] || die "--ssh-host-keys requires a path"
-      SSH_HOST_KEYS_DIR="$2"
       shift 2
       ;;
     --yes)
@@ -233,30 +226,6 @@ normalize_target_mount() {
   findmnt -R "$MOUNTPOINT"
 }
 
-copy_ssh_host_keys() {
-  if [ -z "$SSH_HOST_KEYS_DIR" ] && [ -t 0 ]; then
-    echo
-    echo "If you have preserved SSH host keys, enter the directory containing ssh_host_* files."
-    echo "Leave blank to skip; the installed system will generate new host keys."
-    printf 'SSH host key directory: '
-    read -r SSH_HOST_KEYS_DIR
-  fi
-
-  [ -n "$SSH_HOST_KEYS_DIR" ] || return 0
-  [ -d "$SSH_HOST_KEYS_DIR" ] || die "SSH host key directory does not exist: $SSH_HOST_KEYS_DIR"
-
-  shopt -s nullglob
-  local keys=("$SSH_HOST_KEYS_DIR"/ssh_host_*)
-  shopt -u nullglob
-  [ "${#keys[@]}" -gt 0 ] || die "no ssh_host_* files found in $SSH_HOST_KEYS_DIR"
-
-  info "copying preserved SSH host keys"
-  mkdir -p "${MOUNTPOINT}/persist/etc/ssh"
-  cp -a "${keys[@]}" "${MOUNTPOINT}/persist/etc/ssh/"
-  chmod 600 "${MOUNTPOINT}"/persist/etc/ssh/ssh_host_*_key 2>/dev/null || true
-  chmod 644 "${MOUNTPOINT}"/persist/etc/ssh/ssh_host_*_key.pub 2>/dev/null || true
-}
-
 finish_mounts() {
   if [ "$KEEP_MOUNTED" = 1 ]; then
     warn "leaving target mounted at ${MOUNTPOINT} because --keep-mounted was supplied"
@@ -323,6 +292,5 @@ confirm_destructive_install
 generate_persistent_inputs
 run_disko_install
 normalize_target_mount
-copy_ssh_host_keys
 finish_mounts
 print_next_steps

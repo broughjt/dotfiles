@@ -22,15 +22,13 @@ This script will:
 - run `disko-install` with `#murph-install`
 - prompt for the ZFS encryption passphrase
 - remount the target at `/mnt`
-- optionally copy preserved SSH host keys
-- unmount/export the target before reboot
+- ask whether to unmount/export the target before reboot
 
 Useful overrides:
 
 ```sh
 nix run github:broughjt/dotfiles#installMurph -- \
-  --disk /dev/disk/by-id/... \
-  --ssh-host-keys /mnt/backup/murph-ssh-host-keys
+  --disk /dev/disk/by-id/...
 ```
 
 The default target disk is:
@@ -41,10 +39,21 @@ The default target disk is:
 
 ## Preserved keys and personal state
 
-If you have previous SSH host keys, mount your backup USB before running the
-installer, then pass the directory containing `ssh_host_*` files with
-`--ssh-host-keys`. If you skip this, the installed system will generate fresh
-host keys and old clients will need their known-hosts entry updated.
+If you have previous SSH host keys, restore them before rebooting into the new
+system. Either run the installer with `--keep-mounted` or answer `n` when it
+asks whether to unmount the target, then copy the keys:
+
+```sh
+mkdir -p /mnt/persist/etc/ssh
+cp -a /path/to/murph-ssh-host-keys/ssh_host_* /mnt/persist/etc/ssh/
+chmod 600 /mnt/persist/etc/ssh/ssh_host_*_key
+chmod 644 /mnt/persist/etc/ssh/ssh_host_*_key.pub
+umount -R /mnt
+zpool export zroot
+```
+
+If you skip this, the installed system will generate fresh host keys and old
+clients will need their known-hosts entry updated.
 
 After the first boot, mount your backup USB and restore the personal state
 needed for the full configuration:
