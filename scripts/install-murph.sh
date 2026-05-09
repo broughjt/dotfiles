@@ -1,28 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEFAULT_DISK="/dev/disk/by-id/nvme-WD_BLACK_SN770_250GB_23013S803380"
-DISK="${MURPH_DISK:-$DEFAULT_DISK}"
-INSTALL_FLAKE="${MURPH_INSTALL_FLAKE:-${DOTFILES_FLAKE:-github:broughjt/dotfiles}}"
-MOUNTPOINT="${MURPH_MOUNTPOINT:-/mnt}"
-SKIP_CONFIRM="${MURPH_SKIP_CONFIRM:-0}"
+DISK="/dev/disk/by-id/nvme-WD_BLACK_SN770_250GB_23013S803380"
+INSTALL_FLAKE="@DOTFILES_FLAKE@"
+MOUNTPOINT="/mnt"
 
 usage() {
-  cat <<'EOF'
+  cat <<EOF
 installMurph: destructive installer for the murph NixOS host.
 
 Usage:
-  nix run github:broughjt/dotfiles#installMurph -- [options]
+  nix run github:broughjt/dotfiles#installMurph
+
+This erases murph's configured NVMe and installs this flake's #murph-install.
 
 Options:
-  --disk PATH             Target disk to erase. Defaults to murph's NVMe by-id path.
-  --flake REF             Flake ref/path containing #murph-install. Defaults to this flake.
-  --mountpoint PATH       Target mountpoint for post-install normalization. Default: /mnt.
-  --yes                   Skip the destructive confirmation prompt.
   -h, --help              Show this help.
-
-Environment overrides:
-  MURPH_DISK, MURPH_INSTALL_FLAKE, MURPH_MOUNTPOINT, MURPH_SKIP_CONFIRM=1
 EOF
 }
 
@@ -41,25 +34,6 @@ warn() {
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --disk)
-      [ "$#" -ge 2 ] || die "--disk requires a path"
-      DISK="$2"
-      shift 2
-      ;;
-    --flake)
-      [ "$#" -ge 2 ] || die "--flake requires a flake ref/path"
-      INSTALL_FLAKE="$2"
-      shift 2
-      ;;
-    --mountpoint)
-      [ "$#" -ge 2 ] || die "--mountpoint requires a path"
-      MOUNTPOINT="$2"
-      shift 2
-      ;;
-    --yes)
-      SKIP_CONFIRM=1
-      shift
-      ;;
     -h|--help)
       usage
       exit 0
@@ -68,7 +42,7 @@ while [ "$#" -gt 0 ]; do
       die "unknown option: $1"
       ;;
   esac
- done
+done
 
 if [ "$(id -u)" -ne 0 ]; then
   die "run as root. From the installer, use 'sudo -i' first, then run installMurph."
@@ -104,25 +78,6 @@ EOF
   info "block devices"
   lsblk -o NAME,PATH,SIZE,TYPE,FSTYPE,LABEL,MOUNTPOINTS
   echo
-}
-
-confirm_destructive_install() {
-  [ "$SKIP_CONFIRM" = 1 ] && return 0
-
-  cat <<EOF
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-This will ERASE the target disk and install murph from scratch:
-
-  ${DISK}
-
-It will create encrypted ZFS datasets, install ${INSTALL_FLAKE}#murph-install,
-and write new persistent password hashes and machine-id into /persist.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-EOF
-  echo
-  printf 'Type exactly "erase murph" to continue: '
-  read -r answer
-  [ "$answer" = "erase murph" ] || die "confirmation did not match; aborting"
 }
 
 make_password_hash() {
@@ -271,7 +226,6 @@ EOF
 
 print_preflight
 run_preflight_checks
-confirm_destructive_install
 generate_persistent_inputs
 run_disko_install
 normalize_target_mount

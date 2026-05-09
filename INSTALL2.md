@@ -16,7 +16,7 @@ nix --extra-experimental-features "nix-command flakes" \
 The script will:
 
 - check the target disk and installer resources
-- prompt for confirmation before erasing the NVMe
+- erase the configured NVMe
 - generate yescrypt password hashes for `jackson` and `root`
 - generate a persistent machine-id
 - run `disko-install` with `#murph-install`
@@ -24,14 +24,7 @@ The script will:
 - remount the target at `/mnt`
 - leave the target mounted so preserved keys/state can be restored manually
 
-Useful override:
-
-```sh
-nix run github:broughjt/dotfiles#installMurph -- \
-  --disk /dev/disk/by-id/...
-```
-
-The default target disk is:
+The target disk is:
 
 ```text
 /dev/disk/by-id/nvme-WD_BLACK_SN770_250GB_23013S803380

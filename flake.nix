@@ -157,10 +157,9 @@
             util-linux
             zfs
           ];
-          text = ''
-            export DOTFILES_FLAKE="${self}"
-            ${builtins.readFile ./scripts/install-murph.sh}
-          '';
+          text = builtins.replaceStrings [ "@DOTFILES_FLAKE@" ] [ "${self}" ] (
+            builtins.readFile ./scripts/install-murph.sh
+          );
         };
       in
       (import ./nix/shell.nix { inherit pkgs; })
