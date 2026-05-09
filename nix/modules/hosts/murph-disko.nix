@@ -40,12 +40,12 @@
       };
       rootFsOptions = {
         acltype = "posixacl";
-        atime = "off";
+        atime = "on";
+        relatime = "on";
         compression = "zstd";
         dnodesize = "auto";
         mountpoint = "none";
         normalization = "formD";
-        relatime = "on";
         xattr = "sa";
         "com.sun:auto-snapshot" = "false";
       };
