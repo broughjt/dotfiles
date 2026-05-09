@@ -25,7 +25,7 @@ die() {
 }
 
 info() {
-  echo "==> $*"
+  echo "info: $*"
 }
 
 warn() {
