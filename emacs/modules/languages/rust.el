@@ -3,6 +3,7 @@
 (defvar eglot-server-programs)
 
 (use-package rust-mode
+  :mode "\\.rs\\'"
   :custom
   ;; TODO:
   ;; (rust-mode-treesitter-derive t)

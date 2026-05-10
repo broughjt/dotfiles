@@ -86,10 +86,9 @@
   ;; (corfu-quit-no-match t)
   ;; (corfu-quit-at-boundary t)
   :config
+  (require 'corfu-popupinfo)
   ;; (setq corfu-popupinfo-delay '(1.25 . 0.5))
   (corfu-popupinfo-mode 1) ; shows documentation next to completions
-
-  :init
   (global-corfu-mode))
 
 (setq completion-category-overrides '((eglot (styles orderless))

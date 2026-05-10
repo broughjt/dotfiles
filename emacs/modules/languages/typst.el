@@ -4,6 +4,7 @@
 (declare-function eglot-alternatives "eglot" (servers))
 
 (use-package typst-ts-mode
+  :mode "\\.typ\\'"
   :hook
   ((typst-ts-mode . eglot-ensure))
   :custom

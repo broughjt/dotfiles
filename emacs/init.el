@@ -10,10 +10,10 @@
 (declare-function exec-path-from-shell-initialize "exec-path-from-shell")
 (declare-function envrc-global-mode "envrc" (&optional arg))
 
-(setq package-enable-at-startup nil)
 (setq use-package-ensure-function 'ignore)
 (setq package-archives nil)
 
+(require 'use-package)
 (require 'bind-key)
 (require 'seq)
 
