@@ -7,6 +7,7 @@
 
 let
   user = config.personal.userName;
+  localDirectory = config.defaultDirectories.localDirectory;
 in
 {
   boot.supportedFilesystems = [ "zfs" ];
@@ -52,6 +53,15 @@ in
   systemd.tmpfiles.rules = [
     "d /persist/etc/ssh 0755 root root -"
     "d /persist/etc/passwords 0700 root root -"
+
+    # Fish rewrites history via temporary files and rename, so persist a real
+    # directory and point the normal history path at it with a symlink instead
+    # of bind-mounting fish_history itself.
+    "d ${localDirectory}/share/fish 0700 ${user} users -"
+    "d ${localDirectory}/hacks 0755 ${user} users -"
+    "d ${localDirectory}/hacks/fish 0700 ${user} users -"
+    "f ${localDirectory}/hacks/fish/fish_history 0600 ${user} users -"
+    "L+ ${localDirectory}/share/fish/fish_history - - - - ${localDirectory}/hacks/fish/fish_history"
   ];
 
   # Keep /etc/machine-id readable at its normal path without requiring users to

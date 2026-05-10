@@ -24,12 +24,7 @@
         "d ${localDirectory}/config 0755 ${user} users -"
         "d ${localDirectory}/cache 0700 ${user} users -"
         "d ${localDirectory}/share 0755 ${user} users -"
-        "d ${localDirectory}/share/fish 0700 ${user} users -"
         "d ${localDirectory}/state 0755 ${user} users -"
-        "d ${localDirectory}/hacks 0755 ${user} users -"
-        "d ${localDirectory}/hacks/fish 0700 ${user} users -"
-        "f ${localDirectory}/hacks/fish/fish_history 0600 ${user} users -"
-        "L+ ${localDirectory}/share/fish/fish_history - - - - ${localDirectory}/hacks/fish/fish_history"
       ];
 
       home-manager.useGlobalPkgs = true;
