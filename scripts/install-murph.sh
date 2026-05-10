@@ -180,15 +180,16 @@ Required/recommended state:
    chmod 600 ${MOUNTPOINT}/persist/etc/ssh/ssh_host_*_key
    chmod 644 ${MOUNTPOINT}/persist/etc/ssh/ssh_host_*_key.pub
 
-   mkdir -p ${MOUNTPOINT}/persist/home/jackson/.local/share ${MOUNTPOINT}/persist/home/jackson/.config
+   mkdir -p ${MOUNTPOINT}/persist/home/jackson/local/config ${MOUNTPOINT}/persist/home/jackson/local/share
    rsync -a /path/to/backup/jackson/repositories/ ${MOUNTPOINT}/persist/home/jackson/repositories/
    rsync -a /path/to/backup/jackson/.ssh/ ${MOUNTPOINT}/persist/home/jackson/.ssh/
-   rsync -a --exclude 'S.gpg-agent*' /path/to/backup/jackson/.local/share/gnupg/ ${MOUNTPOINT}/persist/home/jackson/.local/share/gnupg/
-   rsync -a /path/to/backup/jackson/.config/gh/ ${MOUNTPOINT}/persist/home/jackson/.config/gh/
+   rsync -a /path/to/backup/jackson/.config/gh/ ${MOUNTPOINT}/persist/home/jackson/local/config/gh/
+   rsync -a /path/to/backup/jackson/.local/share/fish/ ${MOUNTPOINT}/persist/home/jackson/local/share/fish/
+   rsync -a --exclude 'S.gpg-agent*' /path/to/backup/jackson/.local/share/gnupg/ ${MOUNTPOINT}/persist/home/jackson/local/share/gnupg/
+   rsync -a /path/to/backup/jackson/.local/share/keyrings/ ${MOUNTPOINT}/persist/home/jackson/local/share/keyrings/
 
-Optional extra persisted home state:
+Optional extra explicitly persisted home state:
 
-   rsync -a /path/to/backup/jackson/local/ ${MOUNTPOINT}/persist/home/jackson/local/
    rsync -a /path/to/backup/jackson/scratch/ ${MOUNTPOINT}/persist/home/jackson/scratch/
    rsync -a /path/to/backup/jackson/share/ ${MOUNTPOINT}/persist/home/jackson/share/
    rsync -a /path/to/backup/jackson/.mozilla/firefox/ ${MOUNTPOINT}/persist/home/jackson/.mozilla/firefox/
@@ -197,7 +198,7 @@ Fix ownership/permissions, lock down /persist itself after all copying is
 finished, then unmount and reboot:
 
    chown -R 1000:100 ${MOUNTPOINT}/persist/home/jackson
-   chmod 700 ${MOUNTPOINT}/persist/home/jackson/.ssh ${MOUNTPOINT}/persist/home/jackson/.local/share/gnupg
+   chmod 700 ${MOUNTPOINT}/persist/home/jackson/.ssh ${MOUNTPOINT}/persist/home/jackson/local/share/fish ${MOUNTPOINT}/persist/home/jackson/local/share/gnupg
    chown root:root ${MOUNTPOINT}/persist
    chmod 700 ${MOUNTPOINT}/persist
    umount -R ${MOUNTPOINT}

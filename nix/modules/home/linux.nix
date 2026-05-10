@@ -5,23 +5,33 @@
 {
   imports = [ homeDirectories ];
 
-  config = {
-    home-manager.useGlobalPkgs = true;
-    home-manager.users.${config.personal.userName} =
-      let
-        homeDirectory = config.defaultDirectories.homeDirectory;
-      in
-      {
+  config =
+    let
+      user = config.personal.userName;
+      homeDirectory = config.defaultDirectories.homeDirectory;
+      localDirectory = config.defaultDirectories.localDirectory;
+    in
+    {
+      systemd.tmpfiles.rules = [
+        "d ${localDirectory} 0755 ${user} users -"
+        "d ${localDirectory}/config 0755 ${user} users -"
+        "d ${localDirectory}/cache 0700 ${user} users -"
+        "d ${localDirectory}/share 0755 ${user} users -"
+        "d ${localDirectory}/state 0755 ${user} users -"
+      ];
+
+      home-manager.useGlobalPkgs = true;
+      home-manager.users.${user} = {
         home.stateVersion = "25.05";
         programs.home-manager.enable = true;
         home.homeDirectory = homeDirectory;
 
         xdg = {
           enable = true;
-          cacheHome = "${homeDirectory}/.cache";
-          configHome = "${homeDirectory}/.config";
-          dataHome = "${homeDirectory}/.local/share";
-          stateHome = "${homeDirectory}/.local/state";
+          cacheHome = "${localDirectory}/cache";
+          configHome = "${localDirectory}/config";
+          dataHome = "${localDirectory}/share";
+          stateHome = "${localDirectory}/state";
           userDirs = {
             enable = true;
             setSessionVariables = false;
@@ -109,5 +119,5 @@
           ];
         };
       };
-  };
+    };
 }

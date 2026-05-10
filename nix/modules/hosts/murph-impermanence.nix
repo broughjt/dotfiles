@@ -121,18 +121,23 @@ in
     users.${user} = {
       directories = [
         "repositories"
-        "local"
         "scratch"
         "share"
 
         ".pi/agent/sessions"
-        ".config/gh"
+        "local/config/gh"
         {
-          directory = ".local/share/fish";
+          directory = "local/share/fish";
           mode = "0700";
         }
-        ".local/share/gnupg"
-        ".local/share/keyrings"
+        {
+          directory = "local/share/gnupg";
+          mode = "0700";
+        }
+        {
+          directory = "local/share/keyrings";
+          mode = "0700";
+        }
         ".mozilla/firefox"
         ".ssh"
       ];
