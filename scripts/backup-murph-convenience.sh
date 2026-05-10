@@ -53,6 +53,7 @@ candidates=(
   "home/jackson/.mozilla/firefox"
   "home/jackson/local/hacks/ssh/known_hosts"
   "home/jackson/local/hacks/fish/fish_history"
+  "home/jackson/local/hacks/tmux/resurrect"
   "home/jackson/local/share/direnv/allow"
   "home/jackson/local/share/direnv/deny"
 )

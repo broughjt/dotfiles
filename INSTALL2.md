@@ -27,6 +27,7 @@ The convenience archive carries useful but nonessential state:
 - Firefox profile: `~/.mozilla/firefox`
 - SSH `known_hosts`: `~/local/hacks/ssh/known_hosts`
 - fish history: `~/local/hacks/fish/fish_history`
+- tmux-resurrect state: `~/local/hacks/tmux/resurrect`
 - direnv trust decisions: `~/local/share/direnv/{allow,deny}`
 
 The convenience archive is intentionally unencrypted for ease of use, but it may

@@ -53,6 +53,7 @@ chown -R 1000:100 "$PERSIST/home/jackson" 2>/dev/null || true
 chmod 0700 \
   "$PERSIST/home/jackson/local/hacks/fish" \
   "$PERSIST/home/jackson/local/hacks/ssh" \
+  "$PERSIST/home/jackson/local/hacks/tmux/resurrect" \
   "$PERSIST/home/jackson/local/share/direnv/allow" \
   "$PERSIST/home/jackson/local/share/direnv/deny" \
   2>/dev/null || true

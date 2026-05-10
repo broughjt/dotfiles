@@ -69,6 +69,8 @@ in
     "d ${localDirectory}/secrets/ssh 0700 ${user} users -"
     "d ${localDirectory}/hacks/ssh 0700 ${user} users -"
     "f ${localDirectory}/hacks/ssh/known_hosts 0600 ${user} users -"
+    "d ${localDirectory}/hacks/tmux 0700 ${user} users -"
+    "d ${localDirectory}/hacks/tmux/resurrect 0700 ${user} users -"
 
     # direnv allow/deny records are explicit trust decisions. Persist the
     # decisions without persisting all of direnv's data directory.
@@ -244,6 +246,10 @@ in
         }
         {
           directory = "local/hacks/ssh";
+          mode = "0700";
+        }
+        {
+          directory = "local/hacks/tmux/resurrect";
           mode = "0700";
         }
         {
