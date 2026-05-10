@@ -15,6 +15,8 @@
     enable = true;
     nssmdns4 = true;
   };
+  # Enable the resolved systemd service for network name resolution.
+  services.resolved.enable = true;
 
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
