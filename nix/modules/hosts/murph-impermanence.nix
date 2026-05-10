@@ -62,6 +62,13 @@ in
     "d ${localDirectory}/hacks/fish 0700 ${user} users -"
     "f ${localDirectory}/hacks/fish/fish_history 0600 ${user} users -"
     "L+ ${localDirectory}/share/fish/fish_history - - - - ${localDirectory}/hacks/fish/fish_history"
+
+    # Keep SSH client state out of ~/.ssh. The private key is the only secret
+    # persisted here; known_hosts is intentionally mutable but narrowly scoped.
+    "d ${localDirectory}/secrets 0700 ${user} users -"
+    "d ${localDirectory}/secrets/ssh 0700 ${user} users -"
+    "d ${localDirectory}/hacks/ssh 0700 ${user} users -"
+    "f ${localDirectory}/hacks/ssh/known_hosts 0600 ${user} users -"
   ];
 
   # Keep /etc/machine-id readable at its normal path without requiring users to
@@ -107,9 +114,51 @@ in
     '';
   };
 
+  system.activationScripts.migrateSshStateToLocal = {
+    deps = [ "createPersistentStorageDirs" ];
+    text = ''
+      old=/persist/home/${user}/.ssh
+      visible=${config.defaultDirectories.homeDirectory}/.ssh
+      key=/persist/home/${user}/local/secrets/ssh/id_ed25519
+      pub=/persist/home/${user}/local/secrets/ssh/id_ed25519.pub
+      known=/persist/home/${user}/local/hacks/ssh/known_hosts
+
+      source_dir=
+      if [ -d "$old" ]; then
+        source_dir=$old
+      elif [ -d "$visible" ]; then
+        source_dir=$visible
+      fi
+
+      if [ -n "$source_dir" ]; then
+        install -d -m 0700 -o ${user} -g users "$(dirname "$key")"
+        install -d -m 0700 -o ${user} -g users "$(dirname "$known")"
+
+        if [ -e "$source_dir/id_ed25519" ] && [ ! -e "$key" ]; then
+          cp -a -- "$source_dir/id_ed25519" "$key"
+          chown ${user}:users "$key"
+          chmod 0600 "$key"
+        fi
+
+        if [ -e "$source_dir/id_ed25519.pub" ] && [ ! -e "$pub" ]; then
+          cp -a -- "$source_dir/id_ed25519.pub" "$pub"
+          chown ${user}:users "$pub"
+          chmod 0644 "$pub"
+        fi
+
+        if [ -e "$source_dir/known_hosts" ] && [ ! -e "$known" ]; then
+          cp -a -- "$source_dir/known_hosts" "$known"
+          chown ${user}:users "$known"
+          chmod 0600 "$known"
+        fi
+      fi
+    '';
+  };
+
   system.activationScripts.persist-files.deps = [
     "seedPersistedMachineId"
     "migrateFishHistoryToLocalHacks"
+    "migrateSshStateToLocal"
   ];
 
   # Do not let normal user processes write arbitrary data directly under the
@@ -170,6 +219,14 @@ in
           mode = "0700";
         }
         {
+          directory = "local/hacks/ssh";
+          mode = "0700";
+        }
+        {
+          directory = "local/secrets/ssh";
+          mode = "0700";
+        }
+        {
           directory = "local/share/gnupg";
           mode = "0700";
         }
@@ -178,7 +235,6 @@ in
           mode = "0700";
         }
         ".mozilla/firefox"
-        ".ssh"
       ];
     };
   };

@@ -45,6 +45,13 @@
         "d ${localDirectory}/state 0755 ${user} users -"
       ];
 
+      programs.ssh.extraConfig = ''
+        Match localuser ${user}
+          AddKeysToAgent yes
+          IdentityFile ${localDirectory}/secrets/ssh/id_ed25519
+          UserKnownHostsFile ${localDirectory}/hacks/ssh/known_hosts
+      '';
+
       home-manager.useGlobalPkgs = true;
       home-manager.users.${user} = {
         home.stateVersion = "25.05";
@@ -108,15 +115,9 @@
         home.sessionVariables.GIT_CONFIG_GLOBAL = "${gitConfigPath}";
         systemd.user.sessionVariables.GIT_CONFIG_GLOBAL = "${gitConfigPath}";
 
-        programs.ssh = {
-          enable = true;
-          enableDefaultConfig = false;
-          matchBlocks = {
-            "*" = {
-              identityFile = "~/.ssh/id_ed25519";
-              addKeysToAgent = "yes";
-            };
-          };
+        home.file."local/secrets/ssh/id_ed25519.pub" = {
+          force = true;
+          text = config.personal.sshPublicKey + "\n";
         };
 
         programs.tmux = {

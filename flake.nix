@@ -130,7 +130,7 @@
         nodes = {
           inherit (nixosConfigurations) murph;
         };
-        identity = "${nixosConfigurations.murph.config.defaultDirectories.homeDirectory}/.ssh/id_ed25519";
+        identity = "${nixosConfigurations.murph.config.defaultDirectories.localDirectory}/secrets/ssh/id_ed25519";
         cache = "./secrets/cache";
         defaultSecretDirectory = "./secrets";
         systems = [

@@ -180,9 +180,10 @@ Required/recommended state:
    chmod 600 ${MOUNTPOINT}/persist/etc/ssh/ssh_host_*_key
    chmod 644 ${MOUNTPOINT}/persist/etc/ssh/ssh_host_*_key.pub
 
-   mkdir -p ${MOUNTPOINT}/persist/home/jackson/local/config ${MOUNTPOINT}/persist/home/jackson/local/share ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish
+   mkdir -p ${MOUNTPOINT}/persist/home/jackson/local/config ${MOUNTPOINT}/persist/home/jackson/local/share ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish ${MOUNTPOINT}/persist/home/jackson/local/hacks/ssh ${MOUNTPOINT}/persist/home/jackson/local/secrets/ssh
    rsync -a /path/to/backup/jackson/repositories/ ${MOUNTPOINT}/persist/home/jackson/repositories/
-   rsync -a /path/to/backup/jackson/.ssh/ ${MOUNTPOINT}/persist/home/jackson/.ssh/
+   rsync -a /path/to/backup/jackson/.ssh/id_ed25519 ${MOUNTPOINT}/persist/home/jackson/local/secrets/ssh/id_ed25519
+   rsync -a /path/to/backup/jackson/.ssh/known_hosts ${MOUNTPOINT}/persist/home/jackson/local/hacks/ssh/known_hosts
    rsync -a /path/to/backup/jackson/.config/gh/ ${MOUNTPOINT}/persist/home/jackson/local/config/gh/
    rsync -a /path/to/backup/jackson/.local/share/fish/fish_history ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish/fish_history
    rsync -a --exclude 'S.gpg-agent*' /path/to/backup/jackson/.local/share/gnupg/ ${MOUNTPOINT}/persist/home/jackson/local/share/gnupg/
@@ -198,8 +199,8 @@ Fix ownership/permissions, lock down /persist itself after all copying is
 finished, then unmount and reboot:
 
    chown -R 1000:100 ${MOUNTPOINT}/persist/home/jackson
-   chmod 700 ${MOUNTPOINT}/persist/home/jackson/.ssh ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish ${MOUNTPOINT}/persist/home/jackson/local/share/gnupg
-   chmod 600 ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish/fish_history
+   chmod 700 ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish ${MOUNTPOINT}/persist/home/jackson/local/hacks/ssh ${MOUNTPOINT}/persist/home/jackson/local/secrets/ssh ${MOUNTPOINT}/persist/home/jackson/local/share/gnupg
+   chmod 600 ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish/fish_history ${MOUNTPOINT}/persist/home/jackson/local/hacks/ssh/known_hosts ${MOUNTPOINT}/persist/home/jackson/local/secrets/ssh/id_ed25519
    chown root:root ${MOUNTPOINT}/persist
    chmod 700 ${MOUNTPOINT}/persist
    umount -R ${MOUNTPOINT}
