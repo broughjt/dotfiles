@@ -67,6 +67,15 @@ rsync -a /path/to/backup/jackson/.mozilla/firefox/ /mnt/persist/home/jackson/.mo
 chown -R 1000:100 /mnt/persist/home/jackson
 ```
 
+After you have finished copying state, it is also safe to lock down the
+persistent backing mount itself. The installed NixOS config does this
+declaratively on boot too:
+
+```sh
+chown root:root /mnt/persist
+chmod 700 /mnt/persist
+```
+
 Then unmount and reboot:
 
 ```sh

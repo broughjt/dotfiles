@@ -7,6 +7,7 @@
 
 let
   user = config.personal.userName;
+  userGroup = config.users.users.${user}.group;
 in
 {
   boot.supportedFilesystems = [ "zfs" ];
@@ -54,9 +55,61 @@ in
     "d /persist/etc/passwords 0700 root root -"
   ];
 
-  environment.etc."machine-id" = {
-    source = pkgs.runCommandLocal "machine-id-symlink" { } ''
-      ln -s /persist/etc/machine-id "$out"
+  # Keep /etc/machine-id readable at its normal path without requiring users to
+  # traverse /persist.  Impermanence bind-mounts the persisted file below; this
+  # activation hook removes any generated file or older symlink first so the bind
+  # mount can be established.
+  system.activationScripts.seedPersistedMachineId = {
+    deps = [
+      "etc"
+      "createPersistentStorageDirs"
+    ];
+    text = ''
+      if [ ! -e /persist/etc/machine-id ] && [ -f /etc/machine-id ]; then
+        cp /etc/machine-id /persist/etc/machine-id
+        chmod 0444 /persist/etc/machine-id
+      fi
+      if ! ${pkgs.util-linux}/bin/findmnt --mountpoint /etc/machine-id >/dev/null 2>&1; then
+        rm -f /etc/machine-id
+      fi
+    '';
+  };
+
+  # File entries can fall back to symlinks if the persisted file does not exist.
+  # Since /persist is intentionally not traversable by normal users, make sure
+  # user-visible persisted files exist before impermanence wires them up.
+  system.activationScripts.seedPersistedUserFiles = {
+    deps = [
+      "createPersistentStorageDirs"
+      "users"
+      "groups"
+    ];
+    text = ''
+      if [ ! -e /persist/home/${user}/.local/share/fish/fish_history ] && [ -f /home/${user}/.local/share/fish/fish_history ]; then
+        cp /home/${user}/.local/share/fish/fish_history /persist/home/${user}/.local/share/fish/fish_history
+      fi
+      touch /persist/home/${user}/.local/share/fish/fish_history
+      chown ${user}:${userGroup} /persist/home/${user}/.local/share/fish/fish_history
+      chmod 0600 /persist/home/${user}/.local/share/fish/fish_history
+      if ! ${pkgs.util-linux}/bin/findmnt --mountpoint /home/${user}/.local/share/fish/fish_history >/dev/null 2>&1; then
+        rm -f /home/${user}/.local/share/fish/fish_history
+      fi
+    '';
+  };
+  system.activationScripts.persist-files.deps = [
+    "seedPersistedMachineId"
+    "seedPersistedUserFiles"
+  ];
+
+  # Do not let normal user processes write arbitrary data directly under the
+  # persistent backing store. Selected state remains available via the bind
+  # mounts declared in environment.persistence below.
+  system.activationScripts.persistRootPrivate = {
+    deps = [ "persist-files" ];
+    text = ''
+      ${pkgs.util-linux}/bin/findmnt --mountpoint /persist >/dev/null
+      chown root:root /persist
+      chmod 0700 /persist
     '';
   };
 
@@ -76,6 +129,10 @@ in
   environment.persistence."/persist" = {
     hideMounts = true;
 
+    files = [
+      "/etc/machine-id"
+    ];
+
     directories = [
       "/etc/NetworkManager/system-connections"
       "/var/lib/fprint"
@@ -93,7 +150,7 @@ in
         "scratch"
         "share"
 
-	".pi/agent/sessions"
+        ".pi/agent/sessions"
         ".config/gh"
         ".local/share/gnupg"
         ".local/share/keyrings"

@@ -193,10 +193,13 @@ Optional extra persisted home state:
    rsync -a /path/to/backup/jackson/share/ ${MOUNTPOINT}/persist/home/jackson/share/
    rsync -a /path/to/backup/jackson/.mozilla/firefox/ ${MOUNTPOINT}/persist/home/jackson/.mozilla/firefox/
 
-Fix ownership/permissions, then unmount and reboot:
+Fix ownership/permissions, lock down /persist itself after all copying is
+finished, then unmount and reboot:
 
    chown -R 1000:100 ${MOUNTPOINT}/persist/home/jackson
    chmod 700 ${MOUNTPOINT}/persist/home/jackson/.ssh ${MOUNTPOINT}/persist/home/jackson/.local/share/gnupg
+   chown root:root ${MOUNTPOINT}/persist
+   chmod 700 ${MOUNTPOINT}/persist
    umount -R ${MOUNTPOINT}
    zpool export zroot
    reboot
