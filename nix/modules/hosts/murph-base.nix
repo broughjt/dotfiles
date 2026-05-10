@@ -10,10 +10,11 @@
   networking.networkmanager.enable = true;
   networking.useDHCP = lib.mkDefault true;
 
-  # Avahi is enabled on this host by the GNOME desktop stack. Enable NSS
-  # integration so .local hostnames resolve through mDNS and avahi-daemon
-  # does not warn about missing nss-mdns support.
-  services.avahi.nssmdns4 = true;
+  # Enable mDNS/DNS-SD for .local hostname resolution and LAN service discovery.
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+  };
 
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
