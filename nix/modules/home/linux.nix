@@ -148,7 +148,7 @@
         Match localuser ${user}
           AddKeysToAgent yes
           IdentityFile ${localDirectory}/secrets/ssh/id_ed25519
-          UserKnownHostsFile ${localDirectory}/hacks/ssh/known_hosts
+          UserKnownHostsFile ${localDirectory}/hacks/ssh/known_hosts/known_hosts
       '';
 
       home-manager.useGlobalPkgs = true;
@@ -245,7 +245,7 @@
               plugin = resurrect;
               extraConfig = ''
                 set -g @resurrect-capture-pane-contents 'on'
-                set -g @resurrect-dir '${config.defaultDirectories.localDirectory}/hacks/tmux/resurrect'
+                set -g @resurrect-dir '${config.defaultDirectories.localDirectory}/hacks/tmux/resurrect/resurrect'
                 set -g @resurrect-strategy-nvim 'session'
               '';
             }

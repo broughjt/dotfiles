@@ -60,17 +60,20 @@ in
     "d ${localDirectory}/share/fish 0700 ${user} users -"
     "d ${localDirectory}/hacks 0755 ${user} users -"
     "d ${localDirectory}/hacks/fish 0700 ${user} users -"
-    "f ${localDirectory}/hacks/fish/fish_history 0600 ${user} users -"
-    "L+ ${localDirectory}/share/fish/fish_history - - - - ${localDirectory}/hacks/fish/fish_history"
+    "d ${localDirectory}/hacks/fish/fish_history 0700 ${user} users -"
+    "f ${localDirectory}/hacks/fish/fish_history/fish_history 0600 ${user} users -"
+    "L+ ${localDirectory}/share/fish/fish_history - - - - ${localDirectory}/hacks/fish/fish_history/fish_history"
 
     # Keep SSH client state out of ~/.ssh. The private key is the only secret
     # persisted here; known_hosts is intentionally mutable but narrowly scoped.
     "d ${localDirectory}/secrets 0700 ${user} users -"
     "d ${localDirectory}/secrets/ssh 0700 ${user} users -"
     "d ${localDirectory}/hacks/ssh 0700 ${user} users -"
-    "f ${localDirectory}/hacks/ssh/known_hosts 0600 ${user} users -"
+    "d ${localDirectory}/hacks/ssh/known_hosts 0700 ${user} users -"
+    "f ${localDirectory}/hacks/ssh/known_hosts/known_hosts 0600 ${user} users -"
     "d ${localDirectory}/hacks/tmux 0700 ${user} users -"
     "d ${localDirectory}/hacks/tmux/resurrect 0700 ${user} users -"
+    "d ${localDirectory}/hacks/tmux/resurrect/resurrect 0700 ${user} users -"
 
     # direnv allow/deny records are explicit trust decisions. Persist the
     # decisions without persisting all of direnv's data directory.
@@ -99,99 +102,42 @@ in
     '';
   };
 
-  system.activationScripts.migrateFishHistoryToLocalHacks = {
-    deps = [ "createPersistentStorageDirs" ];
+  system.activationScripts.persist-files.deps = [ "seedPersistedMachineId" ];
+
+  system.activationScripts.warnUnexpectedHackState = {
+    deps = [ "persist-files" ];
     text = ''
-      old=/persist/home/${user}/local/share/fish/fish_history
-      visible=${config.defaultDirectories.homeDirectory}/local/share/fish/fish_history
-      new=/persist/home/${user}/local/hacks/fish/fish_history
+      check_single_entry() {
+        dir=$1
+        expected=$2
+        [ -d "$dir" ] || return 0
 
-      source=
-      if [ -e "$old" ]; then
-        source=$old
-      elif [ -e "$visible" ] && [ ! -L "$visible" ]; then
-        source=$visible
-      fi
+        unexpected=$(
+          find "$dir" -mindepth 1 -maxdepth 1 -printf '%f\n' \
+            | { grep -vxF "$expected" || true; } \
+            | sort \
+            | tr '\n' ' '
+        )
 
-      if [ -n "$source" ] && [ ! -e "$new" ]; then
-        install -d -m 0700 -o ${user} -g users "$(dirname "$new")"
-        cp -a -- "$source" "$new"
-        chown ${user}:users "$new"
-        chmod 0600 "$new"
-      fi
+        if [ -n "$unexpected" ]; then
+          echo "warning: unexpected state in $dir; expected only '$expected', found: $unexpected" >&2
+        fi
+      }
+
+      check_single_entry ${localDirectory}/hacks/fish/fish_history fish_history
+      check_single_entry ${localDirectory}/hacks/ssh/known_hosts known_hosts
+      check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
     '';
   };
-
-  system.activationScripts.migrateSshStateToLocal = {
-    deps = [ "createPersistentStorageDirs" ];
-    text = ''
-      old=/persist/home/${user}/.ssh
-      visible=${config.defaultDirectories.homeDirectory}/.ssh
-      key=/persist/home/${user}/local/secrets/ssh/id_ed25519
-      pub=/persist/home/${user}/local/secrets/ssh/id_ed25519.pub
-      known=/persist/home/${user}/local/hacks/ssh/known_hosts
-
-      source_dir=
-      if [ -d "$old" ]; then
-        source_dir=$old
-      elif [ -d "$visible" ]; then
-        source_dir=$visible
-      fi
-
-      if [ -n "$source_dir" ]; then
-        install -d -m 0700 -o ${user} -g users "$(dirname "$key")"
-        install -d -m 0700 -o ${user} -g users "$(dirname "$known")"
-
-        if [ -e "$source_dir/id_ed25519" ] && [ ! -e "$key" ]; then
-          cp -a -- "$source_dir/id_ed25519" "$key"
-          chown ${user}:users "$key"
-          chmod 0600 "$key"
-        fi
-
-        if [ -e "$source_dir/id_ed25519.pub" ] && [ ! -e "$pub" ]; then
-          cp -a -- "$source_dir/id_ed25519.pub" "$pub"
-          chown ${user}:users "$pub"
-          chmod 0644 "$pub"
-        fi
-
-        if [ -e "$source_dir/known_hosts" ] && [ ! -e "$known" ]; then
-          cp -a -- "$source_dir/known_hosts" "$known"
-          chown ${user}:users "$known"
-          chmod 0600 "$known"
-        fi
-      fi
-    '';
-  };
-
-  system.activationScripts.migrateDirenvTrustToPersist = {
-    deps = [ "createPersistentStorageDirs" ];
-    text = ''
-      visible=${config.defaultDirectories.homeDirectory}/local/share/direnv
-      target=/persist/home/${user}/local/share/direnv
-
-      for name in allow deny; do
-        install -d -m 0700 -o ${user} -g users "$target/$name"
-        if [ -d "$visible/$name" ]; then
-          cp -an -- "$visible/$name/." "$target/$name/"
-          chown -R ${user}:users "$target/$name"
-          chmod 0700 "$target/$name"
-        fi
-      done
-    '';
-  };
-
-  system.activationScripts.persist-files.deps = [
-    "seedPersistedMachineId"
-    "migrateFishHistoryToLocalHacks"
-    "migrateSshStateToLocal"
-    "migrateDirenvTrustToPersist"
-  ];
 
   # Do not let normal user processes write arbitrary data directly under the
   # persistent backing store. Selected state remains available via the bind
   # mounts declared in environment.persistence below.
   system.activationScripts.persistRootPrivate = {
-    deps = [ "persist-files" ];
+    deps = [
+      "persist-files"
+      "warnUnexpectedHackState"
+    ];
     text = ''
       ${pkgs.util-linux}/bin/findmnt --mountpoint /persist >/dev/null
       chown root:root /persist
@@ -241,11 +187,11 @@ in
         }
         "local/config/gh"
         {
-          directory = "local/hacks/fish";
+          directory = "local/hacks/fish/fish_history";
           mode = "0700";
         }
         {
-          directory = "local/hacks/ssh";
+          directory = "local/hacks/ssh/known_hosts";
           mode = "0700";
         }
         {
