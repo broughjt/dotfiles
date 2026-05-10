@@ -12,6 +12,7 @@ nixpkgs.lib.nixosSystem {
   };
   modules = with nixosModules; [
     murphHardware
+    murphBase
     diskoModule
     impermanenceModule
     murphDisko

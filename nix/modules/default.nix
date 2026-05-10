@@ -29,6 +29,7 @@ rec {
       ;
   };
   murphHardware = import ./hosts/murph-hardware.nix;
+  murphBase = import ./hosts/murph-base.nix;
   murphDisko = import ./hosts/murph-disko.nix;
   murphImpermanence = import ./hosts/murph-impermanence.nix;
   diskoModule = disko.nixosModules.disko;
