@@ -69,6 +69,12 @@ in
     "d ${localDirectory}/secrets/ssh 0700 ${user} users -"
     "d ${localDirectory}/hacks/ssh 0700 ${user} users -"
     "f ${localDirectory}/hacks/ssh/known_hosts 0600 ${user} users -"
+
+    # direnv allow/deny records are explicit trust decisions. Persist the
+    # decisions without persisting all of direnv's data directory.
+    "d ${localDirectory}/share/direnv 0700 ${user} users -"
+    "d ${localDirectory}/share/direnv/allow 0700 ${user} users -"
+    "d ${localDirectory}/share/direnv/deny 0700 ${user} users -"
   ];
 
   # Keep /etc/machine-id readable at its normal path without requiring users to
@@ -155,10 +161,28 @@ in
     '';
   };
 
+  system.activationScripts.migrateDirenvTrustToPersist = {
+    deps = [ "createPersistentStorageDirs" ];
+    text = ''
+      visible=${config.defaultDirectories.homeDirectory}/local/share/direnv
+      target=/persist/home/${user}/local/share/direnv
+
+      for name in allow deny; do
+        install -d -m 0700 -o ${user} -g users "$target/$name"
+        if [ -d "$visible/$name" ]; then
+          cp -an -- "$visible/$name/." "$target/$name/"
+          chown -R ${user}:users "$target/$name"
+          chmod 0700 "$target/$name"
+        fi
+      done
+    '';
+  };
+
   system.activationScripts.persist-files.deps = [
     "seedPersistedMachineId"
     "migrateFishHistoryToLocalHacks"
     "migrateSshStateToLocal"
+    "migrateDirenvTrustToPersist"
   ];
 
   # Do not let normal user processes write arbitrary data directly under the
@@ -224,6 +248,14 @@ in
         }
         {
           directory = "local/secrets/ssh";
+          mode = "0700";
+        }
+        {
+          directory = "local/share/direnv/allow";
+          mode = "0700";
+        }
+        {
+          directory = "local/share/direnv/deny";
           mode = "0700";
         }
         {
