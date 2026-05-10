@@ -50,15 +50,16 @@ parent is intentionally ephemeral; restore only explicitly persisted subpaths
 under it:
 
 ```sh
-mkdir -p /mnt/persist/home/jackson/local/config /mnt/persist/home/jackson/local/share
+mkdir -p /mnt/persist/home/jackson/local/config /mnt/persist/home/jackson/local/share /mnt/persist/home/jackson/local/hacks/fish
 rsync -a /path/to/backup/jackson/repositories/ /mnt/persist/home/jackson/repositories/
 rsync -a /path/to/backup/jackson/.ssh/ /mnt/persist/home/jackson/.ssh/
 rsync -a /path/to/backup/jackson/.config/gh/ /mnt/persist/home/jackson/local/config/gh/
-rsync -a /path/to/backup/jackson/.local/share/fish/ /mnt/persist/home/jackson/local/share/fish/
+rsync -a /path/to/backup/jackson/.local/share/fish/fish_history /mnt/persist/home/jackson/local/hacks/fish/fish_history
 rsync -a --exclude 'S.gpg-agent*' /path/to/backup/jackson/.local/share/gnupg/ /mnt/persist/home/jackson/local/share/gnupg/
 rsync -a /path/to/backup/jackson/.local/share/keyrings/ /mnt/persist/home/jackson/local/share/keyrings/
 chown -R 1000:100 /mnt/persist/home/jackson
-chmod 700 /mnt/persist/home/jackson/.ssh /mnt/persist/home/jackson/local/share/fish /mnt/persist/home/jackson/local/share/gnupg
+chmod 700 /mnt/persist/home/jackson/.ssh /mnt/persist/home/jackson/local/hacks/fish /mnt/persist/home/jackson/local/share/gnupg
+chmod 600 /mnt/persist/home/jackson/local/hacks/fish/fish_history
 ```
 
 Optionally restore more explicitly persisted home directories now too:

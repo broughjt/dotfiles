@@ -74,7 +74,33 @@ in
     '';
   };
 
-  system.activationScripts.persist-files.deps = [ "seedPersistedMachineId" ];
+  system.activationScripts.migrateFishHistoryToLocalHacks = {
+    deps = [ "createPersistentStorageDirs" ];
+    text = ''
+      old=/persist/home/${user}/local/share/fish/fish_history
+      visible=${config.defaultDirectories.homeDirectory}/local/share/fish/fish_history
+      new=/persist/home/${user}/local/hacks/fish/fish_history
+
+      source=
+      if [ -e "$old" ]; then
+        source=$old
+      elif [ -e "$visible" ] && [ ! -L "$visible" ]; then
+        source=$visible
+      fi
+
+      if [ -n "$source" ] && [ ! -e "$new" ]; then
+        install -d -m 0700 -o ${user} -g users "$(dirname "$new")"
+        cp -a -- "$source" "$new"
+        chown ${user}:users "$new"
+        chmod 0600 "$new"
+      fi
+    '';
+  };
+
+  system.activationScripts.persist-files.deps = [
+    "seedPersistedMachineId"
+    "migrateFishHistoryToLocalHacks"
+  ];
 
   # Do not let normal user processes write arbitrary data directly under the
   # persistent backing store. Selected state remains available via the bind
@@ -130,7 +156,7 @@ in
         }
         "local/config/gh"
         {
-          directory = "local/share/fish";
+          directory = "local/hacks/fish";
           mode = "0700";
         }
         {
