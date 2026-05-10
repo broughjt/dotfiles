@@ -22,8 +22,9 @@
   "Absolute path to this Emacs configuration directory.")
 
 (setq local-directory (expand-file-name "~/.local/data/emacs/"))
-(setq custom-file (concat local-directory "custom.el"))
-(load custom-file)
+;; TODO
+;; (setq custom-file (concat local-directory "custom.el"))
+;; (load custom-file)
 
 (setq backup-directory (concat local-directory "backups/"))
 (setq auto-save-directory (concat local-directory "auto-saves/"))
