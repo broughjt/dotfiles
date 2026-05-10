@@ -124,7 +124,7 @@ in
         "scratch"
         "share"
 
-        ".pi/agent/sessions"
+        ".pi"
         "local/config/gh"
         {
           directory = "local/share/fish";
