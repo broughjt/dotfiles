@@ -41,24 +41,25 @@ PERSIST="$MOUNTPOINT/persist"
 [ -f "$ARCHIVE" ] || die "archive does not exist: $ARCHIVE"
 [ -d "$PERSIST" ] || die "persist directory does not exist: $PERSIST"
 
-fix_permissions() {
-  chown -R 1000:100 "$PERSIST/home/jackson" 2>/dev/null || true
-
-  chmod 0700 \
-    "$PERSIST/home/jackson/local/hacks/fish" \
-    "$PERSIST/home/jackson/local/hacks/ssh" \
-    "$PERSIST/home/jackson/local/share/direnv/allow" \
-    "$PERSIST/home/jackson/local/share/direnv/deny" \
-    2>/dev/null || true
-
-  chmod 0600 \
-    "$PERSIST/home/jackson/local/hacks/ssh/known_hosts" \
-    "$PERSIST/home/jackson/local/hacks/fish/fish_history" \
-    2>/dev/null || true
-}
-
 echo "info: extracting $ARCHIVE into $PERSIST"
 tar --extract --gzip --file "$ARCHIVE" --directory "$PERSIST"
-fix_permissions
+
+# Normalize ownership and permissions after extraction. Convenience state is not
+# secret as a bundle, but individual files such as known_hosts, fish_history,
+# and direnv trust records should still land with the modes expected by the
+# impermanence configuration.
+chown -R 1000:100 "$PERSIST/home/jackson" 2>/dev/null || true
+
+chmod 0700 \
+  "$PERSIST/home/jackson/local/hacks/fish" \
+  "$PERSIST/home/jackson/local/hacks/ssh" \
+  "$PERSIST/home/jackson/local/share/direnv/allow" \
+  "$PERSIST/home/jackson/local/share/direnv/deny" \
+  2>/dev/null || true
+
+chmod 0600 \
+  "$PERSIST/home/jackson/local/hacks/ssh/known_hosts" \
+  "$PERSIST/home/jackson/local/hacks/fish/fish_history" \
+  2>/dev/null || true
 
 echo "info: convenience restore complete"

@@ -43,28 +43,29 @@ PERSIST="$MOUNTPOINT/persist"
 [ -f "$ARCHIVE" ] || die "archive does not exist: $ARCHIVE"
 [ -d "$PERSIST" ] || die "persist directory does not exist: $PERSIST"
 
-fix_permissions() {
-  chown -R 1000:100 "$PERSIST/home/jackson" 2>/dev/null || true
-
-  chmod 0700 \
-    "$PERSIST/home/jackson/local/secrets" \
-    "$PERSIST/home/jackson/local/secrets/ssh" \
-    "$PERSIST/home/jackson/local/share/gnupg" \
-    "$PERSIST/home/jackson/local/share/keyrings" \
-    2>/dev/null || true
-
-  chmod 0600 "$PERSIST/home/jackson/local/secrets/ssh/id_ed25519" 2>/dev/null || true
-  chmod 0644 "$PERSIST/home/jackson/local/secrets/ssh/id_ed25519.pub" 2>/dev/null || true
-
-  if [ -d "$PERSIST/etc/ssh" ]; then
-    chown -R root:root "$PERSIST/etc/ssh"
-    chmod 0600 "$PERSIST/etc/ssh"/ssh_host_*_key 2>/dev/null || true
-    chmod 0644 "$PERSIST/etc/ssh"/ssh_host_*_key.pub 2>/dev/null || true
-  fi
-}
-
 echo "info: decrypting and extracting $ARCHIVE into $PERSIST"
 age --decrypt "$ARCHIVE" | tar --extract --gzip --directory "$PERSIST"
-fix_permissions
+
+# Normalize ownership and permissions after extraction. The archive may have
+# been created on a live system with correct metadata already, but reinstall
+# restore should not depend on tar preserving every mode exactly or on numeric
+# owners matching names in the installer environment.
+chown -R 1000:100 "$PERSIST/home/jackson" 2>/dev/null || true
+
+chmod 0700 \
+  "$PERSIST/home/jackson/local/secrets" \
+  "$PERSIST/home/jackson/local/secrets/ssh" \
+  "$PERSIST/home/jackson/local/share/gnupg" \
+  "$PERSIST/home/jackson/local/share/keyrings" \
+  2>/dev/null || true
+
+chmod 0600 "$PERSIST/home/jackson/local/secrets/ssh/id_ed25519" 2>/dev/null || true
+chmod 0644 "$PERSIST/home/jackson/local/secrets/ssh/id_ed25519.pub" 2>/dev/null || true
+
+if [ -d "$PERSIST/etc/ssh" ]; then
+  chown -R root:root "$PERSIST/etc/ssh"
+  chmod 0600 "$PERSIST/etc/ssh"/ssh_host_*_key 2>/dev/null || true
+  chmod 0644 "$PERSIST/etc/ssh"/ssh_host_*_key.pub 2>/dev/null || true
+fi
 
 echo "info: secrets restore complete"
