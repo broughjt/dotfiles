@@ -124,7 +124,10 @@ in
         "scratch"
         "share"
 
-        ".pi"
+        {
+          directory = ".pi";
+          mode = "0700";
+        }
         "local/config/gh"
         {
           directory = "local/share/fish";
