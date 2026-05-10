@@ -161,15 +161,81 @@
             builtins.readFile ./scripts/install-murph.sh
           );
         };
+        backupMurphSecrets = pkgs.writeShellApplication {
+          name = "backup-murph-secrets";
+          runtimeInputs = with pkgs; [
+            age
+            coreutils
+            git
+            gnutar
+            gzip
+          ];
+          text = builtins.readFile ./scripts/backup-murph-secrets.sh;
+        };
+        backupMurphConvenience = pkgs.writeShellApplication {
+          name = "backup-murph-convenience";
+          runtimeInputs = with pkgs; [
+            coreutils
+            git
+            gnutar
+            gzip
+          ];
+          text = builtins.readFile ./scripts/backup-murph-convenience.sh;
+        };
+        restoreMurphSecrets = pkgs.writeShellApplication {
+          name = "restore-murph-secrets";
+          runtimeInputs = with pkgs; [
+            age
+            coreutils
+            gnutar
+            gzip
+          ];
+          text = builtins.readFile ./scripts/restore-murph-secrets.sh;
+        };
+        restoreMurphConvenience = pkgs.writeShellApplication {
+          name = "restore-murph-convenience";
+          runtimeInputs = with pkgs; [
+            coreutils
+            gnutar
+            gzip
+          ];
+          text = builtins.readFile ./scripts/restore-murph-convenience.sh;
+        };
       in
       (import ./nix/shell.nix { inherit pkgs; })
       // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
       // (import ./nix/formatter.nix { inherit pkgs; })
       // {
-        packages.installMurph = installMurph;
-        apps.installMurph = {
-          type = "app";
-          program = "${installMurph}/bin/install-murph";
+        packages = {
+          inherit
+            backupMurphConvenience
+            backupMurphSecrets
+            installMurph
+            restoreMurphConvenience
+            restoreMurphSecrets
+            ;
+        };
+        apps = {
+          backupMurphConvenience = {
+            type = "app";
+            program = "${backupMurphConvenience}/bin/backup-murph-convenience";
+          };
+          backupMurphSecrets = {
+            type = "app";
+            program = "${backupMurphSecrets}/bin/backup-murph-secrets";
+          };
+          installMurph = {
+            type = "app";
+            program = "${installMurph}/bin/install-murph";
+          };
+          restoreMurphConvenience = {
+            type = "app";
+            program = "${restoreMurphConvenience}/bin/restore-murph-convenience";
+          };
+          restoreMurphSecrets = {
+            type = "app";
+            program = "${restoreMurphSecrets}/bin/restore-murph-secrets";
+          };
         };
       }
     );

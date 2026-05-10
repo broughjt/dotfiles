@@ -164,50 +164,37 @@ mount /dev/disk/by-label/ESP "${MOUNTPOINT}/boot"
 
 findmnt -R "$MOUNTPOINT"
 
-# Leave the target mounted so preserved state can be copied into /mnt/persist
-# before first boot.
 cat <<EOF
 
 Install finished. The target is still mounted at ${MOUNTPOINT}.
 
-Before rebooting, mount your backup USB and restore preserved host keys and
-personal state into ${MOUNTPOINT}/persist. Adjust /path/to/backup as needed.
+If you created murph state archives, mount the backup USB and restore them with:
 
-Required/recommended state:
+   nix --extra-experimental-features "nix-command flakes" \
+     run github:broughjt/dotfiles#restoreMurphSecrets -- \
+     /path/to/murph-secrets-*.tar.gz.age ${MOUNTPOINT}
 
-   mkdir -p ${MOUNTPOINT}/persist/etc/ssh
-   rsync -a /path/to/backup/murph-ssh-host-keys/ssh_host_* ${MOUNTPOINT}/persist/etc/ssh/
-   chmod 600 ${MOUNTPOINT}/persist/etc/ssh/ssh_host_*_key
-   chmod 644 ${MOUNTPOINT}/persist/etc/ssh/ssh_host_*_key.pub
+   nix --extra-experimental-features "nix-command flakes" \
+     run github:broughjt/dotfiles#restoreMurphConvenience -- \
+     /path/to/murph-convenience-*.tar.gz ${MOUNTPOINT}
 
-   mkdir -p ${MOUNTPOINT}/persist/home/jackson/local/config ${MOUNTPOINT}/persist/home/jackson/local/share ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish ${MOUNTPOINT}/persist/home/jackson/local/hacks/ssh ${MOUNTPOINT}/persist/home/jackson/local/secrets/ssh
-   rsync -a /path/to/backup/jackson/repositories/ ${MOUNTPOINT}/persist/home/jackson/repositories/
-   rsync -a /path/to/backup/jackson/.ssh/id_ed25519 ${MOUNTPOINT}/persist/home/jackson/local/secrets/ssh/id_ed25519
-   rsync -a /path/to/backup/jackson/.ssh/known_hosts ${MOUNTPOINT}/persist/home/jackson/local/hacks/ssh/known_hosts
-   rsync -a /path/to/backup/jackson/.config/gh/ ${MOUNTPOINT}/persist/home/jackson/local/config/gh/
-   rsync -a /path/to/backup/jackson/.local/share/fish/fish_history ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish/fish_history
-   rsync -a --exclude 'S.gpg-agent*' /path/to/backup/jackson/.local/share/gnupg/ ${MOUNTPOINT}/persist/home/jackson/local/share/gnupg/
-   rsync -a /path/to/backup/jackson/.local/share/keyrings/ ${MOUNTPOINT}/persist/home/jackson/local/share/keyrings/
+The convenience archive is optional. If you only have one USB port, you can
+leave this installer command finished, swap to the backup USB, mount it, and run
+the restore commands above while the target remains mounted.
 
-Optional extra explicitly persisted home state:
+You may also copy state manually into ${MOUNTPOINT}/persist. Prefer exact paths
+over broad directory restores; see INSTALL2.md for the current state bundle
+definitions.
 
-   rsync -a /path/to/backup/jackson/scratch/ ${MOUNTPOINT}/persist/home/jackson/scratch/
-   rsync -a /path/to/backup/jackson/share/ ${MOUNTPOINT}/persist/home/jackson/share/
-   rsync -a /path/to/backup/jackson/.mozilla/firefox/ ${MOUNTPOINT}/persist/home/jackson/.mozilla/firefox/
+When finished, lock down /persist itself, then unmount and reboot:
 
-Fix ownership/permissions, lock down /persist itself after all copying is
-finished, then unmount and reboot:
-
-   chown -R 1000:100 ${MOUNTPOINT}/persist/home/jackson
-   chmod 700 ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish ${MOUNTPOINT}/persist/home/jackson/local/hacks/ssh ${MOUNTPOINT}/persist/home/jackson/local/secrets/ssh ${MOUNTPOINT}/persist/home/jackson/local/share/gnupg
-   chmod 600 ${MOUNTPOINT}/persist/home/jackson/local/hacks/fish/fish_history ${MOUNTPOINT}/persist/home/jackson/local/hacks/ssh/known_hosts ${MOUNTPOINT}/persist/home/jackson/local/secrets/ssh/id_ed25519
    chown root:root ${MOUNTPOINT}/persist
    chmod 700 ${MOUNTPOINT}/persist
    umount -R ${MOUNTPOINT}
    zpool export zroot
    reboot
 
-After first boot, switch from the bootstrap profile to the full workstation profile:
+After first boot, switch from the bootstrap profile to the full profile:
 
    sudo nixos-rebuild switch --flake ~/repositories/dotfiles#murph
 

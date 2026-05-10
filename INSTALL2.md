@@ -1,5 +1,39 @@
 # Murph install
 
+## Before reinstall: create state archives
+
+If the old system is still bootable, create explicit state archives on a mounted
+USB drive. The secrets archive is encrypted with `age --passphrase`; the
+convenience archive is unencrypted and optional.
+
+```sh
+# Replace /run/media/jackson/USB with the mounted USB path.
+sudo nix run .#backupMurphSecrets -- /run/media/jackson/USB
+sudo nix run .#backupMurphConvenience -- /run/media/jackson/USB
+```
+
+The secrets archive carries identity/security state needed after reinstall:
+
+- system SSH host keys: `/persist/etc/ssh`
+- personal SSH private key: `~/local/secrets/ssh`
+- GnuPG keys: `~/local/share/gnupg`
+- GNOME/libsecret keyrings: `~/local/share/keyrings`
+
+The convenience archive carries useful but nonessential state:
+
+- `~/repositories`
+- `~/share`
+- `~/scratch`
+- Firefox profile: `~/.mozilla/firefox`
+- SSH `known_hosts`: `~/local/hacks/ssh/known_hosts`
+- fish history: `~/local/hacks/fish/fish_history`
+- direnv trust decisions: `~/local/share/direnv/{allow,deny}`
+
+The convenience archive is intentionally unencrypted for ease of use, but it may
+still contain private browsing, shell, project, and personal-file state.
+
+## Install
+
 Boot a NixOS installer USB, connect to the network, then become root:
 
 ```sh
@@ -22,7 +56,8 @@ The script will:
 - run `disko-install` with `#murph-install`
 - prompt for the ZFS encryption passphrase
 - remount the target at `/mnt`
-- leave the target mounted so preserved keys/state can be restored manually
+- optionally restore murph state archives from USB
+- leave the target mounted so additional state can be restored manually
 
 The target disk is:
 
@@ -32,49 +67,29 @@ The target disk is:
 
 ## Restore preserved state before reboot
 
-After the script finishes, the new system is mounted at `/mnt`. Mount your
-backup USB and copy preserved state into `/mnt/persist`, not `/mnt/home`.
-Adjust `/path/to/backup` as needed.
-
-Restore system SSH host keys:
+After the installer finishes, the new system is mounted at `/mnt`. If you made
+state archives, mount the backup USB and restore them with the restore apps:
 
 ```sh
-mkdir -p /mnt/persist/etc/ssh
-rsync -a /path/to/backup/murph-ssh-host-keys/ssh_host_* /mnt/persist/etc/ssh/
-chmod 600 /mnt/persist/etc/ssh/ssh_host_*_key
-chmod 644 /mnt/persist/etc/ssh/ssh_host_*_key.pub
+nix --extra-experimental-features "nix-command flakes" \
+  run github:broughjt/dotfiles#restoreMurphSecrets -- \
+  /path/to/murph-secrets-*.tar.gz.age /mnt
+
+nix --extra-experimental-features "nix-command flakes" \
+  run github:broughjt/dotfiles#restoreMurphConvenience -- \
+  /path/to/murph-convenience-*.tar.gz /mnt
 ```
 
-Restore personal state needed for the full configuration. The `~/local`
-parent is intentionally ephemeral; restore only explicitly persisted subpaths
-under it:
+The convenience archive is optional. If the installer USB and backup USB cannot
+be plugged in at the same time, let the installer finish, swap USB drives, mount
+the backup USB, and run the restore apps while the target remains mounted.
 
-```sh
-mkdir -p /mnt/persist/home/jackson/local/config /mnt/persist/home/jackson/local/share /mnt/persist/home/jackson/local/hacks/fish /mnt/persist/home/jackson/local/hacks/ssh /mnt/persist/home/jackson/local/secrets/ssh
-rsync -a /path/to/backup/jackson/repositories/ /mnt/persist/home/jackson/repositories/
-rsync -a /path/to/backup/jackson/.ssh/id_ed25519 /mnt/persist/home/jackson/local/secrets/ssh/id_ed25519
-rsync -a /path/to/backup/jackson/.ssh/known_hosts /mnt/persist/home/jackson/local/hacks/ssh/known_hosts
-rsync -a /path/to/backup/jackson/.config/gh/ /mnt/persist/home/jackson/local/config/gh/
-rsync -a /path/to/backup/jackson/.local/share/fish/fish_history /mnt/persist/home/jackson/local/hacks/fish/fish_history
-rsync -a --exclude 'S.gpg-agent*' /path/to/backup/jackson/.local/share/gnupg/ /mnt/persist/home/jackson/local/share/gnupg/
-rsync -a /path/to/backup/jackson/.local/share/keyrings/ /mnt/persist/home/jackson/local/share/keyrings/
-chown -R 1000:100 /mnt/persist/home/jackson
-chmod 700 /mnt/persist/home/jackson/local/hacks/fish /mnt/persist/home/jackson/local/hacks/ssh /mnt/persist/home/jackson/local/secrets/ssh /mnt/persist/home/jackson/local/share/gnupg
-chmod 600 /mnt/persist/home/jackson/local/hacks/fish/fish_history /mnt/persist/home/jackson/local/hacks/ssh/known_hosts /mnt/persist/home/jackson/local/secrets/ssh/id_ed25519
-```
+The archives contain paths relative to `/persist` and are extracted into
+`/mnt/persist`. The restore apps fix the expected ownership and permissions
+after extraction.
 
-Optionally restore more explicitly persisted home directories now too:
-
-```sh
-rsync -a /path/to/backup/jackson/scratch/ /mnt/persist/home/jackson/scratch/
-rsync -a /path/to/backup/jackson/share/ /mnt/persist/home/jackson/share/
-rsync -a /path/to/backup/jackson/.mozilla/firefox/ /mnt/persist/home/jackson/.mozilla/firefox/
-chown -R 1000:100 /mnt/persist/home/jackson
-```
-
-After you have finished copying state, it is also safe to lock down the
-persistent backing mount itself. The installed NixOS config does this
-declaratively on boot too:
+After you have finished copying state, lock down the persistent backing mount.
+The installed NixOS config does this declaratively on boot too:
 
 ```sh
 chown root:root /mnt/persist
