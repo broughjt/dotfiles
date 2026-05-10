@@ -33,7 +33,7 @@ make_password_hash() {
     read -rsp "$user password: " p1; echo
     read -rsp "confirm $user password: " p2; echo
     if [ "$p1" = "$p2" ]; then
-      printf '%s\n' "$p1" | nix --extra-experimental-features "nix-command flakes" run nixpkgs#mkpasswd -- -m sha-512 --stdin > "$out"
+      printf '%s\n' "$p1" | nix --extra-experimental-features "nix-command flakes" run nixpkgs#mkpasswd -- -m yescrypt --stdin > "$out"
       unset p1 p2
       break
     fi
