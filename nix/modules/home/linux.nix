@@ -1,6 +1,11 @@
 { homeDirectories }:
 
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   imports = [ homeDirectories ];
@@ -10,6 +15,19 @@
       user = config.personal.userName;
       homeDirectory = config.defaultDirectories.homeDirectory;
       localDirectory = config.defaultDirectories.localDirectory;
+      # Adapt Home Manager's programs.git rendering logic so Git can read the
+      # generated config directly from /nix/store via GIT_CONFIG_GLOBAL instead
+      # of through an XDG config symlink. Keep this in sync with:
+      # https://github.com/nix-community/home-manager/blob/e4419d3123b780d5f4c0bceeace450424387638c/modules/programs/git.nix#L346-L353
+      gitConfigPath =
+        let
+          gitConfig = config.home-manager.users.${user}.programs.git;
+          settingsFragments = if builtins.isList gitConfig.settings then gitConfig.settings else [ ];
+          renderedIniFragments = lib.filter (text: lib.match "[[:space:]]*" text == null) (
+            [ (lib.generators.toGitINI gitConfig.iniContent) ] ++ map lib.generators.toGitINI settingsFragments
+          );
+        in
+        pkgs.writeText "hm_gitconfig" (lib.concatStringsSep "\n" renderedIniFragments);
     in
     {
       environment.sessionVariables = {
@@ -82,6 +100,13 @@
           signing.key = "1BA5F1335AB45105";
           signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
         };
+
+        # Keep global Git config fully declarative. Home Manager still renders
+        # the config into the Nix store, but Git reads it directly from there
+        # instead of through a symlink at $XDG_CONFIG_HOME/git/config.
+        xdg.configFile."git/config".enable = false;
+        home.sessionVariables.GIT_CONFIG_GLOBAL = "${gitConfigPath}";
+        systemd.user.sessionVariables.GIT_CONFIG_GLOBAL = "${gitConfigPath}";
 
         programs.ssh = {
           enable = true;
