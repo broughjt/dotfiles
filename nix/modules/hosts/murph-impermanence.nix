@@ -7,7 +7,6 @@
 
 let
   user = config.personal.userName;
-  userGroup = config.users.users.${user}.group;
 in
 {
   boot.supportedFilesystems = [ "zfs" ];
@@ -75,31 +74,7 @@ in
     '';
   };
 
-  # File entries can fall back to symlinks if the persisted file does not exist.
-  # Since /persist is intentionally not traversable by normal users, make sure
-  # user-visible persisted files exist before impermanence wires them up.
-  system.activationScripts.seedPersistedUserFiles = {
-    deps = [
-      "createPersistentStorageDirs"
-      "users"
-      "groups"
-    ];
-    text = ''
-      if [ ! -e /persist/home/${user}/.local/share/fish/fish_history ] && [ -f /home/${user}/.local/share/fish/fish_history ]; then
-        cp /home/${user}/.local/share/fish/fish_history /persist/home/${user}/.local/share/fish/fish_history
-      fi
-      touch /persist/home/${user}/.local/share/fish/fish_history
-      chown ${user}:${userGroup} /persist/home/${user}/.local/share/fish/fish_history
-      chmod 0600 /persist/home/${user}/.local/share/fish/fish_history
-      if ! ${pkgs.util-linux}/bin/findmnt --mountpoint /home/${user}/.local/share/fish/fish_history >/dev/null 2>&1; then
-        rm -f /home/${user}/.local/share/fish/fish_history
-      fi
-    '';
-  };
-  system.activationScripts.persist-files.deps = [
-    "seedPersistedMachineId"
-    "seedPersistedUserFiles"
-  ];
+  system.activationScripts.persist-files.deps = [ "seedPersistedMachineId" ];
 
   # Do not let normal user processes write arbitrary data directly under the
   # persistent backing store. Selected state remains available via the bind
@@ -152,13 +127,14 @@ in
 
         ".pi/agent/sessions"
         ".config/gh"
+        {
+          directory = ".local/share/fish";
+          mode = "0700";
+        }
         ".local/share/gnupg"
         ".local/share/keyrings"
         ".mozilla/firefox"
         ".ssh"
-      ];
-      files = [
-        ".local/share/fish/fish_history"
       ];
     };
   };
