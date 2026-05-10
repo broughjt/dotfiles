@@ -12,6 +12,13 @@
       localDirectory = config.defaultDirectories.localDirectory;
     in
     {
+      environment.sessionVariables = {
+        XDG_CACHE_HOME = "${localDirectory}/cache";
+        XDG_CONFIG_HOME = "${localDirectory}/config";
+        XDG_DATA_HOME = "${localDirectory}/share";
+        XDG_STATE_HOME = "${localDirectory}/state";
+      };
+
       systemd.tmpfiles.rules = [
         "d ${localDirectory} 0755 ${user} users -"
         "d ${localDirectory}/config 0755 ${user} users -"
