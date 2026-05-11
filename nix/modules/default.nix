@@ -42,7 +42,7 @@ rec {
   homeLinux = import ./home/linux.nix { inherit homeDirectories; };
   desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
   gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf desktopApps; };
-  dconf = import ./home/dconf.nix { inherit home-manager; };
+  dconf = import ./home/dconf.nix;
   gh = import ./home/gh.nix;
   gpg = import ./home/gpg.nix;
   pass = import ./home/pass.nix;
