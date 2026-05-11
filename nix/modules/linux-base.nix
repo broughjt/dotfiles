@@ -26,6 +26,7 @@
 
   users.users.${config.personal.userName} = {
     isNormalUser = true;
+    uid = 1000;
     description = config.personal.fullName;
     hashedPasswordFile = "/persist/etc/passwords/${config.personal.userName}";
     extraGroups = [
