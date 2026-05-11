@@ -5,6 +5,43 @@ let
   uid = toString config.users.users.${user}.uid;
   profile = user;
   emptyStringArray = lib.gvariant.mkEmptyArray lib.gvariant.type.string;
+  workspaceNumbers = lib.range 1 9;
+  workspaceKeybindings = lib.mergeAttrsList (
+    map (
+      n:
+      let
+        i = toString n;
+      in
+      {
+        "switch-to-workspace-${i}" = [ "<Super>${i}" ];
+        "move-to-workspace-${i}" = [ "<Super><Shift>${i}" ];
+      }
+    ) workspaceNumbers
+  );
+  disabledApplicationKeybindings = lib.genAttrs (map (
+    n: "switch-to-application-${toString n}"
+  ) workspaceNumbers) (_: emptyStringArray);
+  lockedDconfKeys = [
+    # Workspace model.
+    "/org/gnome/mutter/dynamic-workspaces"
+    "/org/gnome/desktop/wm/preferences/num-workspaces"
+
+    # Custom window-management shortcuts.
+    "/org/gnome/desktop/wm/keybindings/close"
+  ]
+  ++ lib.concatMap (
+    n:
+    let
+      i = toString n;
+    in
+    [
+      "/org/gnome/desktop/wm/keybindings/switch-to-workspace-${i}"
+      "/org/gnome/desktop/wm/keybindings/move-to-workspace-${i}"
+      # Keep Super+number available for workspace switching instead of the
+      # GNOME Shell dash/application shortcuts.
+      "/org/gnome/shell/keybindings/switch-to-application-${i}"
+    ]
+  ) workspaceNumbers;
 in
 {
   programs.dconf = {
@@ -15,29 +52,15 @@ in
     # DCONF_PROFILE below.
     profiles.${profile}.databases = [
       {
-        lockAll = true;
+        # Lock only the keys that are structural invariants. Other settings,
+        # such as color-scheme, remain user-overridable for the current boot and
+        # fall back to these declarative defaults after reboot.
+        locks = lockedDconfKeys;
         settings = {
           "org/gnome/desktop/wm/keybindings" = {
             close = [ "<Super>q" ];
-            switch-to-workspace-1 = [ "<Super>1" ];
-            switch-to-workspace-2 = [ "<Super>2" ];
-            switch-to-workspace-3 = [ "<Super>3" ];
-            switch-to-workspace-4 = [ "<Super>4" ];
-            switch-to-workspace-5 = [ "<Super>5" ];
-            switch-to-workspace-6 = [ "<Super>6" ];
-            switch-to-workspace-7 = [ "<Super>7" ];
-            switch-to-workspace-8 = [ "<Super>8" ];
-            switch-to-workspace-9 = [ "<Super>9" ];
-            move-to-workspace-1 = [ "<Super><Shift>1" ];
-            move-to-workspace-2 = [ "<Super><Shift>2" ];
-            move-to-workspace-3 = [ "<Super><Shift>3" ];
-            move-to-workspace-4 = [ "<Super><Shift>4" ];
-            move-to-workspace-5 = [ "<Super><Shift>5" ];
-            move-to-workspace-6 = [ "<Super><Shift>6" ];
-            move-to-workspace-7 = [ "<Super><Shift>7" ];
-            move-to-workspace-8 = [ "<Super><Shift>8" ];
-            move-to-workspace-9 = [ "<Super><Shift>9" ];
-          };
+          }
+          // workspaceKeybindings;
           "org/gnome/desktop/wm/preferences" = {
             num-workspaces = lib.gvariant.mkInt32 9;
           };
@@ -45,16 +68,8 @@ in
             toggle-message-tray = emptyStringArray;
             focus-active-notification = emptyStringArray;
             toggle-overview = emptyStringArray;
-            switch-to-application-1 = emptyStringArray;
-            switch-to-application-2 = emptyStringArray;
-            switch-to-application-3 = emptyStringArray;
-            switch-to-application-4 = emptyStringArray;
-            switch-to-application-5 = emptyStringArray;
-            switch-to-application-6 = emptyStringArray;
-            switch-to-application-7 = emptyStringArray;
-            switch-to-application-8 = emptyStringArray;
-            switch-to-application-9 = emptyStringArray;
-          };
+          }
+          // disabledApplicationKeybindings;
           "org/gnome/mutter" = {
             # Keep a fixed set of workspaces; num-workspaces is ignored while
             # dynamic workspaces are enabled.
