@@ -84,7 +84,7 @@ done
   echo
   echo "notes:"
   echo "  - Encrypted with age --passphrase."
-  echo "  - GnuPG agent sockets are excluded."
+  echo "  - GnuPG runtime files and store-backed config files are excluded."
   echo "  - Extract into /mnt/persist during install."
 } > "$manifest"
 
@@ -94,7 +94,15 @@ tar \
   --gzip \
   --file - \
   --directory /persist \
-  --exclude='home/jackson/local/share/gnupg/S.gpg-agent*' \
+  --exclude='home/jackson/local/share/gnupg/S.*' \
+  --exclude='home/jackson/local/share/gnupg/.#lk*' \
+  --exclude='home/jackson/local/share/gnupg/*.lock' \
+  --exclude='home/jackson/local/share/gnupg/*/.#lk*' \
+  --exclude='home/jackson/local/share/gnupg/*/*.lock' \
+  --exclude='home/jackson/local/share/gnupg/crls.d' \
+  --exclude='home/jackson/local/share/gnupg/random_seed' \
+  --exclude='home/jackson/local/share/gnupg/gpg.conf' \
+  --exclude='home/jackson/local/share/gnupg/gpg-agent.conf' \
   "${paths[@]}" \
   | age --passphrase --output "$archive"
 

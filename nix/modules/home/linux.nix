@@ -23,6 +23,7 @@
       };
       userEnvironment = xdgEnvironment // {
         GIT_CONFIG_GLOBAL = "${homeManagerUser.xdg.configFile."git/config".source}";
+        GNUPGHOME = "${localDirectory}/share/gnupg";
       };
       tmuxConfigPath = homeManagerUser.xdg.configFile."tmux/tmux.conf".source;
       tmuxPackage = pkgs.writeShellScriptBin "tmux" ''

@@ -16,7 +16,7 @@ The secrets archive carries identity/security state needed after reinstall:
 
 - system SSH host keys: `/persist/etc/ssh`
 - personal SSH private key: `~/local/secrets/ssh`
-- GnuPG keys: `~/local/share/gnupg`
+- GnuPG keys/keyrings/trust state: `~/local/share/gnupg` (runtime files and store-backed config excluded)
 - GNOME/libsecret keyrings: `~/local/share/keyrings`
 
 The convenience archive carries useful but nonessential state:

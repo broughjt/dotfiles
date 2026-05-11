@@ -124,9 +124,28 @@ in
         fi
       }
 
+      check_store_backed_gnupg_config() {
+        path=$1
+        [ -e "$path" ] || [ -L "$path" ] || return 0
+
+        if [ -L "$path" ]; then
+          target=$(readlink "$path" || true)
+          case "$target" in
+            /nix/store/*)
+              rm -f "$path"
+              return 0
+              ;;
+          esac
+        fi
+
+        echo "warning: unexpected mutable GnuPG config at $path; config should be store-backed" >&2
+      }
+
       check_single_entry ${localDirectory}/hacks/fish/fish_history fish_history
       check_single_entry ${localDirectory}/hacks/ssh/known_hosts known_hosts
       check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
+      check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
+      check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg-agent.conf
     '';
   };
 

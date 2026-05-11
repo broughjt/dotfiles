@@ -52,6 +52,23 @@ age --decrypt "$ARCHIVE" | tar --extract --gzip --directory "$PERSIST"
 # owners matching names in the installer environment.
 chown -R 1000:100 "$PERSIST/home/jackson" 2>/dev/null || true
 
+GNUPG_DIR="$PERSIST/home/jackson/local/share/gnupg"
+if [ -d "$GNUPG_DIR" ]; then
+  # These files are runtime-only or declarative in the installed system. Remove
+  # them even when restoring an older archive that still contained them.
+  rm -f \
+    "$GNUPG_DIR"/S.* \
+    "$GNUPG_DIR"/.#lk* \
+    "$GNUPG_DIR"/*.lock \
+    "$GNUPG_DIR"/*/.#lk* \
+    "$GNUPG_DIR"/*/*.lock \
+    "$GNUPG_DIR"/random_seed \
+    "$GNUPG_DIR"/gpg.conf \
+    "$GNUPG_DIR"/gpg-agent.conf \
+    2>/dev/null || true
+  rm -rf "$GNUPG_DIR/crls.d"
+fi
+
 chmod 0700 \
   "$PERSIST/home/jackson/local/secrets" \
   "$PERSIST/home/jackson/local/secrets/ssh" \
