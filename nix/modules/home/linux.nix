@@ -24,6 +24,10 @@
       userEnvironment = xdgEnvironment // {
         GIT_CONFIG_GLOBAL = "${homeManagerUser.xdg.configFile."git/config".source}";
       };
+      tmuxConfigPath = homeManagerUser.xdg.configFile."tmux/tmux.conf".source;
+      tmuxPackage = pkgs.writeShellScriptBin "tmux" ''
+        exec ${pkgs.tmux}/bin/tmux -f ${tmuxConfigPath} "$@"
+      '';
     in
     {
       systemd.services."user@1000" = {
@@ -115,8 +119,14 @@
           text = config.personal.sshPublicKey + "\n";
         };
 
+        # Keep tmux config fully declarative. Home Manager still renders the
+        # config into the Nix store, but the tmux command is wrapped with
+        # `-f /nix/store/...-hm_tmuxtmux.conf` instead of using an XDG symlink.
+        xdg.configFile."tmux/tmux.conf".enable = false;
+
         programs.tmux = {
           enable = true;
+          package = tmuxPackage;
           sensibleOnTop = true;
           keyMode = "vi";
           customPaneNavigationAndResize = true;
