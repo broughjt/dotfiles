@@ -2,6 +2,7 @@
 
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -21,6 +22,43 @@
         XDG_DATA_HOME = "${localDirectory}/share";
         XDG_STATE_HOME = "${localDirectory}/state";
       };
+      pamXdgEnvironment = xdgEnvironment // {
+        GNUPGHOME = "${xdgEnvironment.XDG_DATA_HOME}/gnupg";
+      };
+      pamXdgEnvironmentFile = "/etc/pam/${user}-xdg-environment";
+      pamValue =
+        value:
+        if lib.hasPrefix homeDirectory value then
+          "@{HOME}" + lib.removePrefix homeDirectory value
+        else
+          value;
+      pamXdgEnvironmentText =
+        lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: value: ''${name} DEFAULT="${pamValue value}"'') pamXdgEnvironment
+        )
+        + "\n";
+      makePamXdgEnvironmentRules = gnomeKeyringRule: {
+        skip_xdg_environment_for_other_users = {
+          order = gnomeKeyringRule.order - 11;
+          control = "[success=1 default=ignore]";
+          modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
+          args = [
+            "quiet"
+            "user"
+            "!="
+            user
+          ];
+        };
+        xdg_environment = {
+          order = gnomeKeyringRule.order - 10;
+          control = "required";
+          modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
+          settings = {
+            conffile = pamXdgEnvironmentFile;
+            readenv = 0;
+          };
+        };
+      };
       userEnvironment = xdgEnvironment // {
         GIT_CONFIG_GLOBAL = "${homeManagerUser.xdg.configFile."git/config".source}";
         GNUPGHOME = "${localDirectory}/share/gnupg";
@@ -37,6 +75,17 @@
       };
 
       systemd.services."home-manager-${user}".environment = userEnvironment;
+
+      # These are read by pam_env before the graphical session and some
+      # PAM-started helpers exist. In particular, pam_gnome_keyring starts an
+      # early `gnome-keyring-daemon --login` before the systemd user manager's
+      # environment can help; it must see XDG_DATA_HOME here to avoid falling
+      # back to ~/.local/share/keyrings. Keep this scoped to the personal user:
+      # non-matching users skip the following pam_env rule.
+      environment.etc."pam/${user}-xdg-environment".text = pamXdgEnvironmentText;
+      security.pam.services.login.rules.session = makePamXdgEnvironmentRules (
+        config.security.pam.services.login.rules.session.gnome_keyring
+      );
 
       systemd.tmpfiles.rules = [
         "d ${localDirectory} 0755 ${user} users -"
