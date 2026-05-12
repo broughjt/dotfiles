@@ -134,11 +134,11 @@
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1778554382,
-        "narHash": "sha256-F6eqj6V5hn/d9b3YdSmsYVFZPxu+VnxgX5z4viGXOPY=",
+        "lastModified": 1778612968,
+        "narHash": "sha256-RWS0/Xggd4lj0YG4sinLQSTZI2VB2rPfOiTN/RNEEYo=",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "d3b525951181218595677c3d92c5ecfaa4e80572",
+        "rev": "87a80d77365462d9e7ea132c69d322463083fdb9",
         "type": "github"
       },
       "original": {
@@ -264,11 +264,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778535464,
-        "narHash": "sha256-kkUQYSv70wynJ/DfnGals6r98I6bK3CVNVTN1zbAd7Y=",
+        "lastModified": 1778609305,
+        "narHash": "sha256-muTc+WME6k3sfTr/Pvmw8hrK7zXrbl961TEF9wPeAnk=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "b659c7ffd40fc9e3bb60d420c79c67e769b9f4ab",
+        "rev": "5878fdadfe2cfe1b3383b38d66117f7b80696b68",
         "type": "github"
       },
       "original": {
@@ -329,11 +329,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1778563386,
-        "narHash": "sha256-WslIpKAwEOR4Z3KXJJYF2P5cxxU5bSYgogH2CnT4Lig=",
+        "lastModified": 1778614526,
+        "narHash": "sha256-j/EFk9RWUpf+y8X8x1+KU2SV8dOUqFejPUb88OIEQrA=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "140f3839f0cb215d8429af8e5cce6f4b0cd84269",
+        "rev": "ff41078439ff3d66496e6d4d75f4b7f851b5ff8e",
         "type": "github"
       },
       "original": {
@@ -455,11 +455,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1777954456,
-        "narHash": "sha256-hGdgeU2Nk87RAuZyYjyDjFL6LK7dAZN5RE9+hrDTkDU=",
+        "lastModified": 1778443072,
+        "narHash": "sha256-zi7/fsqM/kFdNuED//4WOCUtezGtKKqRNORjMvfwjnA=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "549bd84d6279f9852cae6225e372cc67fb91a4c1",
+        "rev": "da5ad661ba4e5ef59ba743f0d112cbc30e474f32",
         "type": "github"
       },
       "original": {
@@ -479,11 +479,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778132402,
-        "narHash": "sha256-XnQLaAexRyt5DHZB6xgb7hpiZ2V2sDOI5xUDB0cFwko=",
+        "lastModified": 1778618643,
+        "narHash": "sha256-XLSUfZlhJLk98iooCb0glUV0jkbGTGahiaJ/uNbW4UU=",
         "owner": "broughjt",
         "repo": "pi-coding-agent",
-        "rev": "fcc905fc0f7e4eee69b7d407e3f0c42f21c5301e",
+        "rev": "69327405ed8755ee81b8e309c66ed1eb67ea7b2b",
         "type": "github"
       },
       "original": {
