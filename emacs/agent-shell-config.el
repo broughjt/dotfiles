@@ -10,3 +10,5 @@
   (agent-shell-anthropic-authentication
    (agent-shell-anthropic-make-authentication :login t))
   (agent-shell-anthropic-claude-acp-command '("claude-agent-acp")))
+
+(provide 'agent-shell-config)

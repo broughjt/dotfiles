@@ -7,3 +7,5 @@
   :custom
   (markdown-enable-wiki-links t)
   (markdown-fontify-code-blocks-natively t))
+
+(provide 'language-markdown)

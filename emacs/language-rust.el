@@ -17,3 +17,5 @@
                     :initializationOptions
                     (:check (:command "clippy")))))))
   
+
+(provide 'language-rust)

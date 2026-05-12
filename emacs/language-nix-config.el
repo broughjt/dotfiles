@@ -18,3 +18,5 @@
                    ("nil"
                     :initializationOptions
                     (:nil (:formatting (:command ["nixfmt"]))))))))
+
+(provide 'language-nix-config)

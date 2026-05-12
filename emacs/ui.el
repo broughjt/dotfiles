@@ -25,3 +25,5 @@
 (use-package ef-themes
   :config
   (load-theme 'standard-dark t))
+
+(provide 'ui)

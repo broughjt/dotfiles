@@ -13,3 +13,5 @@
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  `((typst-ts-mode) . ,(eglot-alternatives `("tinymist"))))))
+
+(provide 'language-typst)

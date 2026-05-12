@@ -4,3 +4,5 @@
   :commands (ghostel ghostel-other ghostel-project)
   :custom
   (ghostel-module-auto-install nil))
+
+(provide 'terminal)

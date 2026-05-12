@@ -18,3 +18,5 @@
 
 ;; If users feel compelled to add comments signaling the end of blocks then you
 ;; should change your language syntax
+
+(provide 'language-verilog)

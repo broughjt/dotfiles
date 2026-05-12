@@ -18,3 +18,5 @@
 (defvar agda2-highlight-level)
 
 (setq agda2-highlight-level 'interactive)
+
+(provide 'language-agda)

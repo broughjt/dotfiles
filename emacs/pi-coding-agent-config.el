@@ -176,3 +176,5 @@ the redisplay-related code has finished."
   :config
   (add-hook 'window-buffer-change-functions
             #'jackson/pi-coding-agent-input--schedule))
+
+(provide 'pi-coding-agent-config)

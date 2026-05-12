@@ -30,9 +30,8 @@
 (require 'bind-key)
 (require 'seq)
 
-(defvar emacs-config-directory
-  (file-name-directory (or load-file-name user-init-file))
-  "Absolute path to this Emacs configuration directory.")
+(add-to-list 'load-path
+             (file-name-directory (or load-file-name user-init-file)))
 
 ;;; Nix impermanence state configuration
 
@@ -109,21 +108,22 @@
 
 ;;; Load the goods
 
-(load (expand-file-name "modules/ui.el" emacs-config-directory))
-(load (expand-file-name "modules/editing.el" emacs-config-directory))
-(load (expand-file-name "modules/completion.el" emacs-config-directory))
-(load (expand-file-name "modules/agent-shell-config.el" emacs-config-directory))
-(load (expand-file-name "modules/pi-coding-agent-config.el" emacs-config-directory))
-(load (expand-file-name "modules/terminal.el" emacs-config-directory))
-(load (expand-file-name "modules/project-config.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/tex.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/racket.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/rust.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/haskell.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/nix-config.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/agda.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/javascript.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/typst.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/verilog.el" emacs-config-directory))
-(load (expand-file-name "modules/languages/markdown.el" emacs-config-directory))
-(load (expand-file-name "modules/phelps.el" emacs-config-directory))
+(mapc #'require
+      '(ui
+        editing
+        completion
+        agent-shell-config
+        pi-coding-agent-config
+        terminal
+        project-config
+        language-tex
+        language-racket
+        language-rust
+        language-haskell
+        language-nix-config
+        language-agda
+        language-javascript
+        language-typst
+        language-verilog
+        language-markdown
+        phelps))

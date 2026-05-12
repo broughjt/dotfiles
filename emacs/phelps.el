@@ -263,3 +263,5 @@ incremented value, and saves it to the kill ring."
 (bind-key "C-c n g" #'phelps-follow-note-link)
 (bind-key "C-c n c" #'phelps-create-note)
 (bind-key "C-c n n" #'phelps-focus-note-at-point)
+
+(provide 'phelps)

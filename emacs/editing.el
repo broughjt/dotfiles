@@ -20,3 +20,5 @@
  (evil-collection-init))
 
 (use-package magit)
+
+(provide 'editing)

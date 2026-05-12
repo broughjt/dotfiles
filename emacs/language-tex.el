@@ -3,3 +3,5 @@
 (use-package auctex
   :custom
   (TeX-electric-sub-and-superscript t))
+
+(provide 'language-tex)
