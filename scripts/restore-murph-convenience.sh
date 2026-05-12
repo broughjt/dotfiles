@@ -53,6 +53,7 @@ chown -R 1000:100 "$PERSIST/home/jackson" 2>/dev/null || true
 chmod 0700 \
   "$PERSIST/home/jackson/local/hacks/fish/fish_history" \
   "$PERSIST/home/jackson/local/hacks/ssh/known_hosts" \
+  "$PERSIST/home/jackson/local/hacks/gh/hosts" \
   "$PERSIST/home/jackson/local/hacks/tmux/resurrect" \
   "$PERSIST/home/jackson/local/hacks/tmux/resurrect/resurrect" \
   "$PERSIST/home/jackson/local/share/direnv/allow" \
@@ -62,6 +63,7 @@ chmod 0700 \
 chmod 0600 \
   "$PERSIST/home/jackson/local/hacks/ssh/known_hosts/known_hosts" \
   "$PERSIST/home/jackson/local/hacks/fish/fish_history/fish_history" \
+  "$PERSIST/home/jackson/local/hacks/gh/hosts/hosts.yml" \
   2>/dev/null || true
 
 echo "info: convenience restore complete"

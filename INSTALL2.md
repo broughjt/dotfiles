@@ -27,6 +27,7 @@ The convenience archive carries useful but nonessential state:
 - Firefox profile: `~/.mozilla/firefox`
 - SSH `known_hosts`: `~/local/hacks/ssh/known_hosts/known_hosts`
 - fish history: `~/local/hacks/fish/fish_history/fish_history`
+- GitHub CLI account metadata: `~/local/hacks/gh/hosts/hosts.yml`
 - tmux-resurrect state: `~/local/hacks/tmux/resurrect/resurrect`
 - direnv trust decisions: `~/local/share/direnv/{allow,deny}`
 

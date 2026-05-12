@@ -71,6 +71,9 @@ in
     "d ${localDirectory}/hacks/ssh 0700 ${user} users -"
     "d ${localDirectory}/hacks/ssh/known_hosts 0700 ${user} users -"
     "f ${localDirectory}/hacks/ssh/known_hosts/known_hosts 0600 ${user} users -"
+    "d ${localDirectory}/hacks/gh 0700 ${user} users -"
+    "d ${localDirectory}/hacks/gh/hosts 0700 ${user} users -"
+    "f ${localDirectory}/hacks/gh/hosts/hosts.yml 0600 ${user} users -"
     "d ${localDirectory}/hacks/tmux 0700 ${user} users -"
     "d ${localDirectory}/hacks/tmux/resurrect 0700 ${user} users -"
     "d ${localDirectory}/hacks/tmux/resurrect/resurrect 0700 ${user} users -"
@@ -143,6 +146,7 @@ in
 
       check_single_entry ${localDirectory}/hacks/fish/fish_history fish_history
       check_single_entry ${localDirectory}/hacks/ssh/known_hosts known_hosts
+      check_single_entry ${localDirectory}/hacks/gh/hosts hosts.yml
       check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg-agent.conf
@@ -204,13 +208,16 @@ in
           directory = ".pi";
           mode = "0700";
         }
-        "local/config/gh"
         {
           directory = "local/hacks/fish/fish_history";
           mode = "0700";
         }
         {
           directory = "local/hacks/ssh/known_hosts";
+          mode = "0700";
+        }
+        {
+          directory = "local/hacks/gh/hosts";
           mode = "0700";
         }
         {
