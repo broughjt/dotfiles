@@ -10,10 +10,8 @@
 let
   user = config.personal.userName;
   uid = toString config.users.users.${user}.uid;
-  homeDirectory = config.defaultDirectories.homeDirectory;
   localDirectory = config.defaultDirectories.localDirectory;
 
-  oldPiAgentDir = "${homeDirectory}/.pi/agent";
   piAgentDir = "${localDirectory}/share/pi/agent";
   piSessionDir = "${localDirectory}/state/pi/sessions";
   piSettingsDir = "${localDirectory}/hacks/pi/settings";
@@ -66,46 +64,19 @@ in
   # SYSTEM.md/APPEND_SYSTEM.md, extensions/, skills/, prompts/, themes/, git/,
   # npm/, bin/fd, bin/rg, pi-debug.log, project-local .pi/, and arbitrary
   # third-party extension state.
-  system.activationScripts.setupPiCodingAgent = {
-    deps = [ "persist-files" ];
-    text = ''
-      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAgentDir}
-      install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piPackagesDir}
-      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSettingsDir}
-      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAuthDir}
-      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSessionDir}
-
-      if [ ! -e ${lib.escapeShellArg piSettingsFile} ]; then
-        install -m 0600 -o ${user} -g users ${seededSettings} ${lib.escapeShellArg piSettingsFile}
-      fi
-
-      if [ ! -e ${lib.escapeShellArg piAuthFile} ] && [ -e ${lib.escapeShellArg "${oldPiAgentDir}/auth.json"} ]; then
-        install -m 0600 -o ${user} -g users ${lib.escapeShellArg "${oldPiAgentDir}/auth.json"} ${lib.escapeShellArg piAuthFile}
-      fi
-
-      if [ -d ${lib.escapeShellArg "${oldPiAgentDir}/sessions"} ] \
-          && [ -z "$(find ${lib.escapeShellArg piSessionDir} -mindepth 1 -print -quit)" ]; then
-        cp -a ${lib.escapeShellArg "${oldPiAgentDir}/sessions/."} ${lib.escapeShellArg piSessionDir}/
-        chown -R ${user}:users ${lib.escapeShellArg piSessionDir}
-      fi
-
-      if [ ! -e ${lib.escapeShellArg piAuthFile} ]; then
-        printf '{}\n' > ${lib.escapeShellArg piAuthFile}
-        chown ${user}:users ${lib.escapeShellArg piAuthFile}
-        chmod 0600 ${lib.escapeShellArg piAuthFile}
-      fi
-
-      ln -sfn ${../../../pi/AGENTS.md} ${lib.escapeShellArg "${piAgentDir}/AGENTS.md"}
-      ln -sfn ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg "${piAgentDir}/settings.json"}
-      ln -sfn ${lib.escapeShellArg piAuthFile} ${lib.escapeShellArg "${piAgentDir}/auth.json"}
-      ln -sfn ${piWebMinimal} ${lib.escapeShellArg "${piPackagesDir}/pi-web-minimal"}
-      chown -h ${user}:users \
-        ${lib.escapeShellArg "${piAgentDir}/AGENTS.md"} \
-        ${lib.escapeShellArg "${piAgentDir}/settings.json"} \
-        ${lib.escapeShellArg "${piAgentDir}/auth.json"} \
-        ${lib.escapeShellArg "${piPackagesDir}/pi-web-minimal"}
-    '';
-  };
+  systemd.tmpfiles.rules = [
+    "d ${piAgentDir} 0700 ${user} users -"
+    "d ${piPackagesDir} 0755 ${user} users -"
+    "d ${piSettingsDir} 0700 ${user} users -"
+    "C ${piSettingsFile} 0600 ${user} users - ${seededSettings}"
+    "d ${piAuthDir} 0700 ${user} users -"
+    "f ${piAuthFile} 0600 ${user} users -"
+    "d ${piSessionDir} 0700 ${user} users -"
+    "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
+    "L+ ${piAgentDir}/settings.json - - - - ${piSettingsFile}"
+    "L+ ${piAgentDir}/auth.json - - - - ${piAuthFile}"
+    "L+ ${piPackagesDir}/pi-web-minimal - - - - ${piWebMinimal}"
+  ];
 
   home-manager.users.${user} = {
     home.packages = [ piPackage ];
