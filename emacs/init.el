@@ -4,6 +4,22 @@
 
 (defvar use-package-ensure-function)
 
+;; Defined in early-init.el. Forward-declared so byte-compile knows the
+;; references below are bound (the byte-compile check loads init.el and
+;; modules but not early-init.el).
+(defvar jackson/emacs-state-directory)
+(defvar jackson/emacs-cache-directory)
+(defvar jackson/emacs-hacks-directory)
+
+;; Forward declarations for variables defined by their respective packages
+;; (or by built-in libraries that are autoloaded only on first use). The
+;; setq's below run at init time, before those packages/libraries are loaded.
+(defvar transient-history-file)
+(defvar transient-values-file)
+(defvar transient-levels-file)
+(defvar project-list-file)
+(defvar bookmark-default-file)
+
 (declare-function exec-path-from-shell-initialize "exec-path-from-shell")
 (declare-function envrc-global-mode "envrc" (&optional arg))
 

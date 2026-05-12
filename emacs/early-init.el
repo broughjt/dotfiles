@@ -1,7 +1,6 @@
 ;;; -*- lexical-binding: t; -*-
 
-;; Disable package.el's automatic package activation. Packages are supplied by
-;; Nix and configured explicitly from init.el with use-package.
+;; Disable package.el. Emacs packages are managed by Nix.
 (setq package-enable-at-startup nil)
 
 ;; typst-ts-mode 0.12.2's generated autoloads contain a top-level
@@ -10,21 +9,21 @@
 ;;   Error loading autoloads: (void-function define-compilation-mode)
 (require 'compile)
 
-;; This Emacs is started with `--init-directory <store-path>', so
-;; `user-emacs-directory' is a read-only /nix/store path. Subsystems that
-;; would otherwise write next to init.el are redirected to ~/local/... .
+;; We start Emacs with `--init-directory <store-path>' so `user-emacs-directory'
+;; sits in /nix/store and is read-only. Subsystems that would otherwise write
+;; state next to init.el are redirected to ~/local/.
 ;;
-;; The directory defvars are defined here so they can be used by both
-;; early-init.el and init.el. Most state-path setq's live in init.el next to
-;; the configuration that depends on them; the native-comp eln-cache redirect
-;; below is the exception, because the deferred-compilation worker can begin
-;; writing .eln files before init.el is read.
+;; We manage state redirections in init.el next to the configuration that
+;; depends on them. However, since the native compilation eln-cache can begin
+;; writing .eln files before init.el is even read, we set the directory
+;; variables here and use the cache variable to configure the eln-cache before
+;; init.el runs.
 
 (defvar jackson/emacs-state-directory
   (file-name-as-directory
    (expand-file-name "emacs"
                      (or (getenv "XDG_STATE_HOME")
-                         (expand-file-name "~/local/state"))))
+                         (error "XDG_STATE_HOME is not set; expected from PAM/systemd user environment"))))
   "Emacs state under $XDG_STATE_HOME/emacs.
 Backups and auto-saves under here are persisted across reboots; everything
 else (auto-save-list, transient, custom, bookmarks) is intentionally
@@ -34,7 +33,7 @@ ephemeral.")
   (file-name-as-directory
    (expand-file-name "emacs"
                      (or (getenv "XDG_CACHE_HOME")
-                         (expand-file-name "~/local/cache"))))
+                         (error "XDG_CACHE_HOME is not set; expected from PAM/systemd user environment"))))
   "Ephemeral Emacs cache under $XDG_CACHE_HOME/emacs.")
 
 (defvar jackson/emacs-hacks-directory
