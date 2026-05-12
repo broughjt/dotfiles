@@ -56,6 +56,8 @@ chmod 0700 \
   "$PERSIST/home/jackson/local/hacks/gh/hosts" \
   "$PERSIST/home/jackson/local/hacks/tmux/resurrect" \
   "$PERSIST/home/jackson/local/hacks/tmux/resurrect/resurrect" \
+  "$PERSIST/home/jackson/local/hacks/emacs/projects" \
+  "$PERSIST/home/jackson/local/hacks/emacs/bookmarks" \
   "$PERSIST/home/jackson/local/hacks/pi/settings" \
   "$PERSIST/home/jackson/local/state/pi/sessions" \
   "$PERSIST/home/jackson/local/state/pi/mcp" \
@@ -67,6 +69,8 @@ chmod 0600 \
   "$PERSIST/home/jackson/local/hacks/ssh/known_hosts/known_hosts" \
   "$PERSIST/home/jackson/local/hacks/fish/fish_history/fish_history" \
   "$PERSIST/home/jackson/local/hacks/gh/hosts/hosts.yml" \
+  "$PERSIST/home/jackson/local/hacks/emacs/projects/projects.eld" \
+  "$PERSIST/home/jackson/local/hacks/emacs/bookmarks/bookmarks" \
   "$PERSIST/home/jackson/local/hacks/pi/settings/settings.json" \
   "$PERSIST/home/jackson/local/state/pi/mcp/mcp-cache.json" \
   "$PERSIST/home/jackson/local/state/pi/mcp/mcp-onboarding.json" \

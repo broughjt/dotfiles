@@ -55,6 +55,8 @@ candidates=(
   "home/jackson/local/hacks/fish/fish_history"
   "home/jackson/local/hacks/gh/hosts"
   "home/jackson/local/hacks/tmux/resurrect"
+  "home/jackson/local/hacks/emacs/projects"
+  "home/jackson/local/hacks/emacs/bookmarks"
   "home/jackson/local/hacks/pi/settings"
   "home/jackson/local/state/pi/sessions"
   "home/jackson/local/state/pi/mcp"

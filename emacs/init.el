@@ -3,9 +3,6 @@
 (require 'package)
 
 (defvar use-package-ensure-function)
-(defvar local-directory)
-(defvar backup-directory)
-(defvar auto-save-directory)
 
 (declare-function exec-path-from-shell-initialize "exec-path-from-shell")
 (declare-function envrc-global-mode "envrc" (&optional arg))
@@ -21,19 +18,6 @@
   (file-name-directory (or load-file-name user-init-file))
   "Absolute path to this Emacs configuration directory.")
 
-(setq local-directory (expand-file-name "~/.local/data/emacs/"))
-;; TODO
-;; (setq custom-file (concat local-directory "custom.el"))
-;; (load custom-file)
-
-(setq backup-directory (concat local-directory "backups/"))
-(setq auto-save-directory (concat local-directory "auto-saves/"))
-
-(setq backup-directory-alist `((".*" . ,backup-directory)))
-(setq auto-save-file-name-transforms `((".*" ,auto-save-directory t)))
-
-(setq create-lockfiles nil)
-
 (unless (eq system-type 'windows-nt)
   (use-package exec-path-from-shell
     :config
@@ -41,6 +25,11 @@
                    "SSH_AGENT_PID"
                    "GPG_AGENT_INFO"
                    "GNUPGHOME"
+                   "GIT_CONFIG_GLOBAL"
+                   "XDG_CONFIG_HOME"
+                   "XDG_CACHE_HOME"
+                   "XDG_DATA_HOME"
+                   "XDG_STATE_HOME"
                    "LANG"
                    "LC_CTYPE"
                    "NIX_SSL_CERT_FILE"

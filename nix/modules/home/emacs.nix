@@ -3,24 +3,59 @@
   configureEmacsPackage,
 }:
 
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
+let
+  user = config.personal.userName;
+  localDirectory = config.defaultDirectories.localDirectory;
+  emacsStateDirectory = "${localDirectory}/state/emacs";
+  emacsCacheDirectory = "${localDirectory}/cache/emacs";
+
+  emacsInitDirectory = ../../../emacs;
+  basePackage = configureEmacsPackage pkgs;
+
+  # Keep init.el / early-init.el / modules/ store-backed and pass them to
+  # Emacs via --init-directory instead of populating ~/.emacs.d. The wrapper
+  # is the package handed to programs.emacs and services.emacs so both
+  # interactive `emacs` and `emacs --bg-daemon` use the same init.
+  emacsPackage = pkgs.symlinkJoin {
+    name = "emacs-with-init-directory";
+    paths = [ basePackage ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram "$out/bin/emacs" \
+        --add-flags "--init-directory ${emacsInitDirectory}"
+    '';
+  };
+in
 {
   nixpkgs.overlays = emacsOverlays;
 
-  home-manager.users.${config.personal.userName} = {
+  # Pre-create the ephemeral state/cache subdirectories Emacs writes to. The
+  # parent ~/local/{state,cache} dirs are already declared in linux.nix.
+  systemd.tmpfiles.rules = [
+    "d ${emacsStateDirectory} 0700 ${user} users -"
+    "d ${emacsStateDirectory}/backups 0700 ${user} users -"
+    "d ${emacsStateDirectory}/auto-saves 0700 ${user} users -"
+    "d ${emacsStateDirectory}/auto-save-list 0700 ${user} users -"
+    "d ${emacsStateDirectory}/transient 0700 ${user} users -"
+    "d ${emacsCacheDirectory} 0700 ${user} users -"
+    "d ${emacsCacheDirectory}/eln-cache 0700 ${user} users -"
+  ];
+
+  home-manager.users.${user} = {
     programs.emacs = {
       enable = true;
-      package = configureEmacsPackage pkgs;
-    };
-    home.file.".emacs.d" = {
-      source = ../../../emacs;
-      recursive = true;
-      force = true;
+      package = emacsPackage;
     };
     services.emacs = {
       enable = pkgs.stdenv.isLinux;
-      package = config.home-manager.users.${config.personal.userName}.programs.emacs.package;
+      package = emacsPackage;
       defaultEditor = true;
     };
   };

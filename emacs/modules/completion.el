@@ -43,6 +43,7 @@
   -g \"!.git/\" -g \"!git/*\" -g \"!node_modules/\" -g \"!*cache/\" \
   -g \"!.cache\" -g \"!vendor/\" \
   -g \"!.pki/\" -g \"!.local/share/*/\" \
+  -g \"!local/cache/\" -g \"!local/share/*/\" -g \"!local/state/\" \
   -g \"!coverage\" -g \"!build/\" -g \"!var/\" -g \"!npm/\" \
   -g \"!Library/\" -g \"!.DS_Store\" -g \"!.stfolder\""
   "Exclusion flags for usage with ripgrep commands.")

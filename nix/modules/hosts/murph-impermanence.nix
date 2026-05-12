@@ -83,6 +83,15 @@ in
     "d ${localDirectory}/share/direnv 0700 ${user} users -"
     "d ${localDirectory}/share/direnv/allow 0700 ${user} users -"
     "d ${localDirectory}/share/direnv/deny 0700 ${user} users -"
+
+    # Emacs known-projects list and bookmarks. Other Emacs state (eln-cache,
+    # backups, auto-saves, transient history) is intentionally ephemeral under
+    # ~/local/{cache,state}/emacs.
+    "d ${localDirectory}/hacks/emacs 0700 ${user} users -"
+    "d ${localDirectory}/hacks/emacs/projects 0700 ${user} users -"
+    "f ${localDirectory}/hacks/emacs/projects/projects.eld 0600 ${user} users -"
+    "d ${localDirectory}/hacks/emacs/bookmarks 0700 ${user} users -"
+    "f ${localDirectory}/hacks/emacs/bookmarks/bookmarks 0600 ${user} users -"
   ];
 
   # Keep /etc/machine-id readable at its normal path without requiring users to
@@ -148,6 +157,8 @@ in
       check_single_entry ${localDirectory}/hacks/ssh/known_hosts known_hosts
       check_single_entry ${localDirectory}/hacks/gh/hosts hosts.yml
       check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
+      check_single_entry ${localDirectory}/hacks/emacs/projects projects.eld
+      check_single_entry ${localDirectory}/hacks/emacs/bookmarks bookmarks
       check_single_entry ${localDirectory}/hacks/pi/settings settings.json
       check_single_entry ${localDirectory}/secrets/pi/auth auth.json
       check_single_entry ${localDirectory}/secrets/pi/mcp mcp.json
@@ -245,6 +256,14 @@ in
         }
         {
           directory = "local/hacks/tmux/resurrect";
+          mode = "0700";
+        }
+        {
+          directory = "local/hacks/emacs/projects";
+          mode = "0700";
+        }
+        {
+          directory = "local/hacks/emacs/bookmarks";
           mode = "0700";
         }
         {
