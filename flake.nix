@@ -78,6 +78,7 @@
         };
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
+      piMcpAdapterPackage = import ./nix/packages/pi-mcp-adapter.nix;
 
       nixosModules = import ./nix/modules {
         inherit
@@ -90,6 +91,7 @@
           vaultixInput
           nixos-raspberrypi
           piWebMinimalPackage
+          piMcpAdapterPackage
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };

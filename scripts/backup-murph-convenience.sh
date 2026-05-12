@@ -57,6 +57,7 @@ candidates=(
   "home/jackson/local/hacks/tmux/resurrect"
   "home/jackson/local/hacks/pi/settings"
   "home/jackson/local/state/pi/sessions"
+  "home/jackson/local/state/pi/mcp"
   "home/jackson/local/share/direnv/allow"
   "home/jackson/local/share/direnv/deny"
 )

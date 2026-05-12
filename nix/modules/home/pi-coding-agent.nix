@@ -1,4 +1,7 @@
-{ piWebMinimalPackage }:
+{
+  piWebMinimalPackage,
+  piMcpAdapterPackage,
+}:
 
 {
   config,
@@ -15,18 +18,58 @@ let
   piShareDir = "${localDirectory}/share/pi";
   piAgentDir = "${piShareDir}/agent";
   piSessionDir = "${localDirectory}/state/pi/sessions";
+  piStateDir = "${localDirectory}/state/pi/mcp";
   piSettingsDir = "${localDirectory}/hacks/pi/settings";
   piSettingsFile = "${piSettingsDir}/settings.json";
+  piMcpConfigDir = "${localDirectory}/secrets/pi/mcp";
+  piMcpConfigFile = "${piMcpConfigDir}/mcp.json";
   piAuthDir = "${localDirectory}/secrets/pi/auth";
   piAuthFile = "${piAuthDir}/auth.json";
+  piMcpOAuthDir = "${localDirectory}/secrets/pi/mcp-oauth";
   piPackagesDir = "${piAgentDir}/packages";
   piWebMinimal = piWebMinimalPackage pkgs;
+  piMcpAdapter = piMcpAdapterPackage pkgs;
   piWebMinimalEnvFile = "/run/vaultix/pi-web-minimal.env";
+  piMcpCacheFile = "${piStateDir}/mcp-cache.json";
+  piMcpOnboardingFile = "${piStateDir}/mcp-onboarding.json";
+  piMcpSettingsMarker = "${piStateDir}/settings-package-seeded";
 
   piEnvironment = {
     PI_CODING_AGENT_DIR = piAgentDir;
     PI_CODING_AGENT_SESSION_DIR = piSessionDir;
+    PI_MCP_CONFIG = piMcpConfigFile;
+    PI_MCP_CACHE = piMcpCacheFile;
+    PI_MCP_ONBOARDING_STATE = piMcpOnboardingFile;
+    MCP_OAUTH_DIR = piMcpOAuthDir;
   };
+
+  disabledMcpPackage = {
+    source = "packages/pi-mcp-adapter";
+    extensions = [ ];
+    skills = [ ];
+    prompts = [ ];
+    themes = [ ];
+  };
+
+  seedMcpSettingsPackage = pkgs.writeText "seed-pi-mcp-settings-package.js" ''
+    const fs = require("fs");
+    const path = process.argv[2];
+    const marker = process.argv[3];
+    const disabledPackage = ${builtins.toJSON disabledMcpPackage};
+
+    function packageSource(entry) {
+      return typeof entry === "string" ? entry : entry && typeof entry === "object" ? entry.source : undefined;
+    }
+
+    const settings = JSON.parse(fs.readFileSync(path, "utf8"));
+    const packages = Array.isArray(settings.packages) ? settings.packages : [];
+    if (!packages.some((entry) => packageSource(entry) === disabledPackage.source)) {
+      settings.packages = [...packages, disabledPackage];
+      fs.writeFileSync(path, `''${JSON.stringify(settings, null, 2)}\n`, { mode: 0o600 });
+    }
+    fs.mkdirSync(require("path").dirname(marker), { recursive: true, mode: 0o700 });
+    fs.writeFileSync(marker, "\n", { mode: 0o600 });
+  '';
 
   seededSettings = pkgs.writeText "pi-settings.json" (
     builtins.toJSON {
@@ -34,7 +77,10 @@ let
       defaultModel = "gpt-5.5";
       defaultThinkingLevel = "high";
       enableInstallTelemetry = false;
-      packages = [ "packages/pi-web-minimal" ];
+      packages = [
+        "packages/pi-web-minimal"
+        disabledMcpPackage
+      ];
     }
   );
 
@@ -43,12 +89,29 @@ let
 
     export PI_CODING_AGENT_DIR=${lib.escapeShellArg piAgentDir}
     export PI_CODING_AGENT_SESSION_DIR=${lib.escapeShellArg piSessionDir}
+    export PI_MCP_CONFIG=${lib.escapeShellArg piMcpConfigFile}
+    export PI_MCP_CACHE=${lib.escapeShellArg piMcpCacheFile}
+    export PI_MCP_ONBOARDING_STATE=${lib.escapeShellArg piMcpOnboardingFile}
+    export MCP_OAUTH_DIR=${lib.escapeShellArg piMcpOAuthDir}
 
     if [ -r ${lib.escapeShellArg piWebMinimalEnvFile} ]; then
       . ${lib.escapeShellArg piWebMinimalEnvFile}
     fi
 
     exec ${pkgs.llm-agents.pi}/bin/pi "$@"
+  '';
+
+  piMcpAdapterCli = pkgs.writeShellScriptBin "pi-mcp-adapter" ''
+    set -euo pipefail
+
+    export PI_CODING_AGENT_DIR=${lib.escapeShellArg piAgentDir}
+    export PI_CODING_AGENT_SESSION_DIR=${lib.escapeShellArg piSessionDir}
+    export PI_MCP_CONFIG=${lib.escapeShellArg piMcpConfigFile}
+    export PI_MCP_CACHE=${lib.escapeShellArg piMcpCacheFile}
+    export PI_MCP_ONBOARDING_STATE=${lib.escapeShellArg piMcpOnboardingFile}
+    export MCP_OAUTH_DIR=${lib.escapeShellArg piMcpOAuthDir}
+
+    exec ${pkgs.nodejs}/bin/node ${piMcpAdapter}/cli.js "$@"
   '';
 in
 {
@@ -75,8 +138,17 @@ in
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAgentDir}
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piPackagesDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSettingsDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpConfigDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAuthDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpOAuthDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSessionDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piStateDir}
+
+      if [ -f ${lib.escapeShellArg piSettingsFile} ] && [ ! -e ${lib.escapeShellArg piMcpSettingsMarker} ]; then
+        ${pkgs.nodejs}/bin/node ${seedMcpSettingsPackage} ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg piMcpSettingsMarker}
+        chown ${user}:users ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg piMcpSettingsMarker}
+        chmod 0600 ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg piMcpSettingsMarker}
+      fi
     '';
   };
 
@@ -86,17 +158,24 @@ in
     "d ${piPackagesDir} 0755 ${user} users -"
     "d ${piSettingsDir} 0700 ${user} users -"
     "C ${piSettingsFile} 0600 ${user} users - ${seededSettings}"
+    "d ${piMcpConfigDir} 0700 ${user} users -"
     "d ${piAuthDir} 0700 ${user} users -"
     "f ${piAuthFile} 0600 ${user} users -"
+    "d ${piMcpOAuthDir} 0700 ${user} users -"
     "d ${piSessionDir} 0700 ${user} users -"
+    "d ${piStateDir} 0700 ${user} users -"
     "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
     "L+ ${piAgentDir}/settings.json - - - - ${piSettingsFile}"
     "L+ ${piAgentDir}/auth.json - - - - ${piAuthFile}"
     "L+ ${piPackagesDir}/pi-web-minimal - - - - ${piWebMinimal}"
+    "L+ ${piPackagesDir}/pi-mcp-adapter - - - - ${piMcpAdapter}"
   ];
 
   home-manager.users.${user} = {
-    home.packages = [ piPackage ];
+    home.packages = [
+      piPackage
+      piMcpAdapterCli
+    ];
     home.sessionVariables = piEnvironment;
   };
 }

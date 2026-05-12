@@ -58,6 +58,7 @@ chmod 0700 \
   "$PERSIST/home/jackson/local/hacks/tmux/resurrect/resurrect" \
   "$PERSIST/home/jackson/local/hacks/pi/settings" \
   "$PERSIST/home/jackson/local/state/pi/sessions" \
+  "$PERSIST/home/jackson/local/state/pi/mcp" \
   "$PERSIST/home/jackson/local/share/direnv/allow" \
   "$PERSIST/home/jackson/local/share/direnv/deny" \
   2>/dev/null || true
@@ -67,6 +68,9 @@ chmod 0600 \
   "$PERSIST/home/jackson/local/hacks/fish/fish_history/fish_history" \
   "$PERSIST/home/jackson/local/hacks/gh/hosts/hosts.yml" \
   "$PERSIST/home/jackson/local/hacks/pi/settings/settings.json" \
+  "$PERSIST/home/jackson/local/state/pi/mcp/mcp-cache.json" \
+  "$PERSIST/home/jackson/local/state/pi/mcp/mcp-onboarding.json" \
+  "$PERSIST/home/jackson/local/state/pi/mcp/settings-package-seeded" \
   2>/dev/null || true
 
 echo "info: convenience restore complete"

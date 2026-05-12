@@ -19,6 +19,7 @@ The secrets archive carries identity/security state needed after reinstall:
 - GnuPG keys/keyrings/trust state: `~/local/share/gnupg` (runtime files and store-backed config excluded)
 - GNOME/libsecret keyrings: `~/local/share/keyrings`
 - Pi auth: `~/local/secrets/pi/auth/auth.json`
+- Pi MCP config/OAuth tokens: `~/local/secrets/pi/mcp`, `~/local/secrets/pi/mcp-oauth`
 
 The convenience archive carries useful but nonessential state:
 
@@ -32,6 +33,7 @@ The convenience archive carries useful but nonessential state:
 - tmux-resurrect state: `~/local/hacks/tmux/resurrect/resurrect`
 - Pi mutable settings: `~/local/hacks/pi/settings/settings.json`
 - Pi sessions: `~/local/state/pi/sessions`
+- Pi MCP cache/onboarding state: `~/local/state/pi/mcp`
 - direnv trust decisions: `~/local/share/direnv/{allow,deny}`
 
 The convenience archive is intentionally unencrypted for ease of use, but it may

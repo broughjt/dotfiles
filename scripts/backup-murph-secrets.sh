@@ -16,6 +16,8 @@ state needed to recover identities/secrets on reinstall:
   /persist/home/jackson/local/share/gnupg
   /persist/home/jackson/local/share/keyrings
   /persist/home/jackson/local/secrets/pi/auth
+  /persist/home/jackson/local/secrets/pi/mcp
+  /persist/home/jackson/local/secrets/pi/mcp-oauth
 
 The archive is suitable for extraction into /mnt/persist during install.
 EOF
@@ -55,6 +57,8 @@ candidates=(
   "etc/ssh"
   "home/jackson/local/secrets/ssh"
   "home/jackson/local/secrets/pi/auth"
+  "home/jackson/local/secrets/pi/mcp"
+  "home/jackson/local/secrets/pi/mcp-oauth"
   "home/jackson/local/share/gnupg"
   "home/jackson/local/share/keyrings"
 )
