@@ -9,8 +9,7 @@
 (declare-function cape-wrap-buster "cape" (fn &rest args))
 (declare-function cape-dabbrev "cape" ())
 (declare-function cape-file "cape" ())
-(declare-function yas-global-mode "yasnippet" (&optional arg))
-(declare-function yas-define-snippets "yasnippet" (mode snippets))
+(declare-function tempel-expand "tempel" (&rest args))
 
 (use-package vertico
   :config
@@ -102,12 +101,26 @@
   (add-hook 'completion-at-point-functions #'cape-dabbrev 20)
   (add-hook 'completion-at-point-functions #'cape-file 20))
 
-(use-package yasnippet
-  :config
-  (yas-global-mode 1)
-  (yas-define-snippets
-   'typst-ts-mode
-   '(("sa" "\\`\\`\\`agda\n$0\n\\`\\`\\`"))))
+(defvar jackson/tempel-typst-templates
+  '((sa "```agda" n p n "```"))
+  "Tempel templates available in `typst-ts-mode'.")
+
+(defun jackson/tempel-setup-capf ()
+  "Add `tempel-expand' to the buffer-local capf list."
+  (setq-local completion-at-point-functions
+              (cons #'tempel-expand completion-at-point-functions)))
+
+(defun jackson/tempel-setup-typst ()
+  "Make `jackson/tempel-typst-templates' visible in this buffer."
+  (add-hook 'tempel-template-sources
+            'jackson/tempel-typst-templates nil 'local))
+
+(use-package tempel
+  :bind (("M-+" . tempel-complete)
+         ("M-*" . tempel-insert))
+  :hook ((prog-mode . jackson/tempel-setup-capf)
+         (text-mode . jackson/tempel-setup-capf)
+         (typst-ts-mode . jackson/tempel-setup-typst)))
 
 (use-package jinx
   :hook (emacs-startup . global-jinx-mode)

@@ -31,7 +31,9 @@
 (require 'seq)
 
 (add-to-list 'load-path
-             (file-name-directory (or load-file-name user-init-file)))
+             (expand-file-name "lisp"
+                               (file-name-directory
+                                (or load-file-name user-init-file))))
 
 ;;; Nix impermanence state configuration
 

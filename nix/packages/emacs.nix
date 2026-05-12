@@ -30,9 +30,9 @@
         jinx
         marginalia
         orderless
+        tempel
         vertico
         which-key
-        yasnippet
 
         # editing.el
         evil
