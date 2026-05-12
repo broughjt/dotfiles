@@ -19,10 +19,10 @@
         envrc
         inheritenv
 
-        # modules/agent-shell-config.el
+        # agent-shell-config.el
         agent-shell
 
-        # modules/completion.el
+        # completion.el
         affe
         cape
         consult
@@ -34,12 +34,12 @@
         which-key
         yasnippet
 
-        # modules/editing.el
+        # editing.el
         evil
         evil-collection
         magit
 
-        # modules/languages/*.el
+        # language-*.el
         auctex
         haskell-mode
         markdown-mode
@@ -49,18 +49,24 @@
         typst-ts-mode
         verilog-mode
 
-        # modules/pi-coding-agent-config.el
-        pi-coding-agent
+        # pi-coding-agent-config.el
+        #
+        # Qualified explicitly to bypass `with epkgs`: the function argument
+        # `pi-coding-agent` (the flake input) is in the enclosing lexical
+        # scope and shadows the `with`-introduced binding, so a bare
+        # `pi-coding-agent` here would resolve to the flake source dir
+        # rather than the trivialBuild derivation injected by overrideScope.
+        epkgs.pi-coding-agent
 
-        # modules/terminal.el
+        # terminal.el
         ghostel
 
-        # modules/ui.el
+        # ui.el
         ef-themes
         modus-themes
         standard-themes
 
-        # Treesitter grammars needed for pi-pi-coding-agent
+        # Treesitter grammars needed for pi-coding-agent
         treesit-grammars.with-all-grammars
       ]
     );
