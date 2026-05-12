@@ -11,15 +11,24 @@
 (require 'compile)
 
 ;; This Emacs is started with `--init-directory <store-path>', so
-;; `user-emacs-directory' is a read-only /nix/store path. Redirect every
-;; subsystem that wants to write next to init.el at runtime.
+;; `user-emacs-directory' is a read-only /nix/store path. Subsystems that
+;; would otherwise write next to init.el are redirected to ~/local/... .
+;;
+;; The directory defvars are defined here so they can be used by both
+;; early-init.el and init.el. Most state-path setq's live in init.el next to
+;; the configuration that depends on them; the native-comp eln-cache redirect
+;; below is the exception, because the deferred-compilation worker can begin
+;; writing .eln files before init.el is read.
 
 (defvar jackson/emacs-state-directory
   (file-name-as-directory
    (expand-file-name "emacs"
                      (or (getenv "XDG_STATE_HOME")
                          (expand-file-name "~/local/state"))))
-  "Ephemeral Emacs state under $XDG_STATE_HOME/emacs.")
+  "Emacs state under $XDG_STATE_HOME/emacs.
+Backups and auto-saves under here are persisted across reboots; everything
+else (auto-save-list, transient, custom, bookmarks) is intentionally
+ephemeral.")
 
 (defvar jackson/emacs-cache-directory
   (file-name-as-directory
@@ -33,37 +42,9 @@
    (expand-file-name "hacks/emacs" (expand-file-name "~/local")))
   "Narrowly persisted Emacs state under ~/local/hacks/emacs.")
 
-;; Native compilation cache. Must be redirected before native-comp loads.
+;; Native compilation cache. `startup-redirect-eln-cache' has to run before
+;; native-comp loads, hence its placement in early-init.el rather than next to
+;; the other state paths in init.el.
 (when (fboundp 'startup-redirect-eln-cache)
   (startup-redirect-eln-cache
    (expand-file-name "eln-cache/" jackson/emacs-cache-directory)))
-
-;; Backups, auto-saves, and auto-save-list.
-(setq backup-directory-alist
-      `((".*" . ,(expand-file-name "backups/" jackson/emacs-state-directory))))
-(setq auto-save-file-name-transforms
-      `((".*" ,(expand-file-name "auto-saves/" jackson/emacs-state-directory) t)))
-(setq auto-save-list-file-prefix
-      (expand-file-name "auto-save-list/.saves-" jackson/emacs-state-directory))
-(setq create-lockfiles nil)
-
-;; Magit/transient history. Ephemeral.
-(setq transient-history-file
-      (expand-file-name "transient/history.el" jackson/emacs-state-directory))
-(setq transient-values-file
-      (expand-file-name "transient/values.el" jackson/emacs-state-directory))
-(setq transient-levels-file
-      (expand-file-name "transient/levels.el" jackson/emacs-state-directory))
-
-;; Narrowly persisted: known projects and bookmarks survive reboot via
-;; ~/local/hacks/emacs/{projects,bookmarks}.
-(setq project-list-file
-      (expand-file-name "projects/projects.eld" jackson/emacs-hacks-directory))
-(setq bookmark-default-file
-      (expand-file-name "bookmarks/bookmarks" jackson/emacs-hacks-directory))
-
-;; Customize storage. Declarative config is the source of truth, so route any
-;; accidental `M-x customize-save-variable' writes into ephemeral state where
-;; they will not be persisted.
-(setq custom-file
-      (expand-file-name "custom.el" jackson/emacs-state-directory))
