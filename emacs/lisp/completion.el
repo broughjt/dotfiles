@@ -107,11 +107,15 @@
 
 (defun jackson/tempel-setup-capf ()
   "Add `tempel-expand' to the buffer-local capf list."
-  (setq-local completion-at-point-functions
-              (cons #'tempel-expand completion-at-point-functions)))
+  ;; `tempel-expand' is not autoloaded in the Nix-built Emacs package set, but
+  ;; Corfu will call it later through `completion-at-point-functions'. Load
+  ;; Tempel before installing the CAPF to avoid delayed void-function errors.
+  (require 'tempel)
+  (add-hook 'completion-at-point-functions #'tempel-expand nil t))
 
 (defun jackson/tempel-setup-typst ()
   "Make `jackson/tempel-typst-templates' visible in this buffer."
+  (require 'tempel)
   (add-hook 'tempel-template-sources
             'jackson/tempel-typst-templates nil 'local))
 
