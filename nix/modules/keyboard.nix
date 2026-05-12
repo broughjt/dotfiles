@@ -11,7 +11,6 @@
 
       config = ''
         ;; 1. Caps Lock: unconditionally Escape.
-        ;; 2. Escape: disabled.
         ;;
         ;; TODO: Re-enable a Space navigation layer later. The previous version
         ;; used Space as normal Space on tap and a nav layer on hold, with
@@ -21,7 +20,6 @@
 
         (deflayermap (base)
           caps esc
-          esc  XX
         )
 
         ;; TODO(#3): Try opposite-hand home-row mods once the basic layer-taps
