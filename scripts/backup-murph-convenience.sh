@@ -10,7 +10,7 @@ Usage:
 
 This intentionally excludes core secrets. It is for state that is useful but not
 required for identity recovery, such as repositories, share/scratch data,
-browser profile, known_hosts, fish history, and direnv trust decisions.
+browser profile, known_hosts, fish history, Pi sessions/settings, and direnv trust decisions.
 
 The archive is unencrypted for convenience. Review the path list before putting
 it on an untrusted USB: browser profiles and shell history can still be private.
@@ -55,6 +55,8 @@ candidates=(
   "home/jackson/local/hacks/fish/fish_history"
   "home/jackson/local/hacks/gh/hosts"
   "home/jackson/local/hacks/tmux/resurrect"
+  "home/jackson/local/hacks/pi/settings"
+  "home/jackson/local/state/pi/sessions"
   "home/jackson/local/share/direnv/allow"
   "home/jackson/local/share/direnv/deny"
 )

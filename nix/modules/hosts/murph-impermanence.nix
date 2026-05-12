@@ -148,6 +148,8 @@ in
       check_single_entry ${localDirectory}/hacks/ssh/known_hosts known_hosts
       check_single_entry ${localDirectory}/hacks/gh/hosts hosts.yml
       check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
+      check_single_entry ${localDirectory}/hacks/pi/settings settings.json
+      check_single_entry ${localDirectory}/secrets/pi/auth auth.json
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg-agent.conf
     '';
@@ -205,7 +207,15 @@ in
         "share"
 
         {
-          directory = ".pi";
+          directory = "local/hacks/pi/settings";
+          mode = "0700";
+        }
+        {
+          directory = "local/secrets/pi/auth";
+          mode = "0700";
+        }
+        {
+          directory = "local/state/pi/sessions";
           mode = "0700";
         }
         {

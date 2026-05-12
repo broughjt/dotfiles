@@ -21,7 +21,6 @@
       llm-agents.codex-acp
       llm-agents.gemini-cli
       llm-agents.opencode
-      llm-agents.pi
       nicotine-plus
       noto-fonts
       noto-fonts-cjk-sans

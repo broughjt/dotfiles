@@ -56,6 +56,8 @@ chmod 0700 \
   "$PERSIST/home/jackson/local/hacks/gh/hosts" \
   "$PERSIST/home/jackson/local/hacks/tmux/resurrect" \
   "$PERSIST/home/jackson/local/hacks/tmux/resurrect/resurrect" \
+  "$PERSIST/home/jackson/local/hacks/pi/settings" \
+  "$PERSIST/home/jackson/local/state/pi/sessions" \
   "$PERSIST/home/jackson/local/share/direnv/allow" \
   "$PERSIST/home/jackson/local/share/direnv/deny" \
   2>/dev/null || true
@@ -64,6 +66,7 @@ chmod 0600 \
   "$PERSIST/home/jackson/local/hacks/ssh/known_hosts/known_hosts" \
   "$PERSIST/home/jackson/local/hacks/fish/fish_history/fish_history" \
   "$PERSIST/home/jackson/local/hacks/gh/hosts/hosts.yml" \
+  "$PERSIST/home/jackson/local/hacks/pi/settings/settings.json" \
   2>/dev/null || true
 
 echo "info: convenience restore complete"

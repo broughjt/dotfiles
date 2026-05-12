@@ -72,12 +72,15 @@ fi
 chmod 0700 \
   "$PERSIST/home/jackson/local/secrets" \
   "$PERSIST/home/jackson/local/secrets/ssh" \
+  "$PERSIST/home/jackson/local/secrets/pi" \
+  "$PERSIST/home/jackson/local/secrets/pi/auth" \
   "$PERSIST/home/jackson/local/share/gnupg" \
   "$PERSIST/home/jackson/local/share/keyrings" \
   2>/dev/null || true
 
 chmod 0600 "$PERSIST/home/jackson/local/secrets/ssh/id_ed25519" 2>/dev/null || true
 chmod 0644 "$PERSIST/home/jackson/local/secrets/ssh/id_ed25519.pub" 2>/dev/null || true
+chmod 0600 "$PERSIST/home/jackson/local/secrets/pi/auth/auth.json" 2>/dev/null || true
 
 if [ -d "$PERSIST/etc/ssh" ]; then
   chown -R root:root "$PERSIST/etc/ssh"

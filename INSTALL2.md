@@ -18,6 +18,7 @@ The secrets archive carries identity/security state needed after reinstall:
 - personal SSH private key: `~/local/secrets/ssh`
 - GnuPG keys/keyrings/trust state: `~/local/share/gnupg` (runtime files and store-backed config excluded)
 - GNOME/libsecret keyrings: `~/local/share/keyrings`
+- Pi auth: `~/local/secrets/pi/auth/auth.json`
 
 The convenience archive carries useful but nonessential state:
 
@@ -29,6 +30,8 @@ The convenience archive carries useful but nonessential state:
 - fish history: `~/local/hacks/fish/fish_history/fish_history`
 - GitHub CLI account metadata: `~/local/hacks/gh/hosts/hosts.yml`
 - tmux-resurrect state: `~/local/hacks/tmux/resurrect/resurrect`
+- Pi mutable settings: `~/local/hacks/pi/settings/settings.json`
+- Pi sessions: `~/local/state/pi/sessions`
 - direnv trust decisions: `~/local/share/direnv/{allow,deny}`
 
 The convenience archive is intentionally unencrypted for ease of use, but it may

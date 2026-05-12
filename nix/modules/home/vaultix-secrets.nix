@@ -5,7 +5,6 @@
 let
   user = config.personal.userName;
   group = "users";
-  homeDirectory = config.defaultDirectories.homeDirectory;
   secretsDirectory = ../../../secrets;
   exaApiKeySecret = secretsDirectory + "/exa-api-key.age";
   context7ApiKeySecret = secretsDirectory + "/context7-api-key.age";
@@ -24,19 +23,14 @@ in
     context7ApiKey.file = context7ApiKeySecret;
   };
 
-  vaultix.templates.pi-web-search-json = {
-    name = "pi-web-search.json";
+  vaultix.templates.pi-web-minimal-env = {
+    name = "pi-web-minimal.env";
     owner = user;
     inherit group;
     mode = "0600";
-    content = builtins.toJSON {
-      exaApiKey = config.vaultix.placeholder.exaApiKey;
-      context7ApiKey = config.vaultix.placeholder.context7ApiKey;
-    };
+    content = ''
+      export EXA_API_KEY=${lib.escapeShellArg config.vaultix.placeholder.exaApiKey}
+      export CONTEXT7_API_KEY=${lib.escapeShellArg config.vaultix.placeholder.context7ApiKey}
+    '';
   };
-
-  systemd.tmpfiles.rules = [
-    "d ${homeDirectory}/.pi 0700 ${user} ${group} -"
-    "L+ ${homeDirectory}/.pi/web-search.json - - - - ${config.vaultix.templates.pi-web-search-json.path}"
-  ];
 }
