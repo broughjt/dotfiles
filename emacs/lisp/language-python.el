@@ -1,6 +1,17 @@
 ;;; -*- lexical-binding: t; -*-
 
+(defvar apheleia-mode-alist)
 (defvar eglot-server-programs)
+
+(use-package apheleia
+  :hook ((python-mode . apheleia-mode)
+         (python-ts-mode . apheleia-mode))
+  :config
+  ;; Use Ruff from the project environment for Python formatting and import
+  ;; sorting. Apheleia runs formatters from PATH and skips missing executables,
+  ;; so projects without Ruff in their environment are left alone.
+  (setf (alist-get 'python-mode apheleia-mode-alist) '(ruff-isort ruff))
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
 (use-package python
   :ensure nil

@@ -40,6 +40,7 @@
         magit
 
         # language-*.el
+        apheleia
         auctex
         haskell-mode
         markdown-mode
