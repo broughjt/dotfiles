@@ -123,6 +123,7 @@
         language-rust
         language-haskell
         language-nix-config
+        language-python
         language-agda
         language-javascript
         language-typst
