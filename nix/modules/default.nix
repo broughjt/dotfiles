@@ -37,7 +37,6 @@ rec {
 
   linuxBase = import ./linux-base.nix;
   docker = import ./docker.nix;
-  keyboard = import ./keyboard.nix;
 
   homeDirectories = import ./home/directories.nix;
   homeLinux = import ./home/linux.nix { inherit homeDirectories; };

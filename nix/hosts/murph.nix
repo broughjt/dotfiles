@@ -20,7 +20,6 @@ nixpkgs.lib.nixosSystem {
     nixSettings
     linuxBase
     docker
-    keyboard
     home-manager.nixosModules.home-manager
     personal
     homeLinux
