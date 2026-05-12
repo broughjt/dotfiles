@@ -60,21 +60,5 @@ in
     # Mutable account metadata lives narrowly in ~/local/hacks/gh/hosts/hosts.yml,
     # while the actual auth token is stored through libsecret/GNOME keyring.
     xdg.configFile."gh/config.yml".enable = false;
-
-    home.activation.migrateGhHostsToHack = ''
-      old_xdg_hosts="${homeManagerUser.xdg.configHome}/gh/hosts.yml"
-      old_hack_hosts="${localDirectory}/hacks/gh/config/hosts.yml"
-      new_hosts="${ghHostsFile}"
-
-      if [ ! -s "$new_hosts" ]; then
-        for old_hosts in "$old_xdg_hosts" "$old_hack_hosts"; do
-          if [ -s "$old_hosts" ]; then
-            run mkdir -m 0700 -p "${ghHostsDir}"
-            run install -m 0600 "$old_hosts" "$new_hosts"
-            break
-          fi
-        done
-      fi
-    '';
   };
 }
