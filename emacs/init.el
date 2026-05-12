@@ -34,32 +34,30 @@
   (file-name-directory (or load-file-name user-init-file))
   "Absolute path to this Emacs configuration directory.")
 
-;; State paths. The directory defvars (`jackson/emacs-state-directory',
-;; `jackson/emacs-cache-directory', `jackson/emacs-hacks-directory') and the
-;; eln-cache redirect are set in early-init.el; everything else lives here.
+;;; Nix impermanence state configuration
 
-;; Backups. Rename target on first save of a buffer in a session, kept after
-;; subsequent saves. Persisted across reboots so unintended overwrites in
-;; non-VC files (notes, scratch, configs outside git) remain recoverable.
+;; Backups: Rename target on first save of a buffer in a session, kept after
+;; subsequent saves. Persisted across reboots so unintended overwrites in files
+;; outside of version control remain recoverable.
 (setq backup-directory-alist
       `((".*" . ,(expand-file-name "backups/" jackson/emacs-state-directory))))
 
-;; Auto-saves. Periodic working-copy snapshots, deleted on successful explicit
+;; Auto-saves: Periodic working-copy snapshots, deleted on successful explicit
 ;; save. Persisted across reboots so `M-x recover-file' works after a crash
 ;; that takes down the whole machine, not just Emacs.
 (setq auto-save-file-name-transforms
       `((".*" ,(expand-file-name "auto-saves/" jackson/emacs-state-directory) t)))
 
-;; Per-session auto-save index used by `M-x recover-session'. Disposable
-;; across reboots; only useful within the lifetime of a single Emacs process.
+;; Per-session auto-save index used by `M-x recover-session': disposable
+;; across reboots. Only useful within the lifetime of a single Emacs process.
 (setq auto-save-list-file-prefix
       (expand-file-name "auto-save-list/.saves-" jackson/emacs-state-directory))
 
-;; File locks (.#name) are unnecessary on a single-user workstation and
-;; clutter project trees.
+;; Don't create those annoying file locks (.#name). Nobody else is running Emacs
+;; on my machine, who am I worried about clobbering me?
 (setq create-lockfiles nil)
 
-;; Transient (magit/etc) UI history. Ephemeral; rebuilds with use.
+;; Transient (magit/etc) UI history.
 (setq transient-history-file
       (expand-file-name "transient/history.el" jackson/emacs-state-directory))
 (setq transient-values-file
@@ -67,19 +65,19 @@
 (setq transient-levels-file
       (expand-file-name "transient/levels.el" jackson/emacs-state-directory))
 
-;; Known projects, narrowly persisted via ~/local/hacks/emacs/projects so
-;; `project-switch-project' remembers visited roots across reboots.
+;; List of known projects. Narrowly persisted in ~/local/hacks/emacs/projects so
+;; `project-switch-project' remembers visited project roots across reboots.
 (setq project-list-file
       (expand-file-name "projects/projects.eld" jackson/emacs-hacks-directory))
 
 ;; Bookmarks are not currently used, but `M-x bookmark-set' would otherwise
 ;; try to write inside the read-only user-emacs-directory. Redirect to
 ;; ephemeral state so accidental use is harmless.
+;; TODO: Try bookmarks
 (setq bookmark-default-file
       (expand-file-name "bookmarks" jackson/emacs-state-directory))
 
-;; Customize storage. Declarative config is the source of truth, so route any
-;; accidental `M-x customize-save-variable' writes into ephemeral state.
+;; Customize storage. Route anything set with this to ephemeral state.
 (setq custom-file
       (expand-file-name "custom.el" jackson/emacs-state-directory))
 
@@ -108,6 +106,8 @@
 
 (use-package inheritenv
   :demand t)
+
+;;; Load the goods
 
 (load (expand-file-name "modules/ui.el" emacs-config-directory))
 (load (expand-file-name "modules/editing.el" emacs-config-directory))

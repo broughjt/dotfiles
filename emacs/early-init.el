@@ -42,8 +42,8 @@ ephemeral.")
   "Narrowly persisted Emacs state under ~/local/hacks/emacs.")
 
 ;; Native compilation cache. `startup-redirect-eln-cache' has to run before
-;; native-comp loads, hence its placement in early-init.el rather than next to
-;; the other state paths in init.el.
+;; native compilation loads, which is why we place it in early-init.el rather
+;; than next to the other state configuration in init.el.
 (when (fboundp 'startup-redirect-eln-cache)
   (startup-redirect-eln-cache
    (expand-file-name "eln-cache/" jackson/emacs-cache-directory)))
