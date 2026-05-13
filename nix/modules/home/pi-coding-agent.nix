@@ -32,7 +32,6 @@ let
   piWebMinimalEnvFile = "/run/vaultix/pi-web-minimal.env";
   piMcpCacheFile = "${piStateDir}/mcp-cache.json";
   piMcpOnboardingFile = "${piStateDir}/mcp-onboarding.json";
-  piMcpSettingsMarker = "${piStateDir}/settings-package-seeded";
 
   piEnvironment = {
     PI_CODING_AGENT_DIR = piAgentDir;
@@ -43,34 +42,6 @@ let
     MCP_OAUTH_DIR = piMcpOAuthDir;
   };
 
-  disabledMcpPackage = {
-    source = "packages/pi-mcp-adapter";
-    extensions = [ ];
-    skills = [ ];
-    prompts = [ ];
-    themes = [ ];
-  };
-
-  seedMcpSettingsPackage = pkgs.writeText "seed-pi-mcp-settings-package.js" ''
-    const fs = require("fs");
-    const path = process.argv[2];
-    const marker = process.argv[3];
-    const disabledPackage = ${builtins.toJSON disabledMcpPackage};
-
-    function packageSource(entry) {
-      return typeof entry === "string" ? entry : entry && typeof entry === "object" ? entry.source : undefined;
-    }
-
-    const settings = JSON.parse(fs.readFileSync(path, "utf8"));
-    const packages = Array.isArray(settings.packages) ? settings.packages : [];
-    if (!packages.some((entry) => packageSource(entry) === disabledPackage.source)) {
-      settings.packages = [...packages, disabledPackage];
-      fs.writeFileSync(path, `''${JSON.stringify(settings, null, 2)}\n`, { mode: 0o600 });
-    }
-    fs.mkdirSync(require("path").dirname(marker), { recursive: true, mode: 0o700 });
-    fs.writeFileSync(marker, "\n", { mode: 0o600 });
-  '';
-
   seededSettings = pkgs.writeText "pi-settings.json" (
     builtins.toJSON {
       defaultProvider = "openai-codex";
@@ -79,7 +50,6 @@ let
       enableInstallTelemetry = false;
       packages = [
         "packages/pi-web-minimal"
-        disabledMcpPackage
       ];
     }
   );
@@ -143,12 +113,6 @@ in
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpOAuthDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSessionDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piStateDir}
-
-      if [ -f ${lib.escapeShellArg piSettingsFile} ] && [ ! -e ${lib.escapeShellArg piMcpSettingsMarker} ]; then
-        ${pkgs.nodejs}/bin/node ${seedMcpSettingsPackage} ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg piMcpSettingsMarker}
-        chown ${user}:users ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg piMcpSettingsMarker}
-        chmod 0600 ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg piMcpSettingsMarker}
-      fi
     '';
   };
 
