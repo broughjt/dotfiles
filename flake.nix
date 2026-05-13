@@ -148,6 +148,7 @@
       let
         pkgs = makePkgs system;
         emacsPackage = emacsPackages.configureEmacsPackage pkgs;
+        piPrintSystemPrompt = import ./nix/packages/pi-print-system-prompt.nix { inherit pkgs; };
         installMurph = pkgs.writeShellApplication {
           name = "install-murph";
           runtimeInputs = with pkgs; [
@@ -203,42 +204,35 @@
           ];
           text = builtins.readFile ./scripts/restore-murph-convenience.sh;
         };
-      in
-      (import ./nix/shell.nix { inherit pkgs; })
-      // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
-      // (import ./nix/formatter.nix { inherit pkgs; })
-      // {
-        packages = {
+        scriptPackages = {
           inherit
             backupMurphConvenience
             backupMurphSecrets
             installMurph
+            piPrintSystemPrompt
             restoreMurphConvenience
             restoreMurphSecrets
             ;
         };
-        apps = {
-          backupMurphConvenience = {
-            type = "app";
-            program = "${backupMurphConvenience}/bin/backup-murph-convenience";
-          };
-          backupMurphSecrets = {
-            type = "app";
-            program = "${backupMurphSecrets}/bin/backup-murph-secrets";
-          };
-          installMurph = {
-            type = "app";
-            program = "${installMurph}/bin/install-murph";
-          };
-          restoreMurphConvenience = {
-            type = "app";
-            program = "${restoreMurphConvenience}/bin/restore-murph-convenience";
-          };
-          restoreMurphSecrets = {
-            type = "app";
-            program = "${restoreMurphSecrets}/bin/restore-murph-secrets";
-          };
+        makeScriptApp = package: executable: {
+          type = "app";
+          program = "${package}/bin/${executable}";
         };
+        scriptApps = {
+          backupMurphConvenience = makeScriptApp backupMurphConvenience "backup-murph-convenience";
+          backupMurphSecrets = makeScriptApp backupMurphSecrets "backup-murph-secrets";
+          installMurph = makeScriptApp installMurph "install-murph";
+          piPrintSystemPrompt = makeScriptApp piPrintSystemPrompt "pi-print-system-prompt";
+          restoreMurphConvenience = makeScriptApp restoreMurphConvenience "restore-murph-convenience";
+          restoreMurphSecrets = makeScriptApp restoreMurphSecrets "restore-murph-secrets";
+        };
+      in
+      (import ./nix/shell.nix { inherit pkgs scriptPackages; })
+      // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
+      // (import ./nix/formatter.nix { inherit pkgs; })
+      // {
+        packages = scriptPackages;
+        apps = scriptApps;
       }
     );
 }
