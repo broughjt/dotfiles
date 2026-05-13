@@ -1,4 +1,5 @@
 import { parseArgs } from "node:util";
+import type { ToolInfo } from "@earendil-works/pi-coding-agent";
 
 const piRoot = process.env.PI_CODING_AGENT_ROOT;
 if (!piRoot) {
@@ -6,30 +7,9 @@ if (!piRoot) {
   process.exit(1);
 }
 
-type ToolDefinition = {
-  name: string;
-  description?: string;
-  sourceInfo?: {
-    source?: string;
-  };
-  parameters: unknown;
-};
-
-type AgentSession = {
-  systemPrompt: string;
-  getAllTools(): ToolDefinition[];
-  getActiveToolNames(): string[];
-  dispose(): void;
-};
-
 const { createAgentSession, SessionManager } = (await import(
   `${piRoot}/dist/index.js`
-)) as {
-  createAgentSession(options: unknown): Promise<{ session: AgentSession }>;
-  SessionManager: {
-    inMemory(): unknown;
-  };
-};
+)) as typeof import("@earendil-works/pi-coding-agent");
 
 const { values } = parseArgs({
   options: {
@@ -63,7 +43,7 @@ const { session } = await createAgentSession({
   sessionManager: SessionManager.inMemory(),
 });
 
-function formatToolDefinitions(tools: ToolDefinition[], label: string): string {
+function formatToolDefinitions(tools: ToolInfo[], label: string): string {
   const lines = [`Tool Definitions (${tools.length} ${label})`, ""];
 
   for (const tool of tools) {
