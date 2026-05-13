@@ -27,7 +27,6 @@
       noto-fonts-cjk-serif
       noto-fonts-color-emoji
       nerd-fonts.symbols-only
-      papers
       slack
       source-serif
       spotify
