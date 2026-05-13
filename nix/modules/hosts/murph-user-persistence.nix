@@ -46,6 +46,20 @@ in
     "d ${localDirectory}/hacks/emacs 0700 ${user} users -"
     "d ${localDirectory}/hacks/emacs/projects 0700 ${user} users -"
     "f ${localDirectory}/hacks/emacs/projects/projects.eld 0600 ${user} users -"
+
+    # GnuPG: only durable subcomponents are persisted. GNUPGHOME itself is
+    # ephemeral and only holds activation-managed symlinks plus throwaway
+    # state (random_seed, locks, sockets, crls.d). pubring.kbx and
+    # trustdb.gpg live in a persisted directory so gpg's temp+rename writes
+    # do not get pinned by per-file impermanence binds. private-keys-v1.d
+    # and openpgp-revocs.d are symlinked into the persisted secrets tree.
+    "d ${localDirectory}/secrets/gnupg 0700 ${user} users -"
+    "d ${localDirectory}/secrets/gnupg/private-keys-v1.d 0700 ${user} users -"
+    "d ${localDirectory}/secrets/gnupg/openpgp-revocs.d 0700 ${user} users -"
+    "d ${localDirectory}/state/gnupg 0700 ${user} users -"
+    "d ${localDirectory}/share/gnupg 0700 ${user} users -"
+    "L+ ${localDirectory}/share/gnupg/private-keys-v1.d - - - - ${localDirectory}/secrets/gnupg/private-keys-v1.d"
+    "L+ ${localDirectory}/share/gnupg/openpgp-revocs.d - - - - ${localDirectory}/secrets/gnupg/openpgp-revocs.d"
   ];
 
   system.activationScripts.warnUnexpectedHackState = {
@@ -169,7 +183,11 @@ in
         mode = "0700";
       }
       {
-        directory = "local/share/gnupg";
+        directory = "local/secrets/gnupg";
+        mode = "0700";
+      }
+      {
+        directory = "local/state/gnupg";
         mode = "0700";
       }
       {

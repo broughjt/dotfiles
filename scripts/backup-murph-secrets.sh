@@ -13,7 +13,8 @@ state needed to recover identities/secrets on reinstall:
 
   /persist/etc/ssh
   /persist/home/jackson/local/secrets/ssh
-  /persist/home/jackson/local/share/gnupg
+  /persist/home/jackson/local/secrets/gnupg
+  /persist/home/jackson/local/state/gnupg
   /persist/home/jackson/local/share/keyrings
   /persist/home/jackson/local/secrets/pi/auth
   /persist/home/jackson/local/secrets/pi/mcp
@@ -59,7 +60,8 @@ candidates=(
   "home/jackson/local/secrets/pi/auth"
   "home/jackson/local/secrets/pi/mcp"
   "home/jackson/local/secrets/pi/mcp-oauth"
-  "home/jackson/local/share/gnupg"
+  "home/jackson/local/secrets/gnupg"
+  "home/jackson/local/state/gnupg"
   "home/jackson/local/share/keyrings"
 )
 
@@ -90,7 +92,6 @@ done
   echo
   echo "notes:"
   echo "  - Encrypted with age --passphrase."
-  echo "  - GnuPG runtime files and store-backed config files are excluded."
   echo "  - Extract into /mnt/persist during install."
 } > "$manifest"
 
@@ -100,15 +101,6 @@ tar \
   --gzip \
   --file - \
   --directory /persist \
-  --exclude='home/jackson/local/share/gnupg/S.*' \
-  --exclude='home/jackson/local/share/gnupg/.#lk*' \
-  --exclude='home/jackson/local/share/gnupg/*.lock' \
-  --exclude='home/jackson/local/share/gnupg/*/.#lk*' \
-  --exclude='home/jackson/local/share/gnupg/*/*.lock' \
-  --exclude='home/jackson/local/share/gnupg/crls.d' \
-  --exclude='home/jackson/local/share/gnupg/random_seed' \
-  --exclude='home/jackson/local/share/gnupg/gpg.conf' \
-  --exclude='home/jackson/local/share/gnupg/gpg-agent.conf' \
   "${paths[@]}" \
   | age --passphrase --output "$archive"
 

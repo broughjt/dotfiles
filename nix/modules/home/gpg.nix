@@ -7,7 +7,13 @@
 let
   user = config.personal.userName;
   homeManagerUser = config.home-manager.users.${user};
+  localDirectory = config.defaultDirectories.localDirectory;
   gpgHomedir = "${homeManagerUser.xdg.dataHome}/gnupg";
+  # Durable GnuPG state lives outside the ephemeral GNUPGHOME. The keybox and
+  # trustdb are written via temp+rename, so they must live inside a persisted
+  # directory rather than be individually bind-mounted by impermanence.
+  gpgKeyboxPath = "${localDirectory}/state/gnupg/pubring.kbx";
+  gpgTrustdbPath = "${localDirectory}/state/gnupg/trustdb.gpg";
   gpgConfigPath = homeManagerUser.home.file."${gpgHomedir}/gpg.conf".source;
   gpgAgentConfigPath = homeManagerUser.home.file."${gpgHomedir}/gpg-agent.conf".source;
 
@@ -33,7 +39,10 @@ let
       wrapProgram "$out/bin/gpg" \
         --add-flags "--no-permission-warning" \
         --add-flags "--homedir ${gpgHomedir}" \
-        --add-flags "--options ${gpgConfigPath}"
+        --add-flags "--options ${gpgConfigPath}" \
+        --add-flags "--no-default-keyring" \
+        --add-flags "--keyring ${gpgKeyboxPath}" \
+        --add-flags "--trustdb-name ${gpgTrustdbPath}"
 
       wrapProgram "$out/bin/gpg-agent" \
         --add-flags "--options ${gpgAgentConfigPath}"
