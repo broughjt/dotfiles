@@ -148,97 +148,33 @@
       let
         pkgs = makePkgs system;
         emacsPackage = emacsPackages.configureEmacsPackage pkgs;
-        installMurph = pkgs.writeShellApplication {
-          name = "install-murph";
-          runtimeInputs = with pkgs; [
-            coreutils
-            disko.packages.${system}.disko-install
-            kmod
-            mkpasswd
-            procps
-            util-linux
-            zfs
-          ];
-          text = builtins.replaceStrings [ "@DOTFILES_FLAKE@" ] [ "${self}" ] (
-            builtins.readFile ./scripts/install-murph.sh
-          );
+        scriptPackages = import ./nix/packages/scripts.nix {
+          inherit
+            disko
+            pkgs
+            self
+            system
+            ;
         };
-        backupMurphSecrets = pkgs.writeShellApplication {
-          name = "backup-murph-secrets";
-          runtimeInputs = with pkgs; [
-            age
-            coreutils
-            git
-            gnutar
-            gzip
-          ];
-          text = builtins.readFile ./scripts/backup-murph-secrets.sh;
+        makeScriptApp = package: executable: {
+          type = "app";
+          program = "${package}/bin/${executable}";
         };
-        backupMurphConvenience = pkgs.writeShellApplication {
-          name = "backup-murph-convenience";
-          runtimeInputs = with pkgs; [
-            coreutils
-            git
-            gnutar
-            gzip
-          ];
-          text = builtins.readFile ./scripts/backup-murph-convenience.sh;
-        };
-        restoreMurphSecrets = pkgs.writeShellApplication {
-          name = "restore-murph-secrets";
-          runtimeInputs = with pkgs; [
-            age
-            coreutils
-            gnutar
-            gzip
-          ];
-          text = builtins.readFile ./scripts/restore-murph-secrets.sh;
-        };
-        restoreMurphConvenience = pkgs.writeShellApplication {
-          name = "restore-murph-convenience";
-          runtimeInputs = with pkgs; [
-            coreutils
-            gnutar
-            gzip
-          ];
-          text = builtins.readFile ./scripts/restore-murph-convenience.sh;
+        scriptApps = {
+          backupMurphConvenience = makeScriptApp scriptPackages.backupMurphConvenience "backup-murph-convenience";
+          backupMurphSecrets = makeScriptApp scriptPackages.backupMurphSecrets "backup-murph-secrets";
+          installMurph = makeScriptApp scriptPackages.installMurph "install-murph";
+          piPrintSystemPrompt = makeScriptApp scriptPackages.piPrintSystemPrompt "pi-print-system-prompt";
+          restoreMurphConvenience = makeScriptApp scriptPackages.restoreMurphConvenience "restore-murph-convenience";
+          restoreMurphSecrets = makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets";
         };
       in
-      (import ./nix/shell.nix { inherit pkgs; })
+      (import ./nix/shell.nix { inherit pkgs scriptPackages; })
       // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
       // (import ./nix/formatter.nix { inherit pkgs; })
       // {
-        packages = {
-          inherit
-            backupMurphConvenience
-            backupMurphSecrets
-            installMurph
-            restoreMurphConvenience
-            restoreMurphSecrets
-            ;
-        };
-        apps = {
-          backupMurphConvenience = {
-            type = "app";
-            program = "${backupMurphConvenience}/bin/backup-murph-convenience";
-          };
-          backupMurphSecrets = {
-            type = "app";
-            program = "${backupMurphSecrets}/bin/backup-murph-secrets";
-          };
-          installMurph = {
-            type = "app";
-            program = "${installMurph}/bin/install-murph";
-          };
-          restoreMurphConvenience = {
-            type = "app";
-            program = "${restoreMurphConvenience}/bin/restore-murph-convenience";
-          };
-          restoreMurphSecrets = {
-            type = "app";
-            program = "${restoreMurphSecrets}/bin/restore-murph-secrets";
-          };
-        };
+        packages = scriptPackages;
+        apps = scriptApps;
       }
     );
 }
