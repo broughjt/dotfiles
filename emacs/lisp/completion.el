@@ -13,8 +13,12 @@
 
 (use-package vertico
   :config
-  (vertico-mode)
-  :hook ((rfn-eshadow-update-overlay . #'vertico-directory-tidy)))
+  ;; `vertico-directory-tidy' lives in the optional vertico-directory module.
+  ;; Load it explicitly before installing the hook; otherwise, with package.el
+  ;; autoload activation disabled, the hook can point at an unloaded function.
+  (require 'vertico-directory)
+  (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+  (vertico-mode))
 
 (use-package marginalia
   :config
@@ -93,11 +97,10 @@
 
 (setq completion-category-overrides '((eglot (styles orderless))
                                       (eglot-capf (styles orderless))))
-(advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-
 (use-package cape
-  :defer 1
+  :demand t
   :config
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (add-hook 'completion-at-point-functions #'cape-dabbrev 20)
   (add-hook 'completion-at-point-functions #'cape-file 20))
 
