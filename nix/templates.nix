@@ -15,4 +15,8 @@
     path = ../templates/rocq;
     description = "Coq template";
   };
+  typst-homework = {
+    path = ../templates/typst-homework;
+    description = "Typst homework template";
+  };
 }
