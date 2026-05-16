@@ -3,7 +3,9 @@
 (defvar affe-find-command)
 
 (declare-function marginalia-mode "marginalia" (&optional arg))
-(declare-function affe-find "affe" (&optional dir))
+(declare-function affe-find "affe" (&optional dir initial))
+(declare-function vertico-mode "vertico" (&optional arg))
+(declare-function vertico-directory-tidy "vertico-directory" ())
 (declare-function global-corfu-mode "corfu" (&optional arg))
 (declare-function corfu-popupinfo-mode "corfu-popupinfo" (&optional arg))
 (declare-function cape-wrap-buster "cape" (fn &rest args))
@@ -50,23 +52,41 @@
   -g \"!coverage\" -g \"!build/\" -g \"!var/\" -g \"!npm/\" \
   -g \"!Library/\" -g \"!.DS_Store\" -g \"!.stfolder\""
   "Exclusion flags for usage with ripgrep commands.")
+(defvar fd-ignore-flags
+  "-E \"*.mp3\" -E \"*.jpg\" -E \"*.JPG\" -E \"*.jpeg\" -E \"*.png\" \
+  -E \"*.mkv\" -E \"*.mp4\" -E \"*.avi\" -E \"*.zip\" -E \"*.ddl\" \
+  -E \"*.ods\" -E \"*.xlsx\" -E \"*.m3u\" -E \"*.url\" -E \"*.aac\" \
+  -E \"*.mpc\" -E \"*.sql\" -E \"*.ydb\" -E \"dist\" \
+  -E \".git\" -E \"git\" -E \"node_modules\" -E \"*cache\" \
+  -E \".cache\" -E \"vendor\" \
+  -E \".pki\" -E \".local/share/*\" \
+  -E \"local/cache\" -E \"local/share/*\" -E \"local/state\" \
+  -E \"coverage\" -E \"build\" -E \"var\" -E \"npm\" \
+  -E \"Library\" -E \".DS_Store\" -E \".stfolder\""
+  "Exclusion flags for usage with fd commands.")
 (defvar rg-find-files-command
   (format "rg -L --ignore --hidden --files --color=never %s" rg-ignore-flags)
   "Command for finding files with ripgrep.")
-(defvar rg-find-directories-command
-  (format "rg-dir -L --ignore --hidden --color=never %s" rg-ignore-flags)
-  "Command for finding directories with ripgrep.")
+(defvar fd-find-directories-command
+  ;; Affe appends the search path(s) to the command.  `fd' needs an explicit
+  ;; pattern before those paths; `.*' matches every directory.
+  (format "fd -L -H --type directory --color=never %s .*" fd-ignore-flags)
+  "Command for finding directories with fd.")
 
-(defun affe-find-file (&optional dir) (interactive) ; default dir is cwd
-       (setq affe-find-command rg-find-files-command)
-       (affe-find dir))
-(defun affe-find-directory (&optional dir) (interactive) ; default dir is cwd
-       (setq affe-find-command rg-find-directories-command)
-       (affe-find dir))
-(defun affe-find-file-home () (interactive)
-       (affe-find-file (substitute-in-file-name "$HOME")))
-(defun affe-find-directory-home () (interactive)
-       (affe-find-directory (substitute-in-file-name "$HOME")))
+(defun affe-find-file (&optional dir)
+  (interactive) ; default dir is cwd
+  (let ((affe-find-command rg-find-files-command))
+    (affe-find dir)))
+(defun affe-find-directory (&optional dir)
+  (interactive) ; default dir is cwd
+  (let ((affe-find-command fd-find-directories-command))
+    (affe-find dir)))
+(defun affe-find-file-home ()
+  (interactive)
+  (affe-find-file (substitute-in-file-name "$HOME")))
+(defun affe-find-directory-home ()
+  (interactive)
+  (affe-find-directory (substitute-in-file-name "$HOME")))
 
 (use-package affe
   :bind (("M-s F"   . affe-find-file-home)
