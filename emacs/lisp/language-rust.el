@@ -7,8 +7,9 @@
   :hook (rust-mode . apheleia-mode))
 
 (use-package rust-mode
-  :init
-  (setq rust-mode-treesitter-derive t)
+  ;; TODO: slow?
+  ;; :init
+  ;; (setq rust-mode-treesitter-derive t)
   :mode "\\.rs\\'"
   :hook (rust-mode . eglot-ensure)
   :config
