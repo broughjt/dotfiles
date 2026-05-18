@@ -17,6 +17,7 @@
       localDirectory = config.defaultDirectories.localDirectory;
       homeManagerUser = config.home-manager.users.${user};
       xdgEnvironment = {
+        XDG_BIN_HOME = "${localDirectory}/bin";
         XDG_CACHE_HOME = "${localDirectory}/cache";
         XDG_CONFIG_HOME = "${localDirectory}/config";
         XDG_DATA_HOME = "${localDirectory}/share";
@@ -89,6 +90,7 @@
 
       systemd.tmpfiles.rules = [
         "d ${localDirectory} 0755 ${user} users -"
+        "d ${localDirectory}/bin 0755 ${user} users -"
         "d ${localDirectory}/config 0755 ${user} users -"
         "d ${localDirectory}/cache 0700 ${user} users -"
         "d ${localDirectory}/share 0755 ${user} users -"
@@ -110,6 +112,7 @@
 
         xdg = {
           enable = true;
+          binHome = xdgEnvironment.XDG_BIN_HOME;
           cacheHome = xdgEnvironment.XDG_CACHE_HOME;
           configHome = xdgEnvironment.XDG_CONFIG_HOME;
           dataHome = xdgEnvironment.XDG_DATA_HOME;
