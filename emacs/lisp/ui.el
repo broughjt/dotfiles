@@ -22,10 +22,7 @@
 
 (use-package standard-themes
   :config
-  (load-theme 'standard-dark t)
-  ;; Emacs 32 warns if a face spec uses nil for :background; keep this face
-  ;; explicitly unspecified instead.
-  (set-face-attribute 'fill-column-indicator nil :background 'unspecified))
+  (load-theme 'standard-dark t))
 (use-package modus-themes :defer t)
 (use-package ef-themes :defer t)
 

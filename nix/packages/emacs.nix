@@ -5,7 +5,21 @@
     pkgs:
     let
       emacsPackages = (pkgs.emacsPackagesFor pkgs.emacs-git-pgtk).overrideScope (
-        final: _prev: {
+        final: prev: {
+          # Emacs 32 rejects nil as a face :background value and warns while
+          # loading `standard-dark'.  Standard Themes builds on Modus Themes'
+          # `modus-themes-theme' helper, whose fill-column-indicator tty face
+          # spec still uses `:background nil'.  Patch the source before byte
+          # compilation so the generated Standard face specs are clean at theme
+          # load time, rather than correcting the face after the warning fires.
+          modus-themes = prev.modus-themes.overrideAttrs (old: {
+            postPatch = (old.postPatch or "") + ''
+              substituteInPlace modus-themes.el \
+                --replace-fail ':height 1.0 :background nil :foreground ,bg-active' \
+                               ':height 1.0 :background unspecified :foreground ,bg-active'
+            '';
+          });
+
           pi-coding-agent = pi-coding-agent.lib.mkPackage pkgs final;
         }
       );
