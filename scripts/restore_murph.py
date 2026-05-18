@@ -26,6 +26,7 @@ BUNDLES = {
             "home/jackson/local/secrets/gnupg/openpgp-revocs.d",
             "home/jackson/local/state/gnupg",
             "home/jackson/local/share/keyrings",
+            "home/jackson/local/config/discord",
         ],
         "files_0600": [
             "home/jackson/local/secrets/ssh/id_ed25519",

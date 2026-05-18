@@ -19,6 +19,7 @@ The secrets archive carries identity/security state needed after reinstall:
 - GnuPG key material/revocations: `~/local/secrets/gnupg`
 - GnuPG public keybox/trust DB state: `~/local/state/gnupg`
 - GNOME/libsecret keyrings: `~/local/share/keyrings`
+- Discord login/session state: `~/local/config/discord`
 - Pi auth: `~/local/secrets/pi/auth/auth.json`
 - Pi MCP config/OAuth tokens: `~/local/secrets/pi/mcp`, `~/local/secrets/pi/mcp-oauth`
 

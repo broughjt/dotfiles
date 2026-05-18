@@ -31,6 +31,7 @@ BUNDLES = {
             "home/jackson/local/secrets/gnupg",
             "home/jackson/local/state/gnupg",
             "home/jackson/local/share/keyrings",
+            "home/jackson/local/config/discord",
         ],
         "notes": [
             "Encrypted with age --passphrase.",
