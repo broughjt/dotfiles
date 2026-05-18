@@ -128,5 +128,4 @@
         language-javascript
         language-typst
         language-verilog
-        language-markdown
-        phelps))
+        language-markdown))

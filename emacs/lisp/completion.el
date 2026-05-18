@@ -48,7 +48,8 @@
   -g \"!.git/\" -g \"!git/*\" -g \"!node_modules/\" -g \"!*cache/\" \
   -g \"!.cache\" -g \"!vendor/\" \
   -g \"!.pki/\" -g \"!.local/share/*/\" \
-  -g \"!local/cache/\" -g \"!local/share/*/\" -g \"!local/state/\" \
+  -g \"!local/cache/\" -g \"!local/config/\" -g \"!local/hacks/\" \
+  -g \"!local/secrets/\" -g \"!local/share/*/\" -g \"!local/state/\" \
   -g \"!coverage\" -g \"!build/\" -g \"!var/\" -g \"!npm/\" \
   -g \"!Library/\" -g \"!.DS_Store\" -g \"!.stfolder\""
   "Exclusion flags for usage with ripgrep commands.")
@@ -60,7 +61,8 @@
   -E \".git\" -E \"git\" -E \"node_modules\" -E \"*cache\" \
   -E \".cache\" -E \"vendor\" \
   -E \".pki\" -E \".local/share/*\" \
-  -E \"local/cache\" -E \"local/share/*\" -E \"local/state\" \
+  -E \"local/cache\" -E \"local/config\" -E \"local/hacks\" \
+  -E \"local/secrets\" -E \"local/share/*\" -E \"local/state\" \
   -E \"coverage\" -E \"build\" -E \"var\" -E \"npm\" \
   -E \"Library\" -E \".DS_Store\" -E \".stfolder\""
   "Exclusion flags for usage with fd commands.")
@@ -75,10 +77,16 @@
 
 (defun affe-find-file (&optional dir)
   (interactive) ; default dir is cwd
+  ;; These commands are our wrappers, not Affe autoloaded entry points, so make
+  ;; sure the package is loaded before calling `affe-find'.
+  (require 'affe)
   (let ((affe-find-command rg-find-files-command))
     (affe-find dir)))
 (defun affe-find-directory (&optional dir)
   (interactive) ; default dir is cwd
+  ;; These commands are our wrappers, not Affe autoloaded entry points, so make
+  ;; sure the package is loaded before calling `affe-find'.
+  (require 'affe)
   (let ((affe-find-command fd-find-directories-command))
     (affe-find dir)))
 (defun affe-find-file-home ()

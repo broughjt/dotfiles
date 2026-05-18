@@ -20,10 +20,13 @@
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 (add-hook 'text-mode-hook #'display-fill-column-indicator-mode)
 
-(use-package standard-themes)
-(use-package modus-themes)
-(use-package ef-themes
+(use-package standard-themes
   :config
-  (load-theme 'standard-dark t))
+  (load-theme 'standard-dark t)
+  ;; Emacs 32 warns if a face spec uses nil for :background; keep this face
+  ;; explicitly unspecified instead.
+  (set-face-attribute 'fill-column-indicator nil :background 'unspecified))
+(use-package modus-themes :defer t)
+(use-package ef-themes :defer t)
 
 (provide 'ui)
