@@ -20,7 +20,6 @@
       llm-agents.codex-acp
       llm-agents.gemini-cli
       llm-agents.opencode
-      nicotine-plus
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-cjk-serif
@@ -29,7 +28,6 @@
       slack
       source-serif
       spotify
-      strawberry
       vlc
       wl-clipboard
     ];
@@ -52,13 +50,5 @@
       defaultFonts.emoji = [ "Noto Color Emoji" ];
     };
 
-    programs.beets = {
-      enable = true;
-      settings = {
-        directory = "${config.defaultDirectories.shareDirectory}/music";
-        import.move = "yes";
-        plugins = [ "musicbrainz" ];
-      };
-    };
   };
 }
