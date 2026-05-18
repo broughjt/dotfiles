@@ -38,7 +38,15 @@
 
     xdg.portal = {
       enable = true;
-      config.common.default = [ "gnome" ];
+      # Prefer GNOME, but list the fallback implementations explicitly for
+      # interfaces that xdg-desktop-portal-gnome does not provide (e.g. Secret
+      # from gnome-keyring, and any GTK-only portal interfaces). This avoids
+      # relying on deprecated UseIn fallback selection.
+      config.common.default = [
+        "gnome"
+        "gtk"
+        "gnome-keyring"
+      ];
     };
 
     home-manager.users.${config.personal.userName}.home.packages = with pkgs; [

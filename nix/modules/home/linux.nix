@@ -125,8 +125,9 @@
             download = config.defaultDirectories.scratchDirectory;
             music = "${config.defaultDirectories.shareDirectory}/music";
             pictures = "${config.defaultDirectories.shareDirectory}/pictures";
+            projects = config.defaultDirectories.repositoriesDirectory;
             publicShare = config.defaultDirectories.shareDirectory;
-            templates = null;
+            templates = "${config.defaultDirectories.shareDirectory}/templates";
             videos = "${config.defaultDirectories.shareDirectory}/videos";
           };
         };
