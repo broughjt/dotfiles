@@ -45,7 +45,7 @@ BUNDLES = {
             "home/jackson/repositories",
             "home/jackson/share",
             "home/jackson/scratch",
-            "home/jackson/.mozilla/firefox",
+            "home/jackson/local/config/mozilla/firefox",
             "home/jackson/local/hacks/ssh/known_hosts",
             "home/jackson/local/hacks/fish/fish_history",
             "home/jackson/local/hacks/gh/hosts",

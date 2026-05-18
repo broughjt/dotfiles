@@ -39,6 +39,7 @@ BUNDLES = {
     "convenience": {
         "encrypted": False,
         "directories_0700": [
+            "home/jackson/local/config/mozilla/firefox",
             "home/jackson/local/hacks/fish/fish_history",
             "home/jackson/local/hacks/ssh/known_hosts",
             "home/jackson/local/hacks/gh/hosts",

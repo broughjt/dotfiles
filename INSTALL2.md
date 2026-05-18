@@ -27,7 +27,7 @@ The convenience archive carries useful but nonessential state:
 - `~/repositories`
 - `~/share`
 - `~/scratch`
-- Firefox profile: `~/.mozilla/firefox`
+- Firefox profile: `~/local/config/mozilla/firefox`
 - SSH `known_hosts`: `~/local/hacks/ssh/known_hosts/known_hosts`
 - fish history: `~/local/hacks/fish/fish_history/fish_history`
 - GitHub CLI account metadata: `~/local/hacks/gh/hosts/hosts.yml`

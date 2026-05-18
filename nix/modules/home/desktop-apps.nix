@@ -10,7 +10,6 @@
       bubblewrap
       discord
       evince
-      firefox
       hunspell
       hunspellDicts.en_US
       inter

@@ -54,6 +54,7 @@ rec {
       piMcpAdapterPackage
       ;
   };
+  firefox = import ./home/firefox.nix;
   ghostty = import ./home/ghostty.nix;
   kakoune = import ./home/kakoune.nix;
   tailscale = import ./tailscale.nix;
