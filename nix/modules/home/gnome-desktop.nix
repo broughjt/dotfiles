@@ -49,9 +49,23 @@
       ];
     };
 
-    home-manager.users.${config.personal.userName}.home.packages = with pkgs; [
-      dconf-editor
-      nautilus
-    ];
+    home-manager.users.${config.personal.userName} = {
+      home.packages = with pkgs; [
+        dconf-editor
+        nautilus
+      ];
+
+      # File chooser / Nautilus sidebar bookmarks. Keep these declarative so
+      # the mutable GTK bookmarks file is not state we need to persist.
+      xdg.configFile."gtk-3.0/bookmarks" = {
+        force = true;
+        text = ''
+          file://${config.defaultDirectories.shareDirectory}/documents
+          file://${config.defaultDirectories.shareDirectory}/music
+          file://${config.defaultDirectories.shareDirectory}/pictures
+          file://${config.defaultDirectories.shareDirectory}/videos
+        '';
+      };
+    };
   };
 }
