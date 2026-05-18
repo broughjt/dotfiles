@@ -28,6 +28,7 @@ BUNDLES = {
             "home/jackson/local/share/keyrings",
             "home/jackson/local/config/discord",
             "home/jackson/local/config/Slack",
+            "home/jackson/local/config/spotify",
         ],
         "files_0600": [
             "home/jackson/local/secrets/ssh/id_ed25519",

@@ -33,6 +33,7 @@ BUNDLES = {
             "home/jackson/local/share/keyrings",
             "home/jackson/local/config/discord",
             "home/jackson/local/config/Slack",
+            "home/jackson/local/config/spotify",
         ],
         "notes": [
             "Encrypted with age --passphrase.",
