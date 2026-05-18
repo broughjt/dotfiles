@@ -29,6 +29,7 @@ nixpkgs.lib.nixosSystem {
     pass
     vaultixSecrets
     piCodingAgent
+    ghostty
     kakoune
     emacs
   ];

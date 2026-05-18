@@ -54,6 +54,7 @@ rec {
       piMcpAdapterPackage
       ;
   };
+  ghostty = import ./home/ghostty.nix;
   kakoune = import ./home/kakoune.nix;
   tailscale = import ./tailscale.nix;
   emacs = import ./home/emacs.nix {
