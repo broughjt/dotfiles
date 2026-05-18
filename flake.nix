@@ -161,12 +161,10 @@
           program = "${package}/bin/${executable}";
         };
         scriptApps = {
-          backupMurphConvenience = makeScriptApp scriptPackages.backupMurphConvenience "backup-murph-convenience";
-          backupMurphSecrets = makeScriptApp scriptPackages.backupMurphSecrets "backup-murph-secrets";
+          backupMurph = makeScriptApp scriptPackages.backupMurph "backup-murph";
           installMurph = makeScriptApp scriptPackages.installMurph "install-murph";
           piPrintSystemPrompt = makeScriptApp scriptPackages.piPrintSystemPrompt "pi-print-system-prompt";
-          restoreMurphConvenience = makeScriptApp scriptPackages.restoreMurphConvenience "restore-murph-convenience";
-          restoreMurphSecrets = makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets";
+          restoreMurph = makeScriptApp scriptPackages.restoreMurph "restore-murph";
         };
       in
       (import ./nix/shell.nix { inherit pkgs scriptPackages; })

@@ -8,15 +8,16 @@ convenience archive is unencrypted and optional.
 
 ```sh
 # Replace /run/media/jackson/USB with the mounted USB path.
-sudo nix run .#backupMurphSecrets -- /run/media/jackson/USB
-sudo nix run .#backupMurphConvenience -- /run/media/jackson/USB
+sudo nix run .#backupMurph -- --bundle secrets /run/media/jackson/USB
+sudo nix run .#backupMurph -- --bundle convenience /run/media/jackson/USB
 ```
 
 The secrets archive carries identity/security state needed after reinstall:
 
 - system SSH host keys: `/persist/etc/ssh`
 - personal SSH private key: `~/local/secrets/ssh`
-- GnuPG keys/keyrings/trust state: `~/local/share/gnupg` (runtime files and store-backed config excluded)
+- GnuPG key material/revocations: `~/local/secrets/gnupg`
+- GnuPG public keybox/trust DB state: `~/local/state/gnupg`
 - GNOME/libsecret keyrings: `~/local/share/keyrings`
 - Pi auth: `~/local/secrets/pi/auth/auth.json`
 - Pi MCP config/OAuth tokens: `~/local/secrets/pi/mcp`, `~/local/secrets/pi/mcp-oauth`
@@ -79,12 +80,12 @@ state archives, mount the backup USB and restore them with the restore apps:
 
 ```sh
 nix --extra-experimental-features "nix-command flakes" \
-  run github:broughjt/dotfiles#restoreMurphSecrets -- \
-  /path/to/murph-secrets-*.tar.gz.age /mnt
+  run github:broughjt/dotfiles#restoreMurph -- \
+  --bundle secrets /path/to/murph-secrets-*.tar.gz.age /mnt
 
 nix --extra-experimental-features "nix-command flakes" \
-  run github:broughjt/dotfiles#restoreMurphConvenience -- \
-  /path/to/murph-convenience-*.tar.gz /mnt
+  run github:broughjt/dotfiles#restoreMurph -- \
+  --bundle convenience /path/to/murph-convenience-*.tar.gz /mnt
 ```
 
 The convenience archive is optional. If the installer USB and backup USB cannot

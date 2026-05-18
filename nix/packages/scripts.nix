@@ -29,54 +29,39 @@ let
       builtins.readFile ../../scripts/install-murph.sh
     );
   };
-  backupMurphSecrets = pkgs.writeShellApplication {
-    name = "backup-murph-secrets";
+  backupMurph = pkgs.writeShellApplication {
+    name = "backup-murph";
     runtimeInputs = with pkgs; [
       age
       coreutils
       git
       gnutar
       gzip
+      python3
     ];
-    text = builtins.readFile ../../scripts/backup-murph-secrets.sh;
+    text = ''
+      exec python3 ${../../scripts/backup_murph.py} "$@"
+    '';
   };
-  backupMurphConvenience = pkgs.writeShellApplication {
-    name = "backup-murph-convenience";
-    runtimeInputs = with pkgs; [
-      coreutils
-      git
-      gnutar
-      gzip
-    ];
-    text = builtins.readFile ../../scripts/backup-murph-convenience.sh;
-  };
-  restoreMurphSecrets = pkgs.writeShellApplication {
-    name = "restore-murph-secrets";
+  restoreMurph = pkgs.writeShellApplication {
+    name = "restore-murph";
     runtimeInputs = with pkgs; [
       age
       coreutils
       gnutar
       gzip
+      python3
     ];
-    text = builtins.readFile ../../scripts/restore-murph-secrets.sh;
-  };
-  restoreMurphConvenience = pkgs.writeShellApplication {
-    name = "restore-murph-convenience";
-    runtimeInputs = with pkgs; [
-      coreutils
-      gnutar
-      gzip
-    ];
-    text = builtins.readFile ../../scripts/restore-murph-convenience.sh;
+    text = ''
+      exec python3 ${../../scripts/restore_murph.py} "$@"
+    '';
   };
 in
 {
   inherit
-    backupMurphConvenience
-    backupMurphSecrets
+    backupMurph
     installMurph
     piPrintSystemPrompt
-    restoreMurphConvenience
-    restoreMurphSecrets
+    restoreMurph
     ;
 }
