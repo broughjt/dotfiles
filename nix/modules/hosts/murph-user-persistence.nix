@@ -202,6 +202,10 @@ in
         directory = "local/config/discord";
         mode = "0700";
       }
+      {
+        directory = "local/config/Slack";
+        mode = "0700";
+      }
 
       # TODO: temporary, broad persistence of Claude Code state so an
       # in-progress assistant session survives reboot. Tighten this to the
