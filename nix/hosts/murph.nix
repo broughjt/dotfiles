@@ -12,6 +12,11 @@ nixpkgs.lib.nixosSystem {
   };
   modules = with nixosModules; [
     murphHardware
+    murphBase
+    diskoModule
+    impermanenceModule
+    murphDisko
+    murphImpermanence
     nixSettings
     linuxBase
     docker
@@ -24,7 +29,11 @@ nixpkgs.lib.nixosSystem {
     pass
     vaultixSecrets
     piCodingAgent
+    claudeCode
+    firefox
+    ghostty
     kakoune
+    vlc
     emacs
   ];
 }

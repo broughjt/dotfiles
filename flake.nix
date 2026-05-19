@@ -25,6 +25,11 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
 
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
+    impermanence.url = "github:nix-community/impermanence";
+
     pi-coding-agent.url = "github:broughjt/pi-coding-agent";
     # pi-coding-agent.url = "path:/home/jackson/repositories/pi-coding-agent";
     pi-coding-agent.inputs.nixpkgs.follows = "nixpkgs";
@@ -47,6 +52,8 @@
       nixpkgs,
       home-manager,
       emacs-overlay,
+      disko,
+      impermanence,
       pi-coding-agent,
       flake-utils,
       llm-agents-nix,
@@ -71,6 +78,7 @@
         };
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
+      piMcpAdapterPackage = import ./nix/packages/pi-mcp-adapter.nix;
 
       nixosModules = import ./nix/modules {
         inherit
@@ -78,15 +86,27 @@
           nix-config
           llmAgentsOverlay
           emacsOverlays
+          disko
+          impermanence
           vaultixInput
           nixos-raspberrypi
           piWebMinimalPackage
+          piMcpAdapterPackage
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };
 
       nixosConfigurations = {
         murph = import ./nix/hosts/murph.nix {
+          inherit
+            inputs
+            self
+            nixpkgs
+            home-manager
+            nixosModules
+            ;
+        };
+        murph-install = import ./nix/hosts/murph-install.nix {
           inherit
             inputs
             self
@@ -112,7 +132,7 @@
         nodes = {
           inherit (nixosConfigurations) murph;
         };
-        identity = "${nixosConfigurations.murph.config.defaultDirectories.homeDirectory}/.ssh/id_ed25519";
+        identity = "${nixosConfigurations.murph.config.defaultDirectories.localDirectory}/secrets/ssh/id_ed25519";
         cache = "./secrets/cache";
         defaultSecretDirectory = "./secrets";
         systems = [
@@ -128,9 +148,31 @@
       let
         pkgs = makePkgs system;
         emacsPackage = emacsPackages.configureEmacsPackage pkgs;
+        scriptPackages = import ./nix/packages/scripts.nix {
+          inherit
+            disko
+            pkgs
+            self
+            system
+            ;
+        };
+        makeScriptApp = package: executable: {
+          type = "app";
+          program = "${package}/bin/${executable}";
+        };
+        scriptApps = {
+          backupMurph = makeScriptApp scriptPackages.backupMurph "backup-murph";
+          installMurph = makeScriptApp scriptPackages.installMurph "install-murph";
+          piPrintSystemPrompt = makeScriptApp scriptPackages.piPrintSystemPrompt "pi-print-system-prompt";
+          restoreMurph = makeScriptApp scriptPackages.restoreMurph "restore-murph";
+        };
       in
-      (import ./nix/shell.nix { inherit pkgs; })
+      (import ./nix/shell.nix { inherit pkgs scriptPackages; })
       // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
       // (import ./nix/formatter.nix { inherit pkgs; })
+      // {
+        packages = scriptPackages;
+        apps = scriptApps;
+      }
     );
 }

@@ -1,13 +1,44 @@
-{ config, pkgs, ... }:
-
 {
-  home-manager.users.${config.personal.userName} = {
-    home.packages = with pkgs; [
-      kakoune-lsp
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+
+let
+  user = config.personal.userName;
+  homeManagerUser = config.home-manager.users.${user};
+  kakConfigPath = homeManagerUser.xdg.configFile."kak/kakrc".source;
+  kakInitCommand = "source ${pkgs.kakoune}/share/kak/kakrc; source ${kakConfigPath}";
+
+  # Keep Kakoune's Home Manager-rendered config store-backed. Kakoune has no
+  # direct --config flag, so the wrapper skips default startup, explicitly loads
+  # the normal runtime bootstrap, then loads the generated config from
+  # /nix/store.  The runtime bootstrap still provides Kakoune's standard
+  # autoload/colorscheme behavior. Disabling the XDG kakrc symlink below
+  # prevents it from re-sourcing the generated config through
+  # $XDG_CONFIG_HOME/kak/kakrc.
+  kakounePackage = pkgs.symlinkJoin {
+    name = "kakoune-store-backed-config";
+    paths = [ pkgs.kakoune ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram "$out/bin/kak" \
+        --add-flags "-n" \
+        --add-flags ${lib.escapeShellArg "-E ${lib.escapeShellArg kakInitCommand}"}
+    '';
+  };
+in
+{
+  home-manager.users.${user} = {
+    home.packages = [
+      kakounePackage
+      pkgs.kakoune-lsp
     ];
 
     programs.kakoune = {
       enable = true;
+      package = null;
       extraConfig = ''
         eval %sh{kak-lsp}
         lsp-enable
@@ -28,5 +59,8 @@
         map global object D '<a-semicolon>lsp-diagnostic-object error<ret>' -docstring 'LSP errors'
       '';
     };
+
+    # The wrapper above reads this generated file directly from the Nix store.
+    xdg.configFile."kak/kakrc".enable = false;
   };
 }

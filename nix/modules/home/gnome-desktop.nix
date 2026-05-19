@@ -38,16 +38,34 @@
 
     xdg.portal = {
       enable = true;
-      extraPortals = with pkgs; [
-        xdg-desktop-portal-gtk
-        xdg-desktop-portal-gnome
+      # Prefer GNOME, but list the fallback implementations explicitly for
+      # interfaces that xdg-desktop-portal-gnome does not provide (e.g. Secret
+      # from gnome-keyring, and any GTK-only portal interfaces). This avoids
+      # relying on deprecated UseIn fallback selection.
+      config.common.default = [
+        "gnome"
+        "gtk"
+        "gnome-keyring"
       ];
-      config.common.default = [ "gnome" ];
     };
 
-    home-manager.users.${config.personal.userName}.home.packages = with pkgs; [
-      dconf-editor
-      nautilus
-    ];
+    home-manager.users.${config.personal.userName} = {
+      home.packages = with pkgs; [
+        dconf-editor
+        nautilus
+      ];
+
+      # File chooser / Nautilus sidebar bookmarks. Keep these declarative so
+      # the mutable GTK bookmarks file is not state we need to persist.
+      xdg.configFile."gtk-3.0/bookmarks" = {
+        force = true;
+        text = ''
+          file://${config.defaultDirectories.shareDirectory}/documents
+          file://${config.defaultDirectories.shareDirectory}/music
+          file://${config.defaultDirectories.shareDirectory}/pictures
+          file://${config.defaultDirectories.shareDirectory}/videos
+        '';
+      };
+    };
   };
 }

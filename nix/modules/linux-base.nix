@@ -20,9 +20,15 @@
 
   programs.fish.enable = true;
 
+  users.mutableUsers = false;
+
+  users.users.root.hashedPasswordFile = "/persist/etc/passwords/root";
+
   users.users.${config.personal.userName} = {
     isNormalUser = true;
+    uid = 1000;
     description = config.personal.fullName;
+    hashedPasswordFile = "/persist/etc/passwords/${config.personal.userName}";
     extraGroups = [
       "networkmanager"
       "wheel"
@@ -30,9 +36,14 @@
       "input"
     ];
     shell = pkgs.fish;
+    openssh.authorizedKeys.keys = [ config.personal.sshPublicKey ];
   };
 
   services.openssh.enable = true;
+
+  security.sudo.extraConfig = ''
+    Defaults:${config.personal.userName} lecture=never
+  '';
 
   nix.optimise.automatic = true;
   nix.gc = {
