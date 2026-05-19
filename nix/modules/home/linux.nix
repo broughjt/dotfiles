@@ -105,6 +105,7 @@
       '';
 
       home-manager.useGlobalPkgs = true;
+      home-manager.useUserPackages = true;
       home-manager.users.${user} = {
         home.stateVersion = "25.05";
         programs.home-manager.enable = true;

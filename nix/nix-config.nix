@@ -19,6 +19,8 @@ rec {
   };
 
   nixSettings = {
+    accept-flake-config = true;
+    use-xdg-base-directories = true;
     experimental-features = [
       "nix-command"
       "flakes"
