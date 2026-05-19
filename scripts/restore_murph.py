@@ -9,9 +9,9 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Iterable, NoReturn
+from typing import Any, Iterable, NoReturn
 
-BUNDLES = {
+BUNDLES: dict[str, dict[str, Any]] = {
     "secrets": {
         "encrypted": True,
         "directories_0700": [
@@ -130,10 +130,11 @@ def main() -> None:
     parser.add_argument(
         "--bundle",
         required=True,
-        choices=sorted(BUNDLES),
-        help="state bundle to restore",
+        action="append",
+        nargs=2,
+        metavar=("NAME", "ARCHIVE"),
+        help="state bundle and archive to restore; may be specified multiple times",
     )
-    parser.add_argument("archive", type=Path, help="archive created by backup-murph")
     parser.add_argument(
         "mountpoint",
         type=Path,
@@ -143,70 +144,86 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    bundle = BUNDLES[args.bundle]
-    encrypted = bundle["encrypted"]
+    seen: set[str] = set()
+    specs: list[tuple[str, dict[str, Any], Path]] = []
+    for bundle_name, archive_text in args.bundle:
+        if bundle_name not in BUNDLES:
+            die(
+                f"unknown bundle {bundle_name!r}; expected one of: "
+                + ", ".join(sorted(BUNDLES))
+            )
+        if bundle_name in seen:
+            die(f"bundle specified more than once: {bundle_name}")
+        seen.add(bundle_name)
+        specs.append((bundle_name, BUNDLES[bundle_name], Path(archive_text)))
 
     if os.geteuid() != 0:
         die("run as root so restored files can be owned and permissioned correctly")
 
-    required_commands = ["tar"] + (["age"] if encrypted else [])
-    missing_commands = [command for command in required_commands if shutil.which(command) is None]
+    required_commands = {"tar"}
+    if any(bundle["encrypted"] for _, bundle, _ in specs):
+        required_commands.add("age")
+    missing_commands = [command for command in sorted(required_commands) if shutil.which(command) is None]
     if missing_commands:
         die("missing required command(s) on PATH: " + ", ".join(missing_commands))
 
-    archive: Path = args.archive
     persist = args.mountpoint / "persist"
-    if not archive.is_file():
-        die(f"archive does not exist: {archive}")
     if not persist.is_dir():
         die(f"persist directory does not exist: {persist}")
 
-    if encrypted:
-        print(f"info: decrypting and extracting {archive} into {persist}")
-        age = subprocess.Popen(["age", "--decrypt", str(archive)], stdout=subprocess.PIPE)
-        assert age.stdout is not None
-        tar = subprocess.Popen(
-            ["tar", "--extract", "--gzip", "--file", "-", "--directory", str(persist)],
-            stdin=age.stdout,
-        )
-        age.stdout.close()
-        tar_status = tar.wait()
-        age_status = age.wait()
-        if age_status != 0 or tar_status != 0:
-            die(f"restore failed (age={age_status}, tar={tar_status})")
-    else:
-        print(f"info: extracting {archive} into {persist}")
-        subprocess.run(
-            ["tar", "--extract", "--gzip", "--file", str(archive), "--directory", str(persist)],
-            check=True,
-        )
+    for _, _, archive in specs:
+        if not archive.is_file():
+            die(f"archive does not exist: {archive}")
+
+    for bundle_name, bundle, archive in specs:
+        if bundle["encrypted"]:
+            print(f"info: decrypting and extracting {bundle_name} archive {archive} into {persist}")
+            age = subprocess.Popen(["age", "--decrypt", str(archive)], stdout=subprocess.PIPE)
+            assert age.stdout is not None
+            tar = subprocess.Popen(
+                ["tar", "--extract", "--gzip", "--file", "-", "--directory", str(persist)],
+                stdin=age.stdout,
+            )
+            age.stdout.close()
+            tar_status = tar.wait()
+            age_status = age.wait()
+            if age_status != 0 or tar_status != 0:
+                die(f"{bundle_name} restore failed (age={age_status}, tar={tar_status})")
+        else:
+            print(f"info: extracting {bundle_name} archive {archive} into {persist}")
+            subprocess.run(
+                ["tar", "--extract", "--gzip", "--file", str(archive), "--directory", str(persist)],
+                check=True,
+            )
 
     chown_tree(persist / "home/jackson", USER_UID, USERS_GID)
-    chmod_existing((persist / path for path in bundle["directories_0700"]), 0o700)
-    chmod_existing((persist / path for path in bundle["files_0600"]), 0o600)
-    chmod_existing((persist / path for path in bundle["files_0644"]), 0o644)
+    for bundle_name, bundle, _ in specs:
+        chmod_existing((persist / path for path in bundle["directories_0700"]), 0o700)
+        chmod_existing((persist / path for path in bundle["files_0600"]), 0o600)
+        chmod_existing((persist / path for path in bundle["files_0644"]), 0o644)
 
-    if args.bundle == "secrets":
-        oauth_dir = persist / "home/jackson/local/secrets/pi/mcp-oauth"
-        if oauth_dir.exists():
-            chmod_existing(oauth_dir.rglob("tokens.json"), 0o600)
+        if bundle_name == "secrets":
+            oauth_dir = persist / "home/jackson/local/secrets/pi/mcp-oauth"
+            if oauth_dir.exists():
+                chmod_existing(oauth_dir.rglob("tokens.json"), 0o600)
 
-        claude_credentials_dir = persist / "home/jackson/local/secrets/claude-code/credentials"
-        if claude_credentials_dir.exists():
-            chmod_existing((path for path in claude_credentials_dir.rglob("*") if path.is_file()), 0o600)
+            claude_credentials_dir = persist / "home/jackson/local/secrets/claude-code/credentials"
+            if claude_credentials_dir.exists():
+                chmod_existing((path for path in claude_credentials_dir.rglob("*") if path.is_file()), 0o600)
 
-        claude_state_dir = persist / "home/jackson/local/state/claude-code"
-        if claude_state_dir.exists():
-            chmod_existing((path for path in claude_state_dir.rglob("*") if path.is_dir()), 0o700)
-            chmod_existing((path for path in claude_state_dir.rglob("*") if path.is_file()), 0o600)
+            claude_state_dir = persist / "home/jackson/local/state/claude-code"
+            if claude_state_dir.exists():
+                chmod_existing((path for path in claude_state_dir.rglob("*") if path.is_dir()), 0o700)
+                chmod_existing((path for path in claude_state_dir.rglob("*") if path.is_file()), 0o600)
 
-        ssh_dir = persist / "etc/ssh"
-        if ssh_dir.exists():
-            chown_tree(ssh_dir, 0, 0)
-            chmod_existing(ssh_dir.glob("ssh_host_*_key"), 0o600)
-            chmod_existing(ssh_dir.glob("ssh_host_*_key.pub"), 0o644)
+            ssh_dir = persist / "etc/ssh"
+            if ssh_dir.exists():
+                chown_tree(ssh_dir, 0, 0)
+                chmod_existing(ssh_dir.glob("ssh_host_*_key"), 0o600)
+                chmod_existing(ssh_dir.glob("ssh_host_*_key.pub"), 0o644)
 
-    print(f"info: {args.bundle} restore complete")
+    restored = ", ".join(bundle_name for bundle_name, _, _ in specs)
+    print(f"info: restore complete for {restored}")
 
 
 if __name__ == "__main__":

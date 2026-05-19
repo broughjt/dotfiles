@@ -8,8 +8,9 @@ convenience archive is unencrypted and optional.
 
 ```sh
 # Replace /run/media/jackson/USB with the mounted USB path.
-sudo nix run .#backupMurph -- --bundle secrets /run/media/jackson/USB
-sudo nix run .#backupMurph -- --bundle convenience /run/media/jackson/USB
+sudo nix run .#backupMurph -- --bundle all /run/media/jackson/USB
+# Or choose bundles explicitly:
+# sudo nix run .#backupMurph -- --bundle secrets --bundle convenience /run/media/jackson/USB
 ```
 
 The secrets archive carries identity/security state needed after reinstall:
@@ -81,21 +82,19 @@ The target disk is:
 ## Restore preserved state before reboot
 
 After the installer finishes, the new system is mounted at `/mnt`. If you made
-state archives, mount the backup USB and restore them with the restore apps:
+state archives, mount the backup USB and restore them with the restore app:
 
 ```sh
 nix --extra-experimental-features "nix-command flakes" \
   run github:broughjt/dotfiles#restoreMurph -- \
-  --bundle secrets /path/to/murph-secrets-*.tar.gz.age /mnt
-
-nix --extra-experimental-features "nix-command flakes" \
-  run github:broughjt/dotfiles#restoreMurph -- \
-  --bundle convenience /path/to/murph-convenience-*.tar.gz /mnt
+  --bundle secrets /path/to/murph-secrets-*.tar.gz.age \
+  --bundle convenience /path/to/murph-convenience-*.tar.gz \
+  /mnt
 ```
 
 The convenience archive is optional. If the installer USB and backup USB cannot
 be plugged in at the same time, let the installer finish, swap USB drives, mount
-the backup USB, and run the restore apps while the target remains mounted.
+the backup USB, and run the restore app while the target remains mounted.
 
 The archives contain paths relative to `/persist` and are extracted into
 `/mnt/persist`. The restore apps fix the expected ownership and permissions

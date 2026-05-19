@@ -12,12 +12,12 @@ import shutil
 import socket
 import subprocess
 import sys
-from typing import NoReturn
+from typing import Any, NoReturn
 
 PERSIST = Path("/persist")
 DOTFILES = Path("/home/jackson/repositories/dotfiles")
 
-BUNDLES = {
+BUNDLES: dict[str, dict[str, Any]] = {
     "secrets": {
         "encrypted": True,
         "archive_suffix": ".tar.gz.age",
@@ -89,20 +89,29 @@ def main() -> None:
     parser.add_argument(
         "--bundle",
         required=True,
-        choices=sorted(BUNDLES),
-        help="state bundle to back up",
+        action="append",
+        choices=[*sorted(BUNDLES), "all"],
+        help="state bundle to back up; may be specified multiple times, or use 'all'",
     )
-    parser.add_argument("destination", type=Path, help="directory where archive and manifest are written")
+    parser.add_argument("destination", type=Path, help="directory where archives and manifests are written")
     args = parser.parse_args()
 
-    bundle = BUNDLES[args.bundle]
-    encrypted = bundle["encrypted"]
+    if "all" in args.bundle:
+        selected = list(BUNDLES)
+    else:
+        selected = []
+        for name in args.bundle:
+            if name not in selected:
+                selected.append(name)
+    selected_configs = [(name, BUNDLES[name]) for name in selected]
 
     if os.geteuid() != 0:
         die("run as root so all persisted state is readable")
 
-    required_commands = ["tar"] + (["age"] if encrypted else [])
-    missing_commands = [command for command in required_commands if shutil.which(command) is None]
+    required_commands = {"tar"}
+    if any(bundle["encrypted"] for _, bundle in selected_configs):
+        required_commands.add("age")
+    missing_commands = [command for command in sorted(required_commands) if shutil.which(command) is None]
     if missing_commands:
         die("missing required command(s) on PATH: " + ", ".join(missing_commands))
 
@@ -112,26 +121,21 @@ def main() -> None:
     if not PERSIST.is_dir():
         die(f"{PERSIST} does not exist")
 
-    paths: list[str] = []
-    for path in bundle["paths"]:
-        if (PERSIST / path).exists():
-            paths.append(path)
-        else:
-            print(f"warning: skipping missing {PERSIST / path}", file=sys.stderr)
-    if not paths:
-        die("no backup paths exist")
+    paths_by_bundle: dict[str, list[str]] = {}
+    for bundle_name, bundle in selected_configs:
+        paths: list[str] = []
+        for path in bundle["paths"]:
+            if (PERSIST / path).exists():
+                paths.append(path)
+            else:
+                print(f"warning: skipping missing {PERSIST / path} for {bundle_name}", file=sys.stderr)
+        if not paths:
+            die(f"no backup paths exist for {bundle_name}")
+        paths_by_bundle[bundle_name] = paths
 
     timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     host = socket.gethostname()
-    base = f"murph-{args.bundle}-{host}-{timestamp}"
-    archive = destination / f"{base}{bundle['archive_suffix']}"
-    manifest = destination / f"{base}.MANIFEST.txt"
-
-    lines = [
-        f"murph {args.bundle} backup",
-        f"created_utc={timestamp}",
-        f"host={host}",
-    ]
+    revision = ""
     if shutil.which("git") is not None and (DOTFILES / ".git").exists():
         try:
             revision = subprocess.run(
@@ -143,96 +147,113 @@ def main() -> None:
             ).stdout.strip()
         except subprocess.CalledProcessError:
             revision = ""
+
+    uid = os.environ.get("SUDO_UID")
+    gid = os.environ.get("SUDO_GID")
+    chown_to_sudo_user: tuple[int, int] | None = None
+    if uid is not None and gid is not None:
+        try:
+            chown_to_sudo_user = (int(uid), int(gid))
+        except ValueError:
+            pass
+
+    outputs: list[tuple[Path, Path]] = []
+    for bundle_name, bundle in selected_configs:
+        paths = paths_by_bundle[bundle_name]
+        encrypted = bundle["encrypted"]
+        base = f"murph-{bundle_name}-{host}-{timestamp}"
+        archive = destination / f"{base}{bundle['archive_suffix']}"
+        manifest = destination / f"{base}.MANIFEST.txt"
+
+        archive_key = "encrypted_archive" if encrypted else "archive"
+        lines = [
+            f"murph {bundle_name} backup",
+            f"created_utc={timestamp}",
+            f"host={host}",
+        ]
         if revision:
             lines.append(f"dotfiles_rev={revision}")
+        lines.extend(
+            [
+                "",
+                f"{archive_key}={archive.name}",
+                "archive_contents_relative_to=/persist",
+                f"encrypted={str(encrypted).lower()}",
+                "",
+                "paths:",
+            ]
+        )
+        lines.extend(f"  {path}" for path in paths)
+        lines.extend(["", "notes:"])
+        lines.extend(f"  - {note}" for note in bundle["notes"])
+        manifest.write_text("\n".join(lines) + "\n")
 
-    archive_key = "encrypted_archive" if encrypted else "archive"
-    lines.extend(
-        [
-            "",
-            f"{archive_key}={archive.name}",
-            "archive_contents_relative_to=/persist",
-            f"encrypted={str(encrypted).lower()}",
-            "",
-            "paths:",
-        ]
-    )
-    lines.extend(f"  {path}" for path in paths)
-    lines.extend(["", "notes:"])
-    lines.extend(f"  - {note}" for note in bundle["notes"])
-    manifest.write_text("\n".join(lines) + "\n")
-
-    print(f"Creating {args.bundle} archive: {archive}")
-    try:
-        if encrypted:
-            with archive.open("wb") as output:
-                tar = subprocess.Popen(
+        print(f"Creating {bundle_name} archive: {archive}")
+        try:
+            if encrypted:
+                with archive.open("wb") as output:
+                    tar = subprocess.Popen(
+                        [
+                            "tar",
+                            "--create",
+                            "--gzip",
+                            "--file",
+                            "-",
+                            "--directory",
+                            str(PERSIST),
+                            *paths,
+                        ],
+                        stdout=subprocess.PIPE,
+                    )
+                    assert tar.stdout is not None
+                    age = subprocess.Popen(["age", "--passphrase"], stdin=tar.stdout, stdout=output)
+                    tar.stdout.close()
+                    age_status = age.wait()
+                    tar_status = tar.wait()
+                if tar_status != 0 or age_status != 0:
+                    die(f"archive creation failed (tar={tar_status}, age={age_status})")
+            else:
+                subprocess.run(
                     [
                         "tar",
                         "--create",
                         "--gzip",
                         "--file",
-                        "-",
+                        str(archive),
                         "--directory",
                         str(PERSIST),
                         *paths,
                     ],
-                    stdout=subprocess.PIPE,
+                    check=True,
                 )
-                assert tar.stdout is not None
-                age = subprocess.Popen(["age", "--passphrase"], stdin=tar.stdout, stdout=output)
-                tar.stdout.close()
-                age_status = age.wait()
-                tar_status = tar.wait()
-            if tar_status != 0 or age_status != 0:
-                die(f"archive creation failed (tar={tar_status}, age={age_status})")
-        else:
-            subprocess.run(
-                [
-                    "tar",
-                    "--create",
-                    "--gzip",
-                    "--file",
-                    str(archive),
-                    "--directory",
-                    str(PERSIST),
-                    *paths,
-                ],
-                check=True,
-            )
 
-        os.chmod(archive, bundle["archive_mode"])
+            os.chmod(archive, bundle["archive_mode"])
 
-        digest = hashlib.sha256()
-        with archive.open("rb") as handle:
-            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-                digest.update(chunk)
-        with manifest.open("a") as handle:
-            handle.write(f"{digest.hexdigest()}  {archive.name}\n")
-        os.chmod(manifest, 0o644)
+            digest = hashlib.sha256()
+            with archive.open("rb") as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            with manifest.open("a") as handle:
+                handle.write(f"{digest.hexdigest()}  {archive.name}\n")
+            os.chmod(manifest, 0o644)
 
-        uid = os.environ.get("SUDO_UID")
-        gid = os.environ.get("SUDO_GID")
-        if uid is not None and gid is not None:
-            try:
-                uid_int = int(uid)
-                gid_int = int(gid)
-            except ValueError:
-                pass
-            else:
+            if chown_to_sudo_user is not None:
                 for path in (archive, manifest):
                     try:
-                        os.chown(path, uid_int, gid_int)
+                        os.chown(path, *chown_to_sudo_user)
                     except OSError:
                         pass
-    except Exception:
-        archive.unlink(missing_ok=True)
-        manifest.unlink(missing_ok=True)
-        raise
+        except Exception:
+            archive.unlink(missing_ok=True)
+            manifest.unlink(missing_ok=True)
+            raise
+
+        outputs.append((archive, manifest))
 
     print("Wrote:")
-    print(f"  {archive}")
-    print(f"  {manifest}")
+    for archive, manifest in outputs:
+        print(f"  {archive}")
+        print(f"  {manifest}")
 
 
 if __name__ == "__main__":
