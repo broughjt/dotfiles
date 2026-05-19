@@ -114,7 +114,6 @@
       '(ui
         editing
         completion
-        agent-shell-config
         pi-coding-agent-config
         terminal
         project-config

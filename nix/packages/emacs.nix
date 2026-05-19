@@ -33,9 +33,6 @@
         envrc
         inheritenv
 
-        # agent-shell-config.el
-        agent-shell
-
         # completion.el
         affe
         cape

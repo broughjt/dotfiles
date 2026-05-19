@@ -15,9 +15,7 @@
       inter
       julia-mono
       llm-agents.claude-code
-      llm-agents.claude-agent-acp
       llm-agents.codex
-      llm-agents.codex-acp
       llm-agents.gemini-cli
       llm-agents.opencode
       noto-fonts
