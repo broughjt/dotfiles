@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Restore explicit murph state backup bundles."""
+"""Restore murph backup files."""
 
 from __future__ import annotations
 
@@ -54,9 +54,11 @@ def chmod_existing(paths: Iterable[Path], mode: int) -> None:
 
 
 def main() -> None:
-    bundles_path = Path(
-        os.environ.get("MURPH_BUNDLES_JSON", str(Path(__file__).with_name("murph_bundles.json")))
-    )
+    try:
+        bundles_path = Path(os.environ["MURPH_BUNDLES_JSON"])
+    except KeyError as error:
+        die(f"could not read bundle path from environment: {error}")
+
     try:
         bundles: dict[str, dict[str, Any]] = json.loads(bundles_path.read_text())
     except OSError as error:
@@ -66,7 +68,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         prog="restore-murph",
-        description="Restore explicit murph state backup bundles.",
+        description="Restore murph backup files.",
     )
     parser.add_argument(
         "--bundle",
