@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -17,77 +18,6 @@ from typing import Any, NoReturn
 PERSIST = Path("/persist")
 DOTFILES = Path("/home/jackson/repositories/dotfiles")
 
-BUNDLES: dict[str, dict[str, Any]] = {
-    "secrets-essential": {
-        "encrypted": True,
-        "archive_suffix": ".tar.gz.age",
-        "archive_mode": 0o600,
-        "paths": [
-            "etc/ssh",
-            "home/jackson/local/secrets/ssh",
-            "home/jackson/local/secrets/gnupg",
-            "home/jackson/local/state/gnupg",
-            "home/jackson/local/share/keyrings",
-        ],
-        "notes": [
-            "Encrypted with age --passphrase.",
-            "Contains essential SSH, GnuPG, and keyring state.",
-            "Extract into /mnt/persist during install.",
-        ],
-    },
-    "secrets-extra": {
-        "encrypted": True,
-        "archive_suffix": ".tar.gz.age",
-        "archive_mode": 0o600,
-        "paths": [
-            "home/jackson/local/secrets/pi/auth",
-            "home/jackson/local/secrets/pi/mcp",
-            "home/jackson/local/secrets/pi/mcp-oauth",
-            "home/jackson/local/secrets/claude-code/auth",
-            "home/jackson/local/secrets/claude-code/credentials",
-            "home/jackson/local/state/claude-code/history",
-            "home/jackson/local/state/claude-code/projects",
-            "home/jackson/local/state/claude-code/sessions",
-            "home/jackson/local/config/discord",
-            "home/jackson/local/config/Slack",
-            "home/jackson/local/config/spotify",
-        ],
-        "notes": [
-            "Encrypted with age --passphrase.",
-            "Contains app authentication/session state that is useful but not essential.",
-            "Extract into /mnt/persist during install.",
-        ],
-    },
-    "convenience": {
-        "encrypted": False,
-        "archive_suffix": ".tar.gz",
-        "archive_mode": 0o644,
-        "paths": [
-            "home/jackson/repositories",
-            "home/jackson/share",
-            "home/jackson/scratch",
-            "home/jackson/local/config/mozilla/firefox",
-            "home/jackson/local/hacks/ssh/known_hosts",
-            "home/jackson/local/hacks/fish/fish_history",
-            "home/jackson/local/hacks/gh/hosts",
-            "home/jackson/local/hacks/tmux/resurrect",
-            "home/jackson/local/hacks/emacs/projects",
-            "home/jackson/local/hacks/pi/settings",
-            "home/jackson/local/state/emacs/backups",
-            "home/jackson/local/state/emacs/auto-saves",
-            "home/jackson/local/state/pi/sessions",
-            "home/jackson/local/state/pi/mcp",
-            "home/jackson/local/share/direnv/allow",
-            "home/jackson/local/share/direnv/deny",
-        ],
-        "notes": [
-            "This archive is not encrypted.",
-            "It may still contain private browsing, shell, project, and personal-file state.",
-            "Extract into /mnt/persist during install.",
-        ],
-    },
-}
-
 
 def die(message: str) -> NoReturn:
     print(f"error: {message}", file=sys.stderr)
@@ -95,6 +25,16 @@ def die(message: str) -> NoReturn:
 
 
 def main() -> None:
+    bundles_path = Path(
+        os.environ.get("MURPH_BUNDLES_JSON", str(Path(__file__).with_name("murph_bundles.json")))
+    )
+    try:
+        bundles: dict[str, dict[str, Any]] = json.loads(bundles_path.read_text())
+    except OSError as error:
+        die(f"could not read bundle definitions from {bundles_path}: {error}")
+    except json.JSONDecodeError as error:
+        die(f"could not parse bundle definitions from {bundles_path}: {error}")
+
     parser = argparse.ArgumentParser(
         prog="backup-murph",
         description="Create explicit murph state backup bundles.",
@@ -103,20 +43,20 @@ def main() -> None:
         "--bundle",
         required=True,
         action="append",
-        choices=[*sorted(BUNDLES), "all"],
+        choices=[*sorted(bundles), "all"],
         help="state bundle to back up; may be specified multiple times, or use 'all'",
     )
     parser.add_argument("destination", type=Path, help="directory where archives and manifests are written")
     args = parser.parse_args()
 
     if "all" in args.bundle:
-        selected = list(BUNDLES)
+        selected = list(bundles)
     else:
         selected = []
         for name in args.bundle:
             if name not in selected:
                 selected.append(name)
-    selected_configs = [(name, BUNDLES[name]) for name in selected]
+    selected_configs = [(name, bundles[name]) for name in selected]
 
     if os.geteuid() != 0:
         die("run as root so all persisted state is readable")
@@ -137,7 +77,7 @@ def main() -> None:
     paths_by_bundle: dict[str, list[str]] = {}
     for bundle_name, bundle in selected_configs:
         paths: list[str] = []
-        for path in bundle["paths"]:
+        for path in bundle["backup_paths"]:
             if (PERSIST / path).exists():
                 paths.append(path)
             else:
@@ -240,7 +180,7 @@ def main() -> None:
                     check=True,
                 )
 
-            os.chmod(archive, bundle["archive_mode"])
+            os.chmod(archive, int(bundle["archive_mode"], 8))
 
             digest = hashlib.sha256()
             with archive.open("rb") as handle:

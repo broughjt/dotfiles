@@ -40,6 +40,7 @@ let
       python3
     ];
     text = ''
+      export MURPH_BUNDLES_JSON=${../../scripts/murph_bundles.json}
       exec python3 ${../../scripts/backup_murph.py} "$@"
     '';
   };
@@ -53,6 +54,7 @@ let
       python3
     ];
     text = ''
+      export MURPH_BUNDLES_JSON=${../../scripts/murph_bundles.json}
       exec python3 ${../../scripts/restore_murph.py} "$@"
     '';
   };

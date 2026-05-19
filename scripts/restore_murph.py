@@ -4,91 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 from typing import Any, Iterable, NoReturn
-
-BUNDLES: dict[str, dict[str, Any]] = {
-    "secrets-essential": {
-        "encrypted": True,
-        "directories_0700": [
-            "home/jackson/local/secrets",
-            "home/jackson/local/secrets/ssh",
-            "home/jackson/local/secrets/gnupg",
-            "home/jackson/local/secrets/gnupg/private-keys-v1.d",
-            "home/jackson/local/secrets/gnupg/openpgp-revocs.d",
-            "home/jackson/local/state/gnupg",
-            "home/jackson/local/share/keyrings",
-        ],
-        "files_0600": [
-            "home/jackson/local/secrets/ssh/id_ed25519",
-        ],
-        "files_0644": [
-            "home/jackson/local/secrets/ssh/id_ed25519.pub",
-        ],
-    },
-    "secrets-extra": {
-        "encrypted": True,
-        "directories_0700": [
-            "home/jackson/local/secrets",
-            "home/jackson/local/secrets/pi",
-            "home/jackson/local/secrets/pi/auth",
-            "home/jackson/local/secrets/pi/mcp",
-            "home/jackson/local/secrets/pi/mcp-oauth",
-            "home/jackson/local/secrets/claude-code",
-            "home/jackson/local/secrets/claude-code/auth",
-            "home/jackson/local/secrets/claude-code/credentials",
-            "home/jackson/local/state/claude-code",
-            "home/jackson/local/state/claude-code/history",
-            "home/jackson/local/state/claude-code/projects",
-            "home/jackson/local/state/claude-code/sessions",
-            "home/jackson/local/config/discord",
-            "home/jackson/local/config/Slack",
-            "home/jackson/local/config/spotify",
-        ],
-        "files_0600": [
-            "home/jackson/local/secrets/pi/auth/auth.json",
-            "home/jackson/local/secrets/pi/mcp/mcp.json",
-            "home/jackson/local/secrets/claude-code/auth/.claude.json",
-            "home/jackson/local/secrets/claude-code/auth/.credentials.json",
-            "home/jackson/local/state/claude-code/history/history.jsonl",
-        ],
-        "files_0644": [],
-    },
-    "convenience": {
-        "encrypted": False,
-        "directories_0700": [
-            "home/jackson/local/config/mozilla/firefox",
-            "home/jackson/local/hacks/fish/fish_history",
-            "home/jackson/local/hacks/ssh/known_hosts",
-            "home/jackson/local/hacks/gh/hosts",
-            "home/jackson/local/hacks/tmux/resurrect",
-            "home/jackson/local/hacks/tmux/resurrect/resurrect",
-            "home/jackson/local/hacks/emacs/projects",
-            "home/jackson/local/hacks/pi/settings",
-            "home/jackson/local/state/emacs/backups",
-            "home/jackson/local/state/emacs/auto-saves",
-            "home/jackson/local/state/pi/sessions",
-            "home/jackson/local/state/pi/mcp",
-            "home/jackson/local/share/direnv/allow",
-            "home/jackson/local/share/direnv/deny",
-        ],
-        "files_0600": [
-            "home/jackson/local/hacks/ssh/known_hosts/known_hosts",
-            "home/jackson/local/hacks/fish/fish_history/fish_history",
-            "home/jackson/local/hacks/gh/hosts/hosts.yml",
-            "home/jackson/local/hacks/emacs/projects/projects.eld",
-            "home/jackson/local/hacks/pi/settings/settings.json",
-            "home/jackson/local/state/pi/mcp/mcp-cache.json",
-            "home/jackson/local/state/pi/mcp/mcp-onboarding.json",
-            "home/jackson/local/state/pi/mcp/settings-package-seeded",
-        ],
-        "files_0644": [],
-    },
-}
 
 USER_UID = 1000
 USERS_GID = 100
@@ -132,6 +54,16 @@ def chmod_existing(paths: Iterable[Path], mode: int) -> None:
 
 
 def main() -> None:
+    bundles_path = Path(
+        os.environ.get("MURPH_BUNDLES_JSON", str(Path(__file__).with_name("murph_bundles.json")))
+    )
+    try:
+        bundles: dict[str, dict[str, Any]] = json.loads(bundles_path.read_text())
+    except OSError as error:
+        die(f"could not read bundle definitions from {bundles_path}: {error}")
+    except json.JSONDecodeError as error:
+        die(f"could not parse bundle definitions from {bundles_path}: {error}")
+
     parser = argparse.ArgumentParser(
         prog="restore-murph",
         description="Restore explicit murph state backup bundles.",
@@ -156,15 +88,15 @@ def main() -> None:
     seen: set[str] = set()
     specs: list[tuple[str, dict[str, Any], Path]] = []
     for bundle_name, archive_text in args.bundle:
-        if bundle_name not in BUNDLES:
+        if bundle_name not in bundles:
             die(
                 f"unknown bundle {bundle_name!r}; expected one of: "
-                + ", ".join(sorted(BUNDLES))
+                + ", ".join(sorted(bundles))
             )
         if bundle_name in seen:
             die(f"bundle specified more than once: {bundle_name}")
         seen.add(bundle_name)
-        specs.append((bundle_name, BUNDLES[bundle_name], Path(archive_text)))
+        specs.append((bundle_name, bundles[bundle_name], Path(archive_text)))
 
     if os.geteuid() != 0:
         die("run as root so restored files can be owned and permissioned correctly")
@@ -207,9 +139,10 @@ def main() -> None:
 
     chown_tree(persist / "home/jackson", USER_UID, USERS_GID)
     for bundle_name, bundle, _ in specs:
-        chmod_existing((persist / path for path in bundle["directories_0700"]), 0o700)
-        chmod_existing((persist / path for path in bundle["files_0600"]), 0o600)
-        chmod_existing((persist / path for path in bundle["files_0644"]), 0o644)
+        restore = bundle["restore"]
+        chmod_existing((persist / path for path in restore["directories_0700"]), 0o700)
+        chmod_existing((persist / path for path in restore["files_0600"]), 0o600)
+        chmod_existing((persist / path for path in restore["files_0644"]), 0o644)
 
         if bundle_name == "secrets-essential":
             ssh_dir = persist / "etc/ssh"
