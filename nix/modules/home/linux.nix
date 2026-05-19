@@ -149,6 +149,12 @@
           shellAliases.ls = "eza --group-directories-first";
         };
 
+        # Home Manager's fish module enables man-db cache generation by default
+        # so fish can complete `man` topics via `apropos`. That creates a
+        # top-level ~/.manpath symlink. Keep man pages available, but skip the
+        # per-user man-db cache to avoid the home dotfile.
+        programs.man.generateCaches = false;
+
         programs.git = {
           enable = true;
           settings = {
