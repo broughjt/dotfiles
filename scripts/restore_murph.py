@@ -21,6 +21,13 @@ BUNDLES = {
             "home/jackson/local/secrets/pi/auth",
             "home/jackson/local/secrets/pi/mcp",
             "home/jackson/local/secrets/pi/mcp-oauth",
+            "home/jackson/local/secrets/claude-code",
+            "home/jackson/local/secrets/claude-code/auth",
+            "home/jackson/local/secrets/claude-code/credentials",
+            "home/jackson/local/state/claude-code",
+            "home/jackson/local/state/claude-code/history",
+            "home/jackson/local/state/claude-code/projects",
+            "home/jackson/local/state/claude-code/sessions",
             "home/jackson/local/secrets/gnupg",
             "home/jackson/local/secrets/gnupg/private-keys-v1.d",
             "home/jackson/local/secrets/gnupg/openpgp-revocs.d",
@@ -34,6 +41,9 @@ BUNDLES = {
             "home/jackson/local/secrets/ssh/id_ed25519",
             "home/jackson/local/secrets/pi/auth/auth.json",
             "home/jackson/local/secrets/pi/mcp/mcp.json",
+            "home/jackson/local/secrets/claude-code/auth/.claude.json",
+            "home/jackson/local/secrets/claude-code/auth/.credentials.json",
+            "home/jackson/local/state/claude-code/history/history.jsonl",
         ],
         "files_0644": [
             "home/jackson/local/secrets/ssh/id_ed25519.pub",
@@ -180,6 +190,15 @@ def main() -> None:
         oauth_dir = persist / "home/jackson/local/secrets/pi/mcp-oauth"
         if oauth_dir.exists():
             chmod_existing(oauth_dir.rglob("tokens.json"), 0o600)
+
+        claude_credentials_dir = persist / "home/jackson/local/secrets/claude-code/credentials"
+        if claude_credentials_dir.exists():
+            chmod_existing((path for path in claude_credentials_dir.rglob("*") if path.is_file()), 0o600)
+
+        claude_state_dir = persist / "home/jackson/local/state/claude-code"
+        if claude_state_dir.exists():
+            chmod_existing((path for path in claude_state_dir.rglob("*") if path.is_dir()), 0o700)
+            chmod_existing((path for path in claude_state_dir.rglob("*") if path.is_file()), 0o600)
 
         ssh_dir = persist / "etc/ssh"
         if ssh_dir.exists():

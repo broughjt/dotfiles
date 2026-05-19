@@ -210,27 +210,28 @@ in
         directory = "local/config/spotify";
         mode = "0700";
       }
-
-      # TODO: temporary, broad persistence of Claude Code state so an
-      # in-progress assistant session survives reboot. Tighten this to the
-      # specific transcript/auth subpaths once the impermanence-state
-      # interface lands a proper Claude Code module. Persisting all of
-      # ~/.claude includes shell-snapshots/, todos/, cache, etc. that we
-      # do not actually care about across reboots.
       {
-        directory = ".claude";
+        directory = "local/secrets/claude-code/auth";
+        mode = "0700";
+      }
+      {
+        directory = "local/secrets/claude-code/credentials";
+        mode = "0700";
+      }
+      {
+        directory = "local/state/claude-code/history";
+        mode = "0700";
+      }
+      {
+        directory = "local/state/claude-code/projects";
+        mode = "0700";
+      }
+      {
+        directory = "local/state/claude-code/sessions";
         mode = "0700";
       }
     ];
 
-    # TODO: temporary. ~/.claude.json is the global Claude Code config
-    # (auth tokens, project list). It is rewritten by the CLI via
-    # temp+rename, which is hostile to per-file impermanence binds —
-    # accept the risk for now since this only needs to survive a single
-    # planned reboot. Move auth into a proper secret store and project
-    # metadata into a directory-backed location when the interface lands.
-    files = [
-      ".claude.json"
-    ];
+    files = [ ];
   };
 }

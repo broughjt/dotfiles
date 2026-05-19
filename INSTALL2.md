@@ -24,6 +24,8 @@ The secrets archive carries identity/security state needed after reinstall:
 - Spotify login/session state: `~/local/config/spotify`
 - Pi auth: `~/local/secrets/pi/auth/auth.json`
 - Pi MCP config/OAuth tokens: `~/local/secrets/pi/mcp`, `~/local/secrets/pi/mcp-oauth`
+- Claude Code auth/global credentials: `~/local/secrets/claude-code/{auth,credentials}`
+- Claude Code sessions/transcripts/history: `~/local/state/claude-code/{history,projects,sessions}`
 
 The convenience archive carries useful but nonessential state:
 

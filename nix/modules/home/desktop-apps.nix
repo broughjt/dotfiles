@@ -14,7 +14,6 @@
       hunspellDicts.en_US
       inter
       julia-mono
-      llm-agents.claude-code
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-cjk-serif

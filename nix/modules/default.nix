@@ -54,6 +54,7 @@ rec {
       piMcpAdapterPackage
       ;
   };
+  claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
   firefox = import ./home/firefox.nix;
   ghostty = import ./home/ghostty.nix;
   kakoune = import ./home/kakoune.nix;
