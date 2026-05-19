@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create explicit murph state backup bundles."""
+"""Backup murph files"""
 
 from __future__ import annotations
 
@@ -16,7 +16,6 @@ import sys
 from typing import Any, NoReturn
 
 PERSIST = Path("/persist")
-DOTFILES = Path("/home/jackson/repositories/dotfiles")
 
 
 def die(message: str) -> NoReturn:
@@ -25,9 +24,11 @@ def die(message: str) -> NoReturn:
 
 
 def main() -> None:
-    bundles_path = Path(
-        os.environ.get("MURPH_BUNDLES_JSON", str(Path(__file__).with_name("murph_bundles.json")))
-    )
+    try:
+        bundles_path = Path(os.environ["MURPH_BUNDLES_JSON"])
+    except KeyError as error:
+        die(f"could not read bundle path from environment: {error}")
+
     try:
         bundles: dict[str, dict[str, Any]] = json.loads(bundles_path.read_text())
     except OSError as error:
@@ -37,7 +38,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         prog="backup-murph",
-        description="Create explicit murph state backup bundles.",
+        description="Backup murph files",
     )
     parser.add_argument(
         "--bundle",
@@ -49,13 +50,7 @@ def main() -> None:
     parser.add_argument("destination", type=Path, help="directory where archives and manifests are written")
     args = parser.parse_args()
 
-    if "all" in args.bundle:
-        selected = list(bundles)
-    else:
-        selected = []
-        for name in args.bundle:
-            if name not in selected:
-                selected.append(name)
+    selected = set(bundles) if "all" in args.bundle else set(args.bundle)
     selected_configs = [(name, bundles[name]) for name in selected]
 
     if os.geteuid() != 0:
@@ -88,18 +83,8 @@ def main() -> None:
 
     timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     host = socket.gethostname()
-    revision = ""
-    if shutil.which("git") is not None and (DOTFILES / ".git").exists():
-        try:
-            revision = subprocess.run(
-                ["git", "-C", str(DOTFILES), "rev-parse", "HEAD"],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-                text=True,
-            ).stdout.strip()
-        except subprocess.CalledProcessError:
-            revision = ""
+    revision = os.environ.get("MURPH_DOTFILES_REVISION", "")
+    nar_hash = os.environ.get("MURPH_DOTFILES_NAR_HASH", "")
 
     uid = os.environ.get("SUDO_UID")
     gid = os.environ.get("SUDO_GID")
@@ -126,6 +111,8 @@ def main() -> None:
         ]
         if revision:
             lines.append(f"dotfiles_rev={revision}")
+        if nar_hash:
+            lines.append(f"dotfiles_nar_hash={nar_hash}")
         lines.extend(
             [
                 "",
