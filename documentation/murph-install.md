@@ -56,7 +56,8 @@ sudo nix run .#flashNixosInstaller -- /dev/sda
 
 ## Install
 
-Boot from the USB, connect to a network, and run the installer script
+Boot from the USB, connect to a network using `nmtui`, and run the installer
+script:
 
 ```sh
 sudo nix --extra-experimental-features "nix-command flakes" \
@@ -82,11 +83,13 @@ The target disk is:
 
 ## Restore secrets before reboot
 
-After the installer finishes, the new system remains mounted at `/mnt`. If you made a secrets backup, mount the backup USB and restore it with the restore script:
+After the installer finishes, the new system remains mounted at `/mnt`. If you
+made a secrets backup, mount the backup USB and restore it with the restore
+script:
 
 ```sh
 sudo mkdir -p /run/media/jackson/USB
-sudo mount /dev/sda1 /run/media/jackson/USB
+sudo mount /dev/sdb1 /run/media/jackson/USB
 
 sudo nix --extra-experimental-features "nix-command flakes" \
   run github:broughjt/dotfiles#restoreMurphSecrets -- \
@@ -108,10 +111,11 @@ sudo reboot
 
 ## First boot
 
-Switch from the bootstrap profile to the full profile:
+After reboot, connect to a network again using `nmtui`, and then switch from the
+bootstrap profile to the full profile:
 
 ```sh
-sudo nixos-rebuild switch --flake github:broughjt/dotfiles#murph
+sudo nixos-rebuild boot --flake github:broughjt/dotfiles#murph
 ```
 
 Verify rollback and persistence:
