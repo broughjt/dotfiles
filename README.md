@@ -8,8 +8,8 @@ Personal configuration for Emacs and NixOS.
 
 # Installation
 
-For my own reference, installation instructions can be found at
-`documentation/murph-install.md`.
+For my own reference, installation instructions for the `murph` host can be
+found at `documentation/murph-install.md`.
 
 # How 2 Flakes?
 
