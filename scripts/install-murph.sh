@@ -175,24 +175,17 @@ If you created a murph secrets archive, mount the backup USB and restore it with
      /path/to/murph-secrets-*.tar.gz.age \
      ${MOUNTPOINT}
 
-If you only have one USB port, you can leave this installer command finished,
-swap to the backup USB, mount it, and run the restore command above while the
-target remains mounted.
+You may also copy other state manually into ${MOUNTPOINT}/persist.
 
-You may also copy other state manually into ${MOUNTPOINT}/persist. Prefer exact
-paths over broad directory restores; see INSTALL2.md for details.
+When finished, unmount and reboot:
 
-When finished, lock down /persist itself, then unmount and reboot:
-
-   chown root:root ${MOUNTPOINT}/persist
-   chmod 700 ${MOUNTPOINT}/persist
    umount -R ${MOUNTPOINT}
    zpool export zroot
    reboot
 
 After first boot, switch from the bootstrap profile to the full profile:
 
-   sudo nixos-rebuild switch --flake ~/repositories/dotfiles#murph
+   sudo nixos-rebuild switch --flake github:broughjt/dotfiles#murph
 
 Then verify persistence/rollback:
 

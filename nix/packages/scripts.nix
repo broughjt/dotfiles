@@ -17,6 +17,15 @@ let
       exec bun ${../../scripts/pi-print-system-prompt.ts} "$@"
     '';
   };
+  flashNixosInstaller = pkgs.writeShellApplication {
+    name = "flash-nixos-installer";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      util-linux
+    ];
+    text = builtins.readFile ../../scripts/flash-nixos-installer.sh;
+  };
   installMurph = pkgs.writeShellApplication {
     name = "install-murph";
     runtimeInputs = with pkgs; [
@@ -64,6 +73,7 @@ in
 {
   inherit
     backupMurphSecrets
+    flashNixosInstaller
     installMurph
     piPrintSystemPrompt
     restoreMurphSecrets

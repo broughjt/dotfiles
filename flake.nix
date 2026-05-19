@@ -162,6 +162,7 @@
         };
         scriptApps = {
           backupMurphSecrets = makeScriptApp scriptPackages.backupMurphSecrets "backup-murph-secrets";
+          flashNixosInstaller = makeScriptApp scriptPackages.flashNixosInstaller "flash-nixos-installer";
           installMurph = makeScriptApp scriptPackages.installMurph "install-murph";
           piPrintSystemPrompt = makeScriptApp scriptPackages.piPrintSystemPrompt "pi-print-system-prompt";
           restoreMurphSecrets = makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets";
