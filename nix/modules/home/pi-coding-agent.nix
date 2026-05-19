@@ -35,7 +35,6 @@ let
 
   piEnvironment = {
     PI_CODING_AGENT_DIR = piAgentDir;
-    PI_CODING_AGENT_SESSION_DIR = piSessionDir;
     PI_MCP_CONFIG = piMcpConfigFile;
     PI_MCP_CACHE = piMcpCacheFile;
     PI_MCP_ONBOARDING_STATE = piMcpOnboardingFile;
@@ -58,7 +57,6 @@ let
     set -euo pipefail
 
     export PI_CODING_AGENT_DIR=${lib.escapeShellArg piAgentDir}
-    export PI_CODING_AGENT_SESSION_DIR=${lib.escapeShellArg piSessionDir}
     export PI_MCP_CONFIG=${lib.escapeShellArg piMcpConfigFile}
     export PI_MCP_CACHE=${lib.escapeShellArg piMcpCacheFile}
     export PI_MCP_ONBOARDING_STATE=${lib.escapeShellArg piMcpOnboardingFile}
@@ -75,7 +73,6 @@ let
     set -euo pipefail
 
     export PI_CODING_AGENT_DIR=${lib.escapeShellArg piAgentDir}
-    export PI_CODING_AGENT_SESSION_DIR=${lib.escapeShellArg piSessionDir}
     export PI_MCP_CONFIG=${lib.escapeShellArg piMcpConfigFile}
     export PI_MCP_CACHE=${lib.escapeShellArg piMcpCacheFile}
     export PI_MCP_ONBOARDING_STATE=${lib.escapeShellArg piMcpOnboardingFile}
@@ -128,6 +125,7 @@ in
     "d ${piMcpOAuthDir} 0700 ${user} users -"
     "d ${piSessionDir} 0700 ${user} users -"
     "d ${piStateDir} 0700 ${user} users -"
+    "L+ ${piAgentDir}/sessions - - - - ${piSessionDir}"
     "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
     "L+ ${piAgentDir}/settings.json - - - - ${piSettingsFile}"
     "L+ ${piAgentDir}/auth.json - - - - ${piAuthFile}"
