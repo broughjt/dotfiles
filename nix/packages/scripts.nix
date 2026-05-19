@@ -32,8 +32,8 @@ let
       builtins.readFile ../../scripts/install-murph.sh
     );
   };
-  backupMurph = pkgs.writeShellApplication {
-    name = "backup-murph";
+  backupMurphSecrets = pkgs.writeShellApplication {
+    name = "backup-murph-secrets";
     runtimeInputs = with pkgs; [
       age
       coreutils
@@ -42,14 +42,13 @@ let
       python3
     ];
     text = ''
-      export MURPH_BUNDLES_JSON=${../../scripts/murph_bundles.json}
       export MURPH_DOTFILES_REVISION=${pkgs.lib.escapeShellArg dotfilesRevision}
       export MURPH_DOTFILES_NAR_HASH=${pkgs.lib.escapeShellArg dotfilesNarHash}
-      exec python3 ${../../scripts/backup_murph.py} "$@"
+      exec python3 ${../../scripts/backup_murph_secrets.py} "$@"
     '';
   };
-  restoreMurph = pkgs.writeShellApplication {
-    name = "restore-murph";
+  restoreMurphSecrets = pkgs.writeShellApplication {
+    name = "restore-murph-secrets";
     runtimeInputs = with pkgs; [
       age
       coreutils
@@ -58,16 +57,15 @@ let
       python3
     ];
     text = ''
-      export MURPH_BUNDLES_JSON=${../../scripts/murph_bundles.json}
-      exec python3 ${../../scripts/restore_murph.py} "$@"
+      exec python3 ${../../scripts/restore_murph_secrets.py} "$@"
     '';
   };
 in
 {
   inherit
-    backupMurph
+    backupMurphSecrets
     installMurph
     piPrintSystemPrompt
-    restoreMurph
+    restoreMurphSecrets
     ;
 }

@@ -168,22 +168,19 @@ cat <<EOF
 
 Install finished. The target is still mounted at ${MOUNTPOINT}.
 
-If you created murph state archives, mount the backup USB and restore them with:
+If you created a murph secrets archive, mount the backup USB and restore it with:
 
    nix --extra-experimental-features "nix-command flakes" \
-     run github:broughjt/dotfiles#restoreMurph -- \
-     --bundle secrets-essential /path/to/murph-secrets-essential-*.tar.gz.age \
-     --bundle secrets-extra /path/to/murph-secrets-extra-*.tar.gz.age \
-     --bundle convenience /path/to/murph-convenience-*.tar.gz \
+     run github:broughjt/dotfiles#restoreMurphSecrets -- \
+     /path/to/murph-secrets-*.tar.gz.age \
      ${MOUNTPOINT}
 
-The extra secrets and convenience archives are optional. If you only have one
-USB port, you can leave this installer command finished, swap to the backup USB,
-mount it, and run the restore command above while the target remains mounted.
+If you only have one USB port, you can leave this installer command finished,
+swap to the backup USB, mount it, and run the restore command above while the
+target remains mounted.
 
-You may also copy state manually into ${MOUNTPOINT}/persist. Prefer exact paths
-over broad directory restores; see INSTALL2.md for the current state bundle
-definitions.
+You may also copy other state manually into ${MOUNTPOINT}/persist. Prefer exact
+paths over broad directory restores; see INSTALL2.md for details.
 
 When finished, lock down /persist itself, then unmount and reboot:
 

@@ -1,54 +1,23 @@
 # Murph install
 
-## Before reinstall: create state archives
+## Before reinstall: create a secrets archive
 
-If the old system is still bootable, create explicit state archives on a mounted
-USB drive. The secrets archives are encrypted with `age --passphrase`; the
-convenience archive is unencrypted and optional.
+If the old system is still bootable, create a small encrypted secrets archive on
+a mounted USB drive. It is encrypted with `age --passphrase`.
 
 ```sh
 # Replace /run/media/jackson/USB with the mounted USB path.
-sudo nix run .#backupMurph -- --bundle all /run/media/jackson/USB
-# Or choose bundles explicitly:
-# sudo nix run .#backupMurph -- --bundle secrets-essential --bundle secrets-extra --bundle convenience /run/media/jackson/USB
+sudo nix run .#backupMurphSecrets -- /run/media/jackson/USB
 ```
 
-The essential secrets archive carries identity/security state needed after
-reinstall:
+The secrets archive carries only identity/security state needed after reinstall:
 
-- system SSH host keys: `/persist/etc/ssh`
-- personal SSH private key: `~/local/secrets/ssh`
-- GnuPG key material/revocations: `~/local/secrets/gnupg`
-- GnuPG public keybox/trust DB state: `~/local/state/gnupg`
-- GNOME/libsecret keyrings: `~/local/share/keyrings`
+- system SSH host keys: `/persist/etc/ssh/ssh_host_{ed25519,rsa}_key{,.pub}`
+- personal SSH key material: `~/local/secrets/ssh`
+- GnuPG secret key material/revocations: `~/local/secrets/gnupg`
 
-The extra secrets archive carries useful app authentication/session state:
-
-- Discord login/session state: `~/local/config/discord`
-- Slack login/session state: `~/local/config/Slack`
-- Spotify login/session state: `~/local/config/spotify`
-- Pi auth: `~/local/secrets/pi/auth/auth.json`
-- Pi MCP config/OAuth tokens: `~/local/secrets/pi/mcp`, `~/local/secrets/pi/mcp-oauth`
-- Claude Code auth/global credentials: `~/local/secrets/claude-code/{auth,credentials}`
-- Claude Code sessions/transcripts/history: `~/local/state/claude-code/{history,projects,sessions}`
-
-The convenience archive carries useful but nonessential state:
-
-- `~/repositories`
-- `~/share`
-- `~/scratch`
-- Firefox profile: `~/local/config/mozilla/firefox`
-- SSH `known_hosts`: `~/local/hacks/ssh/known_hosts/known_hosts`
-- fish history: `~/local/hacks/fish/fish_history/fish_history`
-- GitHub CLI account metadata: `~/local/hacks/gh/hosts/hosts.yml`
-- tmux-resurrect state: `~/local/hacks/tmux/resurrect/resurrect`
-- Pi mutable settings: `~/local/hacks/pi/settings/settings.json`
-- Pi sessions: `~/local/state/pi/sessions`
-- Pi MCP cache/onboarding state: `~/local/state/pi/mcp`
-- direnv trust decisions: `~/local/share/direnv/{allow,deny}`
-
-The convenience archive is intentionally unencrypted for ease of use, but it may
-still contain private browsing, shell, project, and personal-file state.
+Back up anything else manually if you decide you want it, preferably by copying
+specific paths rather than broad state directories.
 
 ## Install
 
@@ -74,7 +43,7 @@ The script will:
 - run `disko-install` with `#murph-install`
 - prompt for the ZFS encryption passphrase
 - remount the target at `/mnt`
-- optionally restore murph state archives from USB
+- optionally restore the murph secrets archive from USB
 - leave the target mounted so additional state can be restored manually
 
 The target disk is:
@@ -83,28 +52,25 @@ The target disk is:
 /dev/disk/by-id/nvme-WD_BLACK_SN770_250GB_23013S803380
 ```
 
-## Restore preserved state before reboot
+## Restore secrets before reboot
 
-After the installer finishes, the new system is mounted at `/mnt`. If you made
-state archives, mount the backup USB and restore them with the restore app:
+After the installer finishes, the new system is mounted at `/mnt`. If you made a
+secrets archive, mount the backup USB and restore it with the restore app:
 
 ```sh
 nix --extra-experimental-features "nix-command flakes" \
-  run github:broughjt/dotfiles#restoreMurph -- \
-  --bundle secrets-essential /path/to/murph-secrets-essential-*.tar.gz.age \
-  --bundle secrets-extra /path/to/murph-secrets-extra-*.tar.gz.age \
-  --bundle convenience /path/to/murph-convenience-*.tar.gz \
+  run github:broughjt/dotfiles#restoreMurphSecrets -- \
+  /path/to/murph-secrets-*.tar.gz.age \
   /mnt
 ```
 
-The extra secrets and convenience archives are optional. If the installer USB
-and backup USB cannot be plugged in at the same time, let the installer finish,
-swap USB drives, mount the backup USB, and run the restore app while the target
-remains mounted.
+If the installer USB and backup USB cannot be plugged in at the same time, let
+the installer finish, swap USB drives, mount the backup USB, and run the restore
+app while the target remains mounted.
 
-The archives contain paths relative to `/persist` and are extracted into
+The archive contains paths relative to `/persist` and is extracted into
 `/mnt/persist`. The restore app fixes the expected ownership and permissions
-after extraction.
+after extraction. Copy any other state you want to keep manually.
 
 After you have finished copying state, lock down the persistent backing mount.
 The installed NixOS config does this declaratively on boot too:
