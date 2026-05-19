@@ -32,6 +32,7 @@ nixpkgs.lib.nixosSystem {
     firefox
     ghostty
     kakoune
+    vlc
     emacs
   ];
 }

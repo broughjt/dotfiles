@@ -28,7 +28,6 @@
       slack
       source-serif
       spotify
-      vlc
       wl-clipboard
     ];
     home.sessionVariables.NIXOS_OZONE_WL = "1";

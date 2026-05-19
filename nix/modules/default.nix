@@ -57,6 +57,7 @@ rec {
   firefox = import ./home/firefox.nix;
   ghostty = import ./home/ghostty.nix;
   kakoune = import ./home/kakoune.nix;
+  vlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;
   emacs = import ./home/emacs.nix {
     inherit
