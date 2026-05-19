@@ -5,3 +5,7 @@
 # Are these your dotfiles, Larry?
 
 TODO: describe this.
+
+# How 2 flakes?
+
+[No: suffer my pain.](https://github.com/hlissner/dotfiles)
