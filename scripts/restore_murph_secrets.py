@@ -19,6 +19,10 @@ SYSTEM_SSH_HOST_KEY_FILES = [
     "ssh_host_rsa_key",
     "ssh_host_rsa_key.pub",
 ]
+GPG_STATE_FILES = [
+    "pubring.kbx",
+    "trustdb.gpg",
+]
 
 
 def die(message: str) -> NoReturn:
@@ -111,12 +115,16 @@ def main() -> None:
     home_dir = persist / "home/jackson"
     local_dir = home_dir / "local"
     secrets_dir = local_dir / "secrets"
+    state_dir = local_dir / "state"
     ssh_secrets_dir = secrets_dir / "ssh"
     gpg_secrets_dir = secrets_dir / "gnupg"
+    gpg_state_dir = state_dir / "gnupg"
 
-    chown_existing((home_dir, local_dir, secrets_dir), USER_UID, USERS_GID)
+    chown_existing((home_dir, local_dir, secrets_dir, state_dir), USER_UID, USERS_GID)
     chown_tree(ssh_secrets_dir, USER_UID, USERS_GID)
     chown_tree(gpg_secrets_dir, USER_UID, USERS_GID)
+    chown_existing((gpg_state_dir,), USER_UID, USERS_GID)
+    chown_existing((gpg_state_dir / name for name in GPG_STATE_FILES), USER_UID, USERS_GID)
 
     chmod_existing(
         (
@@ -127,6 +135,7 @@ def main() -> None:
                 "home/jackson/local/secrets/gnupg",
                 "home/jackson/local/secrets/gnupg/private-keys-v1.d",
                 "home/jackson/local/secrets/gnupg/openpgp-revocs.d",
+                "home/jackson/local/state/gnupg",
             ]
         ),
         0o700,
@@ -138,6 +147,10 @@ def main() -> None:
     if gpg_secrets_dir.exists():
         chmod_existing((path for path in gpg_secrets_dir.rglob("*") if path.is_dir()), 0o700)
         chmod_existing((path for path in gpg_secrets_dir.rglob("*") if path.is_file()), 0o600)
+
+    if gpg_state_dir.exists():
+        chmod_existing((gpg_state_dir / "pubring.kbx",), 0o644)
+        chmod_existing((gpg_state_dir / "trustdb.gpg",), 0o600)
 
     ssh_dir = persist / "etc/ssh"
     if ssh_dir.exists():

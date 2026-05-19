@@ -22,6 +22,8 @@ BACKUP_PATHS = [
     "etc/ssh/ssh_host_rsa_key.pub",
     "home/jackson/local/secrets/ssh",
     "home/jackson/local/secrets/gnupg",
+    "home/jackson/local/state/gnupg/pubring.kbx",
+    "home/jackson/local/state/gnupg/trustdb.gpg",
 ]
 
 
@@ -103,7 +105,7 @@ def main() -> None:
             "",
             "notes:",
             "  - Encrypted with age --passphrase.",
-            "  - Contains only selected SSH host keys, SSH client keys, and GnuPG secret key material/revocations.",
+            "  - Contains only selected SSH host keys, SSH client keys, and GnuPG identity state.",
             "  - Extract into /mnt/persist during install.",
         ]
     )
