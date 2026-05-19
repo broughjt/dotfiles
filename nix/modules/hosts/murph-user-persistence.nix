@@ -45,7 +45,7 @@ in
     # intentionally ephemeral under ~/local/{cache,state}/emacs.
     "d ${localDirectory}/hacks/emacs 0700 ${user} users -"
     "d ${localDirectory}/hacks/emacs/projects 0700 ${user} users -"
-    "f ${localDirectory}/hacks/emacs/projects/projects.eld 0600 ${user} users -"
+    "f ${localDirectory}/hacks/emacs/projects/projects.eld 0600 ${user} users - nil"
 
     # GnuPG: only durable subcomponents are persisted. GNUPGHOME itself is
     # ephemeral and only holds activation-managed symlinks plus throwaway
