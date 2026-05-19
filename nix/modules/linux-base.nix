@@ -41,6 +41,10 @@
 
   services.openssh.enable = true;
 
+  security.sudo.extraConfig = ''
+    Defaults:${config.personal.userName} lecture=never
+  '';
+
   nix.optimise.automatic = true;
   nix.gc = {
     automatic = true;

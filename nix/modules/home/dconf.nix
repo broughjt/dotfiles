@@ -96,6 +96,9 @@ in
             color-shading-type = "solid";
             primary-color = "#0a369d";
           };
+          "org/gnome/settings-daemon/plugins/housekeeping" = {
+            donation-reminder-enabled = false;
+          };
         };
       }
     ];
