@@ -51,7 +51,7 @@ writing the ISO, we need the whole device (`/dev/sda`), not a specific partition
 on that device (`/dev/sda1`). Flash the NixOS installer with:
 
 ```
-sudo nix run .#flashNixos -- /dev/sda # or /dev/<device-name>
+sudo nix run .#flashNixosInstaller -- /dev/sda
 ```
 
 ## Install
@@ -59,7 +59,7 @@ sudo nix run .#flashNixos -- /dev/sda # or /dev/<device-name>
 Boot from the USB, connect to a network, and run the installer script
 
 ```sh
-sudo nix --extra-experimental-features "nix-command flakes" \ 
+sudo nix --extra-experimental-features "nix-command flakes" \
   run github:broughjt/dotfiles#installMurph
 ```
 
@@ -90,7 +90,7 @@ sudo mount /dev/sda1 /run/media/jackson/USB
 
 sudo nix --extra-experimental-features "nix-command flakes" \
   run github:broughjt/dotfiles#restoreMurphSecrets -- \
-  /path/to/murph-secrets-*.tar.gz.age \
+  /run/media/jackson/USB/murph-secrets-*.tar.gz.age \
   /mnt
 ```
 
@@ -101,9 +101,9 @@ after extraction. Copy any other state you want to keep manually.
 Then unmount and reboot:
 
 ```sh
-umount -R /mnt
-zpool export zroot
-reboot
+sudo umount -R /mnt
+sudo zpool export zroot
+sudo reboot
 ```
 
 ## First boot
