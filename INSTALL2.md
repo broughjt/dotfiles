@@ -3,23 +3,27 @@
 ## Before reinstall: create state archives
 
 If the old system is still bootable, create explicit state archives on a mounted
-USB drive. The secrets archive is encrypted with `age --passphrase`; the
+USB drive. The secrets archives are encrypted with `age --passphrase`; the
 convenience archive is unencrypted and optional.
 
 ```sh
 # Replace /run/media/jackson/USB with the mounted USB path.
 sudo nix run .#backupMurph -- --bundle all /run/media/jackson/USB
 # Or choose bundles explicitly:
-# sudo nix run .#backupMurph -- --bundle secrets --bundle convenience /run/media/jackson/USB
+# sudo nix run .#backupMurph -- --bundle secrets-essential --bundle secrets-extra --bundle convenience /run/media/jackson/USB
 ```
 
-The secrets archive carries identity/security state needed after reinstall:
+The essential secrets archive carries identity/security state needed after
+reinstall:
 
 - system SSH host keys: `/persist/etc/ssh`
 - personal SSH private key: `~/local/secrets/ssh`
 - GnuPG key material/revocations: `~/local/secrets/gnupg`
 - GnuPG public keybox/trust DB state: `~/local/state/gnupg`
 - GNOME/libsecret keyrings: `~/local/share/keyrings`
+
+The extra secrets archive carries useful app authentication/session state:
+
 - Discord login/session state: `~/local/config/discord`
 - Slack login/session state: `~/local/config/Slack`
 - Spotify login/session state: `~/local/config/spotify`
@@ -87,17 +91,19 @@ state archives, mount the backup USB and restore them with the restore app:
 ```sh
 nix --extra-experimental-features "nix-command flakes" \
   run github:broughjt/dotfiles#restoreMurph -- \
-  --bundle secrets /path/to/murph-secrets-*.tar.gz.age \
+  --bundle secrets-essential /path/to/murph-secrets-essential-*.tar.gz.age \
+  --bundle secrets-extra /path/to/murph-secrets-extra-*.tar.gz.age \
   --bundle convenience /path/to/murph-convenience-*.tar.gz \
   /mnt
 ```
 
-The convenience archive is optional. If the installer USB and backup USB cannot
-be plugged in at the same time, let the installer finish, swap USB drives, mount
-the backup USB, and run the restore app while the target remains mounted.
+The extra secrets and convenience archives are optional. If the installer USB
+and backup USB cannot be plugged in at the same time, let the installer finish,
+swap USB drives, mount the backup USB, and run the restore app while the target
+remains mounted.
 
 The archives contain paths relative to `/persist` and are extracted into
-`/mnt/persist`. The restore apps fix the expected ownership and permissions
+`/mnt/persist`. The restore app fixes the expected ownership and permissions
 after extraction.
 
 After you have finished copying state, lock down the persistent backing mount.

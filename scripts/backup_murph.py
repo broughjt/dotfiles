@@ -18,13 +18,28 @@ PERSIST = Path("/persist")
 DOTFILES = Path("/home/jackson/repositories/dotfiles")
 
 BUNDLES: dict[str, dict[str, Any]] = {
-    "secrets": {
+    "secrets-essential": {
         "encrypted": True,
         "archive_suffix": ".tar.gz.age",
         "archive_mode": 0o600,
         "paths": [
             "etc/ssh",
             "home/jackson/local/secrets/ssh",
+            "home/jackson/local/secrets/gnupg",
+            "home/jackson/local/state/gnupg",
+            "home/jackson/local/share/keyrings",
+        ],
+        "notes": [
+            "Encrypted with age --passphrase.",
+            "Contains essential SSH, GnuPG, and keyring state.",
+            "Extract into /mnt/persist during install.",
+        ],
+    },
+    "secrets-extra": {
+        "encrypted": True,
+        "archive_suffix": ".tar.gz.age",
+        "archive_mode": 0o600,
+        "paths": [
             "home/jackson/local/secrets/pi/auth",
             "home/jackson/local/secrets/pi/mcp",
             "home/jackson/local/secrets/pi/mcp-oauth",
@@ -33,15 +48,13 @@ BUNDLES: dict[str, dict[str, Any]] = {
             "home/jackson/local/state/claude-code/history",
             "home/jackson/local/state/claude-code/projects",
             "home/jackson/local/state/claude-code/sessions",
-            "home/jackson/local/secrets/gnupg",
-            "home/jackson/local/state/gnupg",
-            "home/jackson/local/share/keyrings",
             "home/jackson/local/config/discord",
             "home/jackson/local/config/Slack",
             "home/jackson/local/config/spotify",
         ],
         "notes": [
             "Encrypted with age --passphrase.",
+            "Contains app authentication/session state that is useful but not essential.",
             "Extract into /mnt/persist during install.",
         ],
     },

@@ -172,13 +172,14 @@ If you created murph state archives, mount the backup USB and restore them with:
 
    nix --extra-experimental-features "nix-command flakes" \
      run github:broughjt/dotfiles#restoreMurph -- \
-     --bundle secrets /path/to/murph-secrets-*.tar.gz.age \
+     --bundle secrets-essential /path/to/murph-secrets-essential-*.tar.gz.age \
+     --bundle secrets-extra /path/to/murph-secrets-extra-*.tar.gz.age \
      --bundle convenience /path/to/murph-convenience-*.tar.gz \
      ${MOUNTPOINT}
 
-The convenience archive is optional. If you only have one USB port, you can
-leave this installer command finished, swap to the backup USB, mount it, and run
-the restore command above while the target remains mounted.
+The extra secrets and convenience archives are optional. If you only have one
+USB port, you can leave this installer command finished, swap to the backup USB,
+mount it, and run the restore command above while the target remains mounted.
 
 You may also copy state manually into ${MOUNTPOINT}/persist. Prefer exact paths
 over broad directory restores; see INSTALL2.md for the current state bundle

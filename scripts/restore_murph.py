@@ -12,11 +12,28 @@ import sys
 from typing import Any, Iterable, NoReturn
 
 BUNDLES: dict[str, dict[str, Any]] = {
-    "secrets": {
+    "secrets-essential": {
         "encrypted": True,
         "directories_0700": [
             "home/jackson/local/secrets",
             "home/jackson/local/secrets/ssh",
+            "home/jackson/local/secrets/gnupg",
+            "home/jackson/local/secrets/gnupg/private-keys-v1.d",
+            "home/jackson/local/secrets/gnupg/openpgp-revocs.d",
+            "home/jackson/local/state/gnupg",
+            "home/jackson/local/share/keyrings",
+        ],
+        "files_0600": [
+            "home/jackson/local/secrets/ssh/id_ed25519",
+        ],
+        "files_0644": [
+            "home/jackson/local/secrets/ssh/id_ed25519.pub",
+        ],
+    },
+    "secrets-extra": {
+        "encrypted": True,
+        "directories_0700": [
+            "home/jackson/local/secrets",
             "home/jackson/local/secrets/pi",
             "home/jackson/local/secrets/pi/auth",
             "home/jackson/local/secrets/pi/mcp",
@@ -28,26 +45,18 @@ BUNDLES: dict[str, dict[str, Any]] = {
             "home/jackson/local/state/claude-code/history",
             "home/jackson/local/state/claude-code/projects",
             "home/jackson/local/state/claude-code/sessions",
-            "home/jackson/local/secrets/gnupg",
-            "home/jackson/local/secrets/gnupg/private-keys-v1.d",
-            "home/jackson/local/secrets/gnupg/openpgp-revocs.d",
-            "home/jackson/local/state/gnupg",
-            "home/jackson/local/share/keyrings",
             "home/jackson/local/config/discord",
             "home/jackson/local/config/Slack",
             "home/jackson/local/config/spotify",
         ],
         "files_0600": [
-            "home/jackson/local/secrets/ssh/id_ed25519",
             "home/jackson/local/secrets/pi/auth/auth.json",
             "home/jackson/local/secrets/pi/mcp/mcp.json",
             "home/jackson/local/secrets/claude-code/auth/.claude.json",
             "home/jackson/local/secrets/claude-code/auth/.credentials.json",
             "home/jackson/local/state/claude-code/history/history.jsonl",
         ],
-        "files_0644": [
-            "home/jackson/local/secrets/ssh/id_ed25519.pub",
-        ],
+        "files_0644": [],
     },
     "convenience": {
         "encrypted": False,
@@ -202,7 +211,14 @@ def main() -> None:
         chmod_existing((persist / path for path in bundle["files_0600"]), 0o600)
         chmod_existing((persist / path for path in bundle["files_0644"]), 0o644)
 
-        if bundle_name == "secrets":
+        if bundle_name == "secrets-essential":
+            ssh_dir = persist / "etc/ssh"
+            if ssh_dir.exists():
+                chown_tree(ssh_dir, 0, 0)
+                chmod_existing(ssh_dir.glob("ssh_host_*_key"), 0o600)
+                chmod_existing(ssh_dir.glob("ssh_host_*_key.pub"), 0o644)
+
+        if bundle_name == "secrets-extra":
             oauth_dir = persist / "home/jackson/local/secrets/pi/mcp-oauth"
             if oauth_dir.exists():
                 chmod_existing(oauth_dir.rglob("tokens.json"), 0o600)
@@ -215,12 +231,6 @@ def main() -> None:
             if claude_state_dir.exists():
                 chmod_existing((path for path in claude_state_dir.rglob("*") if path.is_dir()), 0o700)
                 chmod_existing((path for path in claude_state_dir.rglob("*") if path.is_file()), 0o600)
-
-            ssh_dir = persist / "etc/ssh"
-            if ssh_dir.exists():
-                chown_tree(ssh_dir, 0, 0)
-                chmod_existing(ssh_dir.glob("ssh_host_*_key"), 0o600)
-                chmod_existing(ssh_dir.glob("ssh_host_*_key.pub"), 0o644)
 
     restored = ", ".join(bundle_name for bundle_name, _, _ in specs)
     print(f"info: restore complete for {restored}")
