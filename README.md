@@ -23,5 +23,4 @@ From [@hlissner](https://github.com/hlissner):
 [Ian Henry's blog posts](https://ianthehenry.com/posts/how-to-learn-nix/) were a
 really funny read while trying to learn Nix.
 
-> Yep! Make a symlink! You’re an adult! What, you thought there would be a nix
-> add-gc-root command?
+> Yep! Make a symlink! You’re an adult!
