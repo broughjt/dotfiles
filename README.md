@@ -4,8 +4,24 @@
 
 # Are these your dotfiles, Larry?
 
-TODO: describe this.
+Personal configuration for Emacs and NixOS.
 
-# How 2 flakes?
+# Installation
 
-[No: suffer my pain.](https://github.com/hlissner/dotfiles)
+For my own reference, installation instructions can be found at
+`documentation/murph-install.md`.
+
+# How 2 Flakes?
+
+From [@hlissner](https://github.com/hlissner):
+
+> Would it be the NixOS experience if I gave you all the answers in one,
+> convenient place?
+>
+> No. Suffer my pain.
+
+[Ian Henry's blog posts](https://ianthehenry.com/posts/how-to-learn-nix/) were a
+really funny read while trying to learn Nix.
+
+> Yep! Make a symlink! You’re an adult! What, you thought there would be a nix
+> add-gc-root command?
