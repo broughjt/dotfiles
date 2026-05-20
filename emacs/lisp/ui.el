@@ -23,7 +23,7 @@
 (use-package standard-themes
   :config
   (load-theme 'standard-dark t))
-(use-package modus-themes :defer t)
-(use-package ef-themes :defer t)
+(use-package modus-themes)
+(use-package ef-themes)
 
 (provide 'ui)
