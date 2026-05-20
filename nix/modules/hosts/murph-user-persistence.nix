@@ -207,6 +207,10 @@ in
         mode = "0700";
       }
       {
+        directory = "local/share/TelegramDesktop";
+        mode = "0700";
+      }
+      {
         directory = "local/config/spotify";
         mode = "0700";
       }

@@ -14,14 +14,15 @@
       hunspellDicts.en_US
       inter
       julia-mono
+      nerd-fonts.symbols-only
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-cjk-serif
       noto-fonts-color-emoji
-      nerd-fonts.symbols-only
       slack
       source-serif
       spotify
+      telegram-desktop
       wl-clipboard
     ];
     home.sessionVariables.NIXOS_OZONE_WL = "1";
