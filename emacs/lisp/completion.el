@@ -1,6 +1,8 @@
 ;;; -*- lexical-binding: t; -*-
 
 (defvar affe-find-command)
+(defvar ispell-alternate-dictionary)
+(defvar ispell-complete-word-dict)
 
 (declare-function marginalia-mode "marginalia" (&optional arg))
 (declare-function affe-find "affe" (&optional dir initial))
@@ -107,8 +109,14 @@
   :config (which-key-mode 1))
 
 (setq tab-always-indent 'complete)
-;; TODO: says it's undefined
-;; (setq text-mode-ispell-word-completion nil)
+
+(let ((dict (getenv "EMACS_ISPELL_COMPLETE_WORD_DICT")))
+  (when (and dict (> (length dict) 0))
+    (if (file-readable-p dict)
+        (setq ispell-complete-word-dict dict
+              ispell-alternate-dictionary dict)
+      (message "EMACS_ISPELL_COMPLETE_WORD_DICT is not readable: %s" dict))))
+
 ;; (read-extended-command-predicate #'command-completion-default-include-p)
 
 (use-package corfu

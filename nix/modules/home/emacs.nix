@@ -17,6 +17,12 @@ let
   emacsCacheDirectory = "${localDirectory}/cache/emacs";
 
   emacsInitDirectory = ../../../emacs;
+  emacsIspellCompleteWordDict = pkgs.runCommand "emacs-ispell-complete-word-dict" { } ''
+    ${pkgs.coreutils}/bin/cat \
+      ${pkgs.scowl}/lib/aspell/en-common.wl \
+      ${pkgs.scowl}/lib/aspell/en_US-wo_accents-only.wl \
+      | LC_ALL=C ${pkgs.coreutils}/bin/sort -dfu > "$out"
+  '';
   basePackage = configureEmacsPackage pkgs;
 
   # Keep init.el / early-init.el / modules/ store-backed and pass them to
@@ -29,7 +35,8 @@ let
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram "$out/bin/emacs" \
-        --add-flags "--init-directory ${emacsInitDirectory}"
+        --add-flags "--init-directory ${emacsInitDirectory}" \
+        --set EMACS_ISPELL_COMPLETE_WORD_DICT "${emacsIspellCompleteWordDict}"
     '';
   };
 in
