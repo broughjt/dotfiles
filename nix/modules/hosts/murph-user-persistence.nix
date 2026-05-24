@@ -107,6 +107,7 @@ in
       check_single_entry ${localDirectory}/hacks/pi/settings settings.json
       check_single_entry ${localDirectory}/secrets/pi/auth auth.json
       check_single_entry ${localDirectory}/secrets/pi/mcp mcp.json
+      check_single_entry ${localDirectory}/config/todoist-cli config.json
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg-agent.conf
     '';
@@ -140,6 +141,12 @@ in
       }
       {
         directory = "local/state/pi/mcp";
+        mode = "0700";
+      }
+      # todoist-cli's XDG config can include a plaintext API token fallback if
+      # the OS keyring is unavailable, so persist it with secret-like perms.
+      {
+        directory = "local/config/todoist-cli";
         mode = "0700";
       }
       {

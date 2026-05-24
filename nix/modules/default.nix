@@ -10,6 +10,7 @@
   configureEmacsPackage,
   piWebMinimalPackage,
   piMcpAdapterPackage,
+  todoistCliOverlay,
 }:
 
 rec {
@@ -54,6 +55,7 @@ rec {
       piMcpAdapterPackage
       ;
   };
+  todoistCli = import ./home/todoist-cli.nix { inherit todoistCliOverlay; };
   claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
   firefox = import ./home/firefox.nix;
   ghostty = import ./home/ghostty.nix;

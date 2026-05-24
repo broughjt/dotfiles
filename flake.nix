@@ -65,6 +65,9 @@
       vaultixInput = vaultix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
       llmAgentsOverlay = llm-agents-nix.overlays.default;
+      todoistCliOverlay = final: _prev: {
+        todoist-cli = final.callPackage ./nix/packages/todoist-cli.nix { };
+      };
       emacsOverlays = with emacs-overlay.overlays; [
         emacs
         package
@@ -73,7 +76,11 @@
         system:
         import nixpkgs {
           inherit system;
-          overlays = [ llmAgentsOverlay ] ++ emacsOverlays;
+          overlays = [
+            llmAgentsOverlay
+            todoistCliOverlay
+          ]
+          ++ emacsOverlays;
           config = nix-config.nixpkgsConfig;
         };
 
@@ -92,6 +99,7 @@
           nixos-raspberrypi
           piWebMinimalPackage
           piMcpAdapterPackage
+          todoistCliOverlay
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };
@@ -172,7 +180,9 @@
       // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
       // (import ./nix/formatter.nix { inherit pkgs; })
       // {
-        packages = scriptPackages;
+        packages = scriptPackages // {
+          todoist-cli = pkgs.todoist-cli;
+        };
         apps = scriptApps;
       }
     );
