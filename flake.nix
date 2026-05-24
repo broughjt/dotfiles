@@ -87,6 +87,7 @@
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
       piMcpAdapterPackage = import ./nix/packages/pi-mcp-adapter.nix;
+      piSubagentsPackage = import ./nix/packages/pi-subagents.nix;
 
       nixosModules = import ./nix/modules {
         inherit
@@ -100,6 +101,7 @@
           nixos-raspberrypi
           piWebMinimalPackage
           piMcpAdapterPackage
+          piSubagentsPackage
           todoistCliOverlay
           ;
         inherit (emacsPackages) configureEmacsPackage;
@@ -184,6 +186,7 @@
         packages = scriptPackages // {
           todoist-cli = pkgs.todoist-cli;
           todoist-cli-pi-skill = pkgs.todoist-cli-pi-skill;
+          pi-subagents = piSubagentsPackage pkgs;
         };
         apps = scriptApps;
       }

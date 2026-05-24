@@ -10,6 +10,7 @@
   configureEmacsPackage,
   piWebMinimalPackage,
   piMcpAdapterPackage,
+  piSubagentsPackage,
   todoistCliOverlay,
 }:
 
@@ -53,6 +54,7 @@ rec {
     inherit
       piWebMinimalPackage
       piMcpAdapterPackage
+      piSubagentsPackage
       todoistCliOverlay
       ;
   };

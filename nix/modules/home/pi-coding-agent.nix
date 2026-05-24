@@ -1,6 +1,7 @@
 {
   piWebMinimalPackage,
   piMcpAdapterPackage,
+  piSubagentsPackage,
   todoistCliOverlay,
 }:
 
@@ -29,12 +30,28 @@ let
   piMcpOAuthDir = "${localDirectory}/secrets/pi/mcp-oauth";
   piPackagesDir = "${piAgentDir}/packages";
   piSkillsDir = "${piAgentDir}/skills";
+  piExtensionsDir = "${piAgentDir}/extensions";
+  piSubagentsConfigDir = "${piExtensionsDir}/subagent";
+  piSubagentsStateDir = "${localDirectory}/state/pi/subagents";
+  piSubagentsAgentsDir = "${localDirectory}/hacks/pi/subagents/agents";
+  piSubagentsChainsDir = "${localDirectory}/hacks/pi/subagents/chains";
+  piSubagentsRunHistoryFile = "${piSubagentsStateDir}/run-history.jsonl";
   piWebMinimal = piWebMinimalPackage pkgs;
   piMcpAdapter = piMcpAdapterPackage pkgs;
+  piSubagents = piSubagentsPackage pkgs;
   todoistCliPiSkill = pkgs.todoist-cli-pi-skill;
   piWebMinimalEnvFile = "/run/vaultix/pi-web-minimal.env";
   piMcpCacheFile = "${piStateDir}/mcp-cache.json";
   piMcpOnboardingFile = "${piStateDir}/mcp-onboarding.json";
+  piRequiredPackages = [
+    "packages/pi-web-minimal"
+    "packages/pi-subagents"
+  ];
+  piSubagentsConfig = pkgs.writeText "pi-subagents-config.json" (
+    builtins.toJSON {
+      defaultSessionDir = "${piSessionDir}/subagent";
+    }
+  );
 
   piEnvironment = {
     PI_CODING_AGENT_DIR = piAgentDir;
@@ -50,9 +67,7 @@ let
       defaultModel = "gpt-5.5";
       defaultThinkingLevel = "high";
       enableInstallTelemetry = false;
-      packages = [
-        "packages/pi-web-minimal"
-      ];
+      packages = piRequiredPackages;
     }
   );
 
@@ -99,10 +114,10 @@ in
   # activation script remains so a switch repairs directory ownership before
   # the next boot's tmpfiles run.
   # Known possible future state to classify if it appears: models.json,
-  # keybindings.json, SYSTEM.md/APPEND_SYSTEM.md, extensions/, other skills/,
-  # prompts/, themes/, git/,
-  # npm/, bin/fd, bin/rg, pi-debug.log, project-local .pi/, and arbitrary
-  # third-party extension state.
+  # keybindings.json, SYSTEM.md/APPEND_SYSTEM.md, other extensions/,
+  # other skills/, prompts/, themes/, git/, npm/, bin/fd, bin/rg,
+  # pi-debug.log, project-local .pi/, and arbitrary third-party extension
+  # state.
   system.activationScripts.migratePiCodingAgent = {
     deps = [ "persist-files" ];
     text = ''
@@ -110,12 +125,24 @@ in
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAgentDir}
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piPackagesDir}
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piSkillsDir}
+      install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piExtensionsDir}
+      install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piSubagentsConfigDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSettingsDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpConfigDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAuthDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpOAuthDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSessionDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSessionDir}/subagent
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piStateDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSubagentsStateDir}
+      install -d -m 0700 -o ${user} -g users ${
+        lib.escapeShellArg (localDirectory + "/hacks/pi/subagents")
+      }
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSubagentsAgentsDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSubagentsChainsDir}
+      touch ${lib.escapeShellArg piSubagentsRunHistoryFile}
+      chown ${user}:users ${lib.escapeShellArg piSubagentsRunHistoryFile}
+      chmod 0600 ${lib.escapeShellArg piSubagentsRunHistoryFile}
     '';
   };
 
@@ -124,21 +151,35 @@ in
     "d ${piAgentDir} 0700 ${user} users -"
     "d ${piPackagesDir} 0755 ${user} users -"
     "d ${piSkillsDir} 0755 ${user} users -"
+    "d ${piExtensionsDir} 0755 ${user} users -"
+    "d ${piSubagentsConfigDir} 0755 ${user} users -"
     "d ${piSettingsDir} 0700 ${user} users -"
+    "r ${piSettingsFile}"
     "C ${piSettingsFile} 0600 ${user} users - ${seededSettings}"
     "d ${piMcpConfigDir} 0700 ${user} users -"
     "d ${piAuthDir} 0700 ${user} users -"
     "f ${piAuthFile} 0600 ${user} users -"
     "d ${piMcpOAuthDir} 0700 ${user} users -"
     "d ${piSessionDir} 0700 ${user} users -"
+    "d ${piSessionDir}/subagent 0700 ${user} users -"
     "d ${piStateDir} 0700 ${user} users -"
+    "d ${piSubagentsStateDir} 0700 ${user} users -"
+    "d ${localDirectory}/hacks/pi/subagents 0700 ${user} users -"
+    "d ${piSubagentsAgentsDir} 0700 ${user} users -"
+    "d ${piSubagentsChainsDir} 0700 ${user} users -"
+    "f ${piSubagentsRunHistoryFile} 0600 ${user} users -"
     "L+ ${piAgentDir}/sessions - - - - ${piSessionDir}"
     "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
     "L+ ${piAgentDir}/settings.json - - - - ${piSettingsFile}"
     "L+ ${piAgentDir}/auth.json - - - - ${piAuthFile}"
+    "L+ ${piAgentDir}/agents - - - - ${piSubagentsAgentsDir}"
+    "L+ ${piAgentDir}/chains - - - - ${piSubagentsChainsDir}"
+    "L+ ${piAgentDir}/run-history.jsonl - - - - ${piSubagentsRunHistoryFile}"
+    "L+ ${piSubagentsConfigDir}/config.json - - - - ${piSubagentsConfig}"
     "L+ ${piSkillsDir}/todoist-cli - - - - ${todoistCliPiSkill}/skills/todoist-cli"
     "L+ ${piPackagesDir}/pi-web-minimal - - - - ${piWebMinimal}"
     "L+ ${piPackagesDir}/pi-mcp-adapter - - - - ${piMcpAdapter}"
+    "L+ ${piPackagesDir}/pi-subagents - - - - ${piSubagents}"
   ];
 
   home-manager.users.${user} = {

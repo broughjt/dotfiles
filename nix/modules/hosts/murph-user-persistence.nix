@@ -123,6 +123,16 @@ in
         directory = "local/hacks/pi/settings";
         mode = "0700";
       }
+      # pi-subagents can create user agents/chains at runtime. Treat those as
+      # mutable user configuration, not throwaway Pi runtime files.
+      {
+        directory = "local/hacks/pi/subagents/agents";
+        mode = "0700";
+      }
+      {
+        directory = "local/hacks/pi/subagents/chains";
+        mode = "0700";
+      }
       {
         directory = "local/secrets/pi/auth";
         mode = "0700";
@@ -141,6 +151,11 @@ in
       }
       {
         directory = "local/state/pi/mcp";
+        mode = "0700";
+      }
+      # pi-subagents run history and durable child-session metadata.
+      {
+        directory = "local/state/pi/subagents";
         mode = "0700";
       }
       # todoist-cli's XDG config can include a plaintext API token fallback if
