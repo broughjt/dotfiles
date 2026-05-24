@@ -1,6 +1,7 @@
 {
   piWebMinimalPackage,
   piMcpAdapterPackage,
+  todoistCliOverlay,
 }:
 
 {
@@ -27,8 +28,10 @@ let
   piAuthFile = "${piAuthDir}/auth.json";
   piMcpOAuthDir = "${localDirectory}/secrets/pi/mcp-oauth";
   piPackagesDir = "${piAgentDir}/packages";
+  piSkillsDir = "${piAgentDir}/skills";
   piWebMinimal = piWebMinimalPackage pkgs;
   piMcpAdapter = piMcpAdapterPackage pkgs;
+  todoistCliPiSkill = pkgs.todoist-cli-pi-skill;
   piWebMinimalEnvFile = "/run/vaultix/pi-web-minimal.env";
   piMcpCacheFile = "${piStateDir}/mcp-cache.json";
   piMcpOnboardingFile = "${piStateDir}/mcp-onboarding.json";
@@ -82,6 +85,8 @@ let
   '';
 in
 {
+  nixpkgs.overlays = [ todoistCliOverlay ];
+
   systemd.services."user@${uid}" = {
     overrideStrategy = "asDropin";
     environment = piEnvironment;
@@ -94,7 +99,7 @@ in
   # activation script remains so a switch repairs directory ownership before
   # the next boot's tmpfiles run.
   # Known possible future state to classify if it appears: models.json,
-  # keybindings.json, SYSTEM.md/APPEND_SYSTEM.md, extensions/, skills/,
+  # keybindings.json, SYSTEM.md/APPEND_SYSTEM.md, extensions/, other skills/,
   # prompts/, themes/, git/,
   # npm/, bin/fd, bin/rg, pi-debug.log, project-local .pi/, and arbitrary
   # third-party extension state.
@@ -104,6 +109,7 @@ in
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piShareDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAgentDir}
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piPackagesDir}
+      install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piSkillsDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSettingsDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpConfigDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAuthDir}
@@ -117,6 +123,7 @@ in
     "d ${piShareDir} 0755 ${user} users -"
     "d ${piAgentDir} 0700 ${user} users -"
     "d ${piPackagesDir} 0755 ${user} users -"
+    "d ${piSkillsDir} 0755 ${user} users -"
     "d ${piSettingsDir} 0700 ${user} users -"
     "C ${piSettingsFile} 0600 ${user} users - ${seededSettings}"
     "d ${piMcpConfigDir} 0700 ${user} users -"
@@ -129,6 +136,7 @@ in
     "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
     "L+ ${piAgentDir}/settings.json - - - - ${piSettingsFile}"
     "L+ ${piAgentDir}/auth.json - - - - ${piAuthFile}"
+    "L+ ${piSkillsDir}/todoist-cli - - - - ${todoistCliPiSkill}/skills/todoist-cli"
     "L+ ${piPackagesDir}/pi-web-minimal - - - - ${piWebMinimal}"
     "L+ ${piPackagesDir}/pi-mcp-adapter - - - - ${piMcpAdapter}"
   ];

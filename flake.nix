@@ -67,6 +67,7 @@
       llmAgentsOverlay = llm-agents-nix.overlays.default;
       todoistCliOverlay = final: _prev: {
         todoist-cli = final.callPackage ./nix/packages/todoist-cli.nix { };
+        todoist-cli-pi-skill = final.callPackage ./nix/packages/todoist-cli-pi-skill.nix { };
       };
       emacsOverlays = with emacs-overlay.overlays; [
         emacs
@@ -182,6 +183,7 @@
       // {
         packages = scriptPackages // {
           todoist-cli = pkgs.todoist-cli;
+          todoist-cli-pi-skill = pkgs.todoist-cli-pi-skill;
         };
         apps = scriptApps;
       }

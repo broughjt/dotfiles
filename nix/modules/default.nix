@@ -53,6 +53,7 @@ rec {
     inherit
       piWebMinimalPackage
       piMcpAdapterPackage
+      todoistCliOverlay
       ;
   };
   todoistCli = import ./home/todoist-cli.nix { inherit todoistCliOverlay; };
