@@ -1,7 +1,5 @@
 ---
 name: nixos-impermanence-package
-description: Add packages/apps to this NixOS dotfiles repo and configure impermanence. Use when installing new packages, desktop apps, CLIs, or developer tools and deciding what---
-name: nixos-impermanence-package
 description: Add packages/apps to this NixOS dotfiles repo and configure impermanence. Use when installing new packages, desktop apps, CLIs, or developer tools and deciding what should be store-backed/declarative, persisted statefully, or left ephemeral.
 ---
 
