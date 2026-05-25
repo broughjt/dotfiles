@@ -216,6 +216,19 @@ in
         directory = "local/share/keyrings";
         mode = "0700";
       }
+      # Google Cloud SDK stores OAuth credentials, access token databases, and
+      # active project/account configuration here. Command logs are symlinked to
+      # ephemeral ~/local/cache/gcloud/logs by google-tools.nix.
+      {
+        directory = "local/config/gcloud";
+        mode = "0700";
+      }
+      # gws keeps OAuth client/credential files here when not using only the OS
+      # keyring or environment-provided tokens.
+      {
+        directory = "local/config/gws";
+        mode = "0700";
+      }
       {
         directory = "local/config/mozilla/firefox";
         mode = "0700";
@@ -234,6 +247,26 @@ in
       }
       {
         directory = "local/config/spotify";
+        mode = "0700";
+      }
+      # Chromium's profile includes cookies, logins, local storage, extensions,
+      # history, and preferences. Browser cache subtrees are redirected to
+      # ephemeral ~/local/cache/chromium by browser-tools.nix.
+      {
+        directory = "local/state/chromium/profile";
+        mode = "0700";
+      }
+      # Chromium/NSS certificate database: local trust decisions and client cert
+      # material are durable security state rather than cache.
+      {
+        directory = "local/share/pki/nssdb";
+        mode = "0700";
+      }
+      # agent-browser named sessions may contain cookies/localStorage exported
+      # from login flows. Its launched-browser scratch data is kept under
+      # ephemeral ~/local/cache/agent-browser by the wrapper.
+      {
+        directory = "local/state/agent-browser/home/.agent-browser";
         mode = "0700";
       }
       # Todoist Electron's profile includes encrypted API token state plus

@@ -12,6 +12,7 @@
   piMcpAdapterPackage,
   piSubagentsPackage,
   todoistCliOverlay,
+  googleWorkspaceCliOverlay,
 }:
 
 rec {
@@ -44,6 +45,8 @@ rec {
   homeDirectories = import ./home/directories.nix;
   homeLinux = import ./home/linux.nix { inherit homeDirectories; };
   desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
+  browserTools = import ./home/browser-tools.nix { inherit llmAgentsOverlay; };
+  googleTools = import ./home/google-tools.nix { inherit googleWorkspaceCliOverlay; };
   gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf desktopApps; };
   dconf = import ./home/dconf.nix;
   gh = import ./home/gh.nix;

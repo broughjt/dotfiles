@@ -24,6 +24,8 @@ nixpkgs.lib.nixosSystem {
     personal
     homeLinux
     gnomeDesktop
+    browserTools
+    googleTools
     gh
     gpg
     pass
