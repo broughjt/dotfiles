@@ -136,6 +136,7 @@
         home.packages = with pkgs; [
           direnv
           eza
+          go-grip
           fd
           jq
           killall
