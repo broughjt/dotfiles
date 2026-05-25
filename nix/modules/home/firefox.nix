@@ -10,6 +10,19 @@ let
 in
 {
   home-manager.users.${user} = {
+    xdg.mimeApps = {
+      enable = true;
+      defaultApplications = {
+        "text/html" = "firefox.desktop";
+        "text/xml" = "firefox.desktop";
+        "application/xhtml+xml" = "firefox.desktop";
+        "application/xml" = "firefox.desktop";
+        "x-scheme-handler/http" = "firefox.desktop";
+        "x-scheme-handler/https" = "firefox.desktop";
+        "x-scheme-handler/slack" = "slack.desktop";
+      };
+    };
+
     # Home Manager adds the wrapped Firefox package itself to this internal
     # native-messaging-hosts list, which creates ~/.mozilla/native-messaging-hosts
     # even when there are no actual native messaging hosts. Suppress that empty
