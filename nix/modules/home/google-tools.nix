@@ -69,8 +69,19 @@ in
     "d ${gwsLogsDir} 0700 ${user} users -"
   ];
 
-  home-manager.users.${user}.home.packages = [
-    googleCloudSdkPackage
-    gwsPackage
-  ];
+  home-manager.users.${user} = {
+    home.packages = [
+      googleCloudSdkPackage
+      gwsPackage
+    ];
+
+    # Also export these for raw invocations, e.g. from an ad-hoc dev shell or a
+    # direct store path. The installed commands are wrapped too, but upstream gws
+    # defaults to ~/.config/gws rather than honoring XDG_CONFIG_HOME by itself.
+    home.sessionVariables = {
+      CLOUDSDK_CONFIG = gcloudConfigDir;
+      GOOGLE_WORKSPACE_CLI_CONFIG_DIR = gwsConfigDir;
+      GOOGLE_WORKSPACE_CLI_LOG_FILE = gwsLogsDir;
+    };
+  };
 }
