@@ -2,6 +2,7 @@
 
 (defvar grip-real-time-refresh)
 (defvar grip--preview-file)
+(declare-function grip-mode "grip-mode")
 (declare-function grip-start-process "grip-mode")
 
 (use-package markdown-mode
@@ -10,9 +11,16 @@
    ("\\.md\\'" . markdown-mode))
   :custom
   (markdown-enable-wiki-links t)
-  (markdown-fontify-code-blocks-natively t))
+  (markdown-fontify-code-blocks-natively t)
+  :config
+  ;; `markdown-mode-command-map' is not defined until markdown-mode loads. If
+  ;; this binding lives in the `grip-mode' use-package form, bind-key defers it
+  ;; until grip-mode loads instead, so `C-c C-c g' is missing until the first
+  ;; manual `M-x grip-mode'.  Install it when markdown-mode's keymap exists.
+  (define-key markdown-mode-command-map (kbd "g") #'grip-mode))
 
 (use-package grip-mode
+  :commands grip-mode
   :custom
   ;; Prefer the local, GitHub-API-free backend supplied by Nix.
   (grip-command 'go-grip)
@@ -40,8 +48,6 @@
           (copy-file buffer-file-name grip--preview-file "overwrite")
           (grip-start-process))
       (setq grip--preview-file buffer-file-name)
-      (grip-start-process)))
-  :bind (:map markdown-mode-command-map
-              ("g" . grip-mode)))
+      (grip-start-process))))
 
 (provide 'language-markdown)
