@@ -10,17 +10,23 @@ let
 in
 {
   home-manager.users.${user} = {
-    xdg.mimeApps = {
-      enable = true;
-      defaultApplications = {
-        "text/html" = "firefox.desktop";
-        "text/xml" = "firefox.desktop";
-        "application/xhtml+xml" = "firefox.desktop";
-        "application/xml" = "firefox.desktop";
-        "x-scheme-handler/http" = "firefox.desktop";
-        "x-scheme-handler/https" = "firefox.desktop";
-        "x-scheme-handler/slack" = "slack.desktop";
+    xdg = {
+      mimeApps = {
+        enable = true;
+        defaultApplications = {
+          "text/html" = "firefox.desktop";
+          "text/xml" = "firefox.desktop";
+          "application/xhtml+xml" = "firefox.desktop";
+          "application/xml" = "firefox.desktop";
+          "x-scheme-handler/http" = "firefox.desktop";
+          "x-scheme-handler/https" = "firefox.desktop";
+          "x-scheme-handler/slack" = "slack.desktop";
+        };
       };
+
+      # Take ownership of the existing hand-written file. Its only current
+      # setting, the Slack URL handler, is preserved above.
+      configFile."mimeapps.list".force = true;
     };
 
     # Home Manager adds the wrapped Firefox package itself to this internal
