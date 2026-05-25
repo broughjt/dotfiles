@@ -59,6 +59,7 @@ rec {
       ;
   };
   todoistCli = import ./home/todoist-cli.nix { inherit todoistCliOverlay; };
+  todoistElectron = import ./home/todoist-electron.nix;
   claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
   firefox = import ./home/firefox.nix;
   ghostty = import ./home/ghostty.nix;

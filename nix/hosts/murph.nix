@@ -30,6 +30,7 @@ nixpkgs.lib.nixosSystem {
     vaultixSecrets
     piCodingAgent
     todoistCli
+    todoistElectron
     claudeCode
     firefox
     ghostty

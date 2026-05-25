@@ -236,6 +236,13 @@ in
         directory = "local/config/spotify";
         mode = "0700";
       }
+      # Todoist Electron's profile includes encrypted API token state plus
+      # cookies/local storage and app preferences. Rebuildable Chromium cache
+      # subtrees are symlinked to ephemeral ~/local/cache by todoist-electron.nix.
+      {
+        directory = "local/state/todoist-electron/profile";
+        mode = "0700";
+      }
       {
         directory = "local/secrets/claude-code/auth";
         mode = "0700";
