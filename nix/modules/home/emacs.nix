@@ -36,7 +36,8 @@ let
     postBuild = ''
       wrapProgram "$out/bin/emacs" \
         --add-flags "--init-directory ${emacsInitDirectory}" \
-        --set EMACS_ISPELL_COMPLETE_WORD_DICT "${emacsIspellCompleteWordDict}"
+        --set EMACS_ISPELL_COMPLETE_WORD_DICT "${emacsIspellCompleteWordDict}" \
+        --prefix PATH : ${lib.makeBinPath [ pkgs.go-grip ]}
     '';
   };
 in

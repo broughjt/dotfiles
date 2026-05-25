@@ -41,6 +41,7 @@ in
       # language-*.el
       epkgs.apheleia
       epkgs.auctex
+      epkgs.grip-mode
       epkgs.haskell-mode
       epkgs.markdown-mode
       epkgs.nix-mode
