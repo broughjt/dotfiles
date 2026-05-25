@@ -2,34 +2,6 @@
 
 This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for small, idiomatic, well-validated changes that preserve the repository's impermanence model and preference for declarative/store-backed configuration.
 
-## Environment and command conventions
-
-This machine runs NixOS and may not have common tools installed globally. If a command/tool is missing, use Nix rather than giving up.
-
-Prefer ephemeral tools:
-
-- If the project flake provides the tool, prefer `nix develop -c <command> ...` or `nix run .#<app> -- ...`.
-- One-off executable: `nix run nixpkgs#<package> -- <args>`.
-- Temporary shell: `nix shell nixpkgs#<pkg1> nixpkgs#<pkg2> -c <command> ...`.
-
-Examples:
-
-```sh
-nix run nixpkgs#python3 -- --version
-nix shell nixpkgs#jq nixpkgs#curl -c 'curl -s URL | jq .'
-nix develop -c nil --version
-```
-
-Use `read` for file inspection when available, `rg`/`find` for search, `edit` for targeted edits, and `write` for new files or complete rewrites.
-
-## Important Pi-specific note
-
-`pi/AGENTS.md` is not the normal project-local guide. It is the source file that the NixOS Pi module symlinks to the machine-global Pi agent path at `~/local/share/pi/agent/AGENTS.md`. Edit it only when changing global Pi-agent instructions for this machine.
-
-This root `AGENTS.md` is the repository-local guide for future agents working in this repo.
-
-Project-local Pi skills live under `.pi/skills/`. For package installation plus impermanence work, load `.pi/skills/nixos-impermanence-package/SKILL.md` and follow it.
-
 ## Repository map
 
 - `flake.nix`: top-level flake inputs/outputs, overlays, packages, apps, checks, templates, formatter, and NixOS configurations.

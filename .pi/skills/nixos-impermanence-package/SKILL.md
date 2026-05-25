@@ -1,5 +1,7 @@
 ---
 name: nixos-impermanence-package
+description: Add packages/apps to this NixOS dotfiles repo and configure impermanence. Use when installing new packages, desktop apps, CLIs, or developer tools and deciding what---
+name: nixos-impermanence-package
 description: Add packages/apps to this NixOS dotfiles repo and configure impermanence. Use when installing new packages, desktop apps, CLIs, or developer tools and deciding what should be store-backed/declarative, persisted statefully, or left ephemeral.
 ---
 
@@ -11,8 +13,7 @@ Use this skill when adding or changing installed packages/apps in this dotfiles 
 
 Before editing, inspect the relevant existing modules. At minimum, read:
 
-- `AGENTS.md` for repository-specific conventions.
-- Do not treat `pi/AGENTS.md` as the repo-local guide; it is the source that gets symlinked as the machine-global Pi `AGENTS.md` at `~/local/share/pi/agent/AGENTS.md`.
+- `.
 - `nix/modules/home/directories.nix` and `nix/modules/home/linux.nix` for the XDG/local directory layout.
 - `nix/modules/hosts/murph-user-persistence.nix` for user impermanence declarations.
 - The module most similar to the requested app:
@@ -23,12 +24,6 @@ Before editing, inspect the relevant existing modules. At minimum, read:
 - `nix/modules/default.nix` and the target host such as `nix/hosts/murph.nix` if adding a new dedicated module.
 
 ## Repository conventions
-
-This machine is NixOS. If a command is missing, use ephemeral Nix tools rather than giving up:
-
-- Prefer project flake commands when available.
-- Use `nix run nixpkgs#<pkg> -- <args>` or `nix shell nixpkgs#<pkg> -c <command>` for one-off tools.
-- New files in a flake repo may need `git add -N <path>` before `nix build` can see them.
 
 The home layout intentionally avoids default dot-directories where possible:
 
