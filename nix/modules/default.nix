@@ -65,6 +65,7 @@ rec {
   todoistElectron = import ./home/todoist-electron.nix;
   claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
   firefox = import ./home/firefox.nix;
+  mimeApps = import ./home/mime-apps.nix;
   ghostty = import ./home/ghostty.nix;
   kakoune = import ./home/kakoune.nix;
   vlc = import ./home/vlc.nix;

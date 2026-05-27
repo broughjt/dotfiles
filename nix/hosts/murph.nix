@@ -35,6 +35,7 @@ nixpkgs.lib.nixosSystem {
     todoistElectron
     claudeCode
     firefox
+    mimeApps
     ghostty
     kakoune
     vlc
