@@ -43,7 +43,16 @@ rec {
   docker = import ./docker.nix;
 
   homeDirectories = import ./home/directories.nix;
-  homeLinux = import ./home/linux.nix { inherit homeDirectories; };
+  homeFish = import ./home/fish.nix;
+  homeGit = import ./home/git.nix;
+  homeLinux = import ./home/linux.nix {
+    inherit
+      homeDirectories
+      homeFish
+      homeGit
+      personal
+      ;
+  };
   desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
   browserTools = import ./home/browser-tools.nix { inherit llmAgentsOverlay; };
   googleTools = import ./home/google-tools.nix { inherit googleWorkspaceCliOverlay; };
@@ -70,10 +79,11 @@ rec {
   kakoune = import ./home/kakoune.nix;
   vlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;
+  emacsHome = import ./home/emacs-home.nix { inherit configureEmacsPackage; };
   emacs = import ./home/emacs.nix {
     inherit
       emacsOverlays
-      configureEmacsPackage
+      emacsHome
       ;
   };
 }

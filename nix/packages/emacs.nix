@@ -7,7 +7,8 @@ in
   configureEmacsPackage =
     pkgs:
     let
-      emacsPackages = (pkgs.emacsPackagesFor pkgs.emacs-git-pgtk).overrideScope (
+      emacsBasePackage = if pkgs.stdenv.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk;
+      emacsPackages = (pkgs.emacsPackagesFor emacsBasePackage).overrideScope (
         final: prev: {
           pi-coding-agent = pi-coding-agent.lib.mkPackage pkgs final;
         }

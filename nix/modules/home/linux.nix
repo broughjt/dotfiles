@@ -1,4 +1,9 @@
-{ homeDirectories }:
+{
+  homeDirectories,
+  homeFish,
+  homeGit,
+  personal,
+}:
 
 {
   config,
@@ -107,6 +112,22 @@
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
       home-manager.users.${user} = {
+        imports = [
+          personal
+          homeDirectories
+          homeFish
+          homeGit
+        ];
+
+        personal = config.personal;
+        defaultDirectories = {
+          homeDirectory = config.defaultDirectories.homeDirectory;
+          repositoriesDirectory = config.defaultDirectories.repositoriesDirectory;
+          localDirectory = config.defaultDirectories.localDirectory;
+          scratchDirectory = config.defaultDirectories.scratchDirectory;
+          shareDirectory = config.defaultDirectories.shareDirectory;
+        };
+
         home.stateVersion = "25.05";
         programs.home-manager.enable = true;
         home.homeDirectory = homeDirectory;
@@ -135,46 +156,24 @@
 
         home.packages = with pkgs; [
           direnv
-          eza
-          go-grip
           fd
+          go-grip
           jq
           killall
           lldb
           ripgrep
         ];
 
-        programs.fish = {
-          enable = true;
-          interactiveShellInit = "fish_vi_key_bindings";
-          shellAliases.ls = "eza --group-directories-first";
-        };
-
         # Home Manager's fish module enables man-db cache generation by default
         # so fish can complete `man` topics via `apropos`. That creates a
-        # top-level ~/.manpath symlink. Keep man pages available, but skip the
-        # per-user man-db cache to avoid the home dotfile.
+        # top-level ~/.manpath symlink. Keep man pages available on murph, but
+        # skip the per-user man-db cache to avoid the home dotfile.
         programs.man.generateCaches = false;
 
         programs.git = {
-          enable = true;
-          settings = {
-            user = {
-              name = config.personal.fullName;
-              email = config.personal.email;
-            };
-            # "Are the worker threads going to unionize?"
-            init.defaultBranch = "main";
-          };
           signing.key = "1BA5F1335AB45105";
           signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
         };
-
-        # Keep global Git config fully declarative. Home Manager still renders
-        # the config into the Nix store, but Git reads it directly from there
-        # instead of through a symlink at $XDG_CONFIG_HOME/git/config.
-        xdg.configFile."git/config".enable = false;
-        home.sessionVariables.GIT_CONFIG_GLOBAL = userEnvironment.GIT_CONFIG_GLOBAL;
 
         home.file."local/secrets/ssh/id_ed25519.pub" = {
           force = true;

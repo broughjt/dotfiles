@@ -145,9 +145,22 @@
             ;
         };
       };
+      homeConfigurations = {
+        "jtbroug@s1111508" = home-manager.lib.homeManagerConfiguration {
+          pkgs = makePkgs "aarch64-darwin";
+          modules = with nixosModules; [
+            personal
+            homeDirectories
+            homeFish
+            homeGit
+            emacsHome
+            ./nix/hosts/s1111508-home.nix
+          ];
+        };
+      };
     in
     {
-      inherit nixosModules nixosConfigurations;
+      inherit nixosModules nixosConfigurations homeConfigurations;
 
       vaultix = vaultixInput.configure {
         nodes = {
