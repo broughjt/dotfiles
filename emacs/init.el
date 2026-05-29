@@ -125,6 +125,11 @@
         language-python
         language-agda
         language-javascript
-        language-typst
         language-verilog
         language-markdown))
+
+;; typst-ts-mode is intentionally omitted from the Darwin package set because
+;; the work Mac has trouble fetching/building the NonGNU ELPA source during Nix
+;; builds. Load the Typst config only on systems where the package is present.
+(when (locate-library "typst-ts-mode")
+  (require 'language-typst))
