@@ -7,7 +7,11 @@
   checks.emacs-byte-compile = pkgs.runCommand "emacs-byte-compile-check" { src = ../.; } ''
     cp -r "$src/emacs" .
     chmod -R u+w emacs
-    HOME="$TMPDIR" ${emacsPackage}/bin/emacs --batch \
+    mkdir -p "$TMPDIR/state" "$TMPDIR/cache"
+    HOME="$TMPDIR" \
+    XDG_STATE_HOME="$TMPDIR/state" \
+    XDG_CACHE_HOME="$TMPDIR/cache" \
+      ${emacsPackage}/bin/emacs --batch \
       -L emacs/lisp \
       --eval "(setq byte-compile-error-on-warn t)" \
       -f batch-byte-compile \
