@@ -1,6 +1,9 @@
-{ config, ... }:
+{ ... }:
 
 {
-  services.tailscale.enable = true;
-  services.tailscale.useRoutingFeatures = "client";
+  services.tailscale = {
+    enable = true;
+    openFirewall = true;
+    useRoutingFeatures = "client";
+  };
 }

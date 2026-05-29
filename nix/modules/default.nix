@@ -53,6 +53,7 @@ rec {
       personal
       ;
   };
+  homeDarwin = import ./home/darwin.nix;
   desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
   browserTools = import ./home/browser-tools.nix { inherit llmAgentsOverlay; };
   googleTools = import ./home/google-tools.nix { inherit googleWorkspaceCliOverlay; };

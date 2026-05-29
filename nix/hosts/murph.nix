@@ -19,6 +19,7 @@ nixpkgs.lib.nixosSystem {
     murphImpermanence
     nixSettings
     linuxBase
+    tailscale
     docker
     home-manager.nixosModules.home-manager
     personal

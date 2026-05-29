@@ -1,0 +1,41 @@
+{
+  nix-darwin,
+  home-manager,
+  nix-config,
+  llmAgentsOverlay,
+  emacsOverlays,
+  nixosModules,
+}:
+
+nix-darwin.lib.darwinSystem {
+  modules = [
+    home-manager.darwinModules.home-manager
+    {
+      nix.settings = nix-config.nixSettings;
+      nixpkgs = {
+        hostPlatform = "aarch64-darwin";
+        config = nix-config.nixpkgsConfig;
+        overlays = [ llmAgentsOverlay ] ++ emacsOverlays;
+      };
+
+      system.stateVersion = 6;
+
+      users.users.jtbroug.home = "/Users/jtbroug";
+
+      services.tailscale.enable = true;
+
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        users.jtbroug.imports = with nixosModules; [
+          personal
+          homeDirectories
+          homeFish
+          homeGit
+          emacsHome
+          homeDarwin
+        ];
+      };
+    }
+  ];
+}

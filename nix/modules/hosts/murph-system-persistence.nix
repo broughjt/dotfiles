@@ -73,7 +73,9 @@
       "/var/lib/systemd"
       "/var/log"
 
-      # TODO: if enabling tailscale on murph, persist /var/lib/tailscale.
+      # Tailscale node identity/auth state. Keep this persisted so murph
+      # remains the same tailnet node across ephemeral-root reboots.
+      "/var/lib/tailscale"
     ];
   };
 }

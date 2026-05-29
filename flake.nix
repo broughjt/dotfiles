@@ -22,6 +22,9 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    nix-darwin.url = "github:lnl7/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -55,6 +58,7 @@
       self,
       nixpkgs,
       home-manager,
+      nix-darwin,
       emacs-overlay,
       disko,
       impermanence,
@@ -80,18 +84,17 @@
         emacs
         package
       ];
-      makePkgs =
-        system:
+      makePkgsWithOverlays =
+        extraOverlays: system:
         import nixpkgs {
           inherit system;
-          overlays = [
-            llmAgentsOverlay
-            todoistCliOverlay
-            googleWorkspaceCliOverlay
-          ]
-          ++ emacsOverlays;
+          overlays = [ llmAgentsOverlay ] ++ extraOverlays ++ emacsOverlays;
           config = nix-config.nixpkgsConfig;
         };
+      makePkgs = makePkgsWithOverlays [
+        todoistCliOverlay
+        googleWorkspaceCliOverlay
+      ];
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
       piMcpAdapterPackage = import ./nix/packages/pi-mcp-adapter.nix;
@@ -144,22 +147,25 @@
             ;
         };
       };
-      homeConfigurations = {
-        "jtbroug@s1111508" = home-manager.lib.homeManagerConfiguration {
-          pkgs = makePkgs "aarch64-darwin";
-          modules = with nixosModules; [
-            personal
-            homeDirectories
-            homeFish
-            homeGit
-            emacsHome
-            ./nix/hosts/s1111508-home.nix
-          ];
+      darwinConfigurations = {
+        s1111508 = import ./nix/hosts/s1111508.nix {
+          inherit
+            nix-darwin
+            home-manager
+            nix-config
+            llmAgentsOverlay
+            emacsOverlays
+            nixosModules
+            ;
         };
       };
     in
     {
-      inherit nixosModules nixosConfigurations homeConfigurations;
+      inherit
+        nixosModules
+        nixosConfigurations
+        darwinConfigurations
+        ;
 
       templates = import ./nix/templates.nix;
     }
