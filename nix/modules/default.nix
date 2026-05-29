@@ -61,22 +61,14 @@ rec {
   gh = import ./home/gh.nix;
   gpg = import ./home/gpg.nix;
   pass = import ./home/pass.nix;
-  piCodingAgentHome = import ./home/pi-coding-agent-home.nix {
-    inherit
-      piWebMinimalPackage
-      piMcpAdapterPackage
-      piSubagentsPackage
-      ;
-    agenixHome = agenix.homeManagerModules.default;
-  };
   piCodingAgent = import ./home/pi-coding-agent.nix {
     inherit
-      piCodingAgentHome
       piWebMinimalPackage
       piMcpAdapterPackage
       piSubagentsPackage
       todoistCliOverlay
       ;
+    agenixHome = agenix.homeManagerModules.default;
   };
   todoistCli = import ./home/todoist-cli.nix { inherit todoistCliOverlay; };
   todoistElectron = import ./home/todoist-electron.nix;

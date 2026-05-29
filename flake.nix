@@ -153,7 +153,6 @@
             homeFish
             homeGit
             emacsHome
-            piCodingAgentHome
             ./nix/hosts/s1111508-home.nix
           ];
         };
