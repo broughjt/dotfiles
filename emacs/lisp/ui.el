@@ -6,7 +6,9 @@
 
 (require 'display-line-numbers)
 
-(set-face-attribute 'default nil :family "JuliaMono" :height 120)
+(set-face-attribute
+ 'default nil
+ :family "JuliaMono" :height (if (eq system-type 'darwin) 140 120))
 
 (setq visible-bell t)
 
