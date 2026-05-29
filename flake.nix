@@ -44,8 +44,8 @@
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
     llm-agents-nix.inputs.nixpkgs.follows = "nixpkgs";
 
-    vaultix.url = "github:milieuim/vaultix";
-    vaultix.inputs.nixpkgs.follows = "nixpkgs";
+    agenix.url = "github:ryantm/agenix";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
   };
@@ -62,12 +62,11 @@
       pi-coding-agent,
       flake-utils,
       llm-agents-nix,
-      vaultix,
+      agenix,
       nixos-raspberrypi,
     }:
     let
       nix-config = import ./nix/nix-config.nix;
-      vaultixInput = vaultix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
       llmAgentsOverlay = llm-agents-nix.overlays.default;
       todoistCliOverlay = final: _prev: {
@@ -106,7 +105,7 @@
           emacsOverlays
           disko
           impermanence
-          vaultixInput
+          agenix
           nixos-raspberrypi
           piWebMinimalPackage
           piMcpAdapterPackage
@@ -154,6 +153,7 @@
             homeFish
             homeGit
             emacsHome
+            piCodingAgentHome
             ./nix/hosts/s1111508-home.nix
           ];
         };
@@ -161,19 +161,6 @@
     in
     {
       inherit nixosModules nixosConfigurations homeConfigurations;
-
-      vaultix = vaultixInput.configure {
-        nodes = {
-          inherit (nixosConfigurations) murph;
-        };
-        identity = "${nixosConfigurations.murph.config.defaultDirectories.localDirectory}/secrets/ssh/id_ed25519";
-        cache = "./secrets/cache";
-        defaultSecretDirectory = "./secrets";
-        systems = [
-          "x86_64-linux"
-          "aarch64-linux"
-        ];
-      };
 
       templates = import ./nix/templates.nix;
     }

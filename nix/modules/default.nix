@@ -5,7 +5,7 @@
   emacsOverlays,
   disko,
   impermanence,
-  vaultixInput,
+  agenix,
   nixos-raspberrypi,
   configureEmacsPackage,
   piWebMinimalPackage,
@@ -61,9 +61,17 @@ rec {
   gh = import ./home/gh.nix;
   gpg = import ./home/gpg.nix;
   pass = import ./home/pass.nix;
-  vaultixSecrets = import ./home/vaultix-secrets.nix { inherit vaultixInput; };
+  piCodingAgentHome = import ./home/pi-coding-agent-home.nix {
+    inherit
+      piWebMinimalPackage
+      piMcpAdapterPackage
+      piSubagentsPackage
+      ;
+    agenixHome = agenix.homeManagerModules.default;
+  };
   piCodingAgent = import ./home/pi-coding-agent.nix {
     inherit
+      piCodingAgentHome
       piWebMinimalPackage
       piMcpAdapterPackage
       piSubagentsPackage

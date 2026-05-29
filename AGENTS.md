@@ -168,7 +168,7 @@ Common patterns:
 
 ## Secrets
 
-Vaultix config lives in `nix/modules/home/vaultix-secrets.nix`; encrypted secret files live in `secrets/*.age`. Never commit plaintext secrets.
+Agenix decrypts encrypted secret files from `secrets/*.age`; shared Home Manager secret wiring lives in modules such as `nix/modules/home/pi-web-minimal-agenix-home.nix`. Never commit plaintext secrets.
 
 Persistent identity backup/restore scripts intentionally include only selected SSH and GPG state. If adding new irreplaceable secret state, update:
 

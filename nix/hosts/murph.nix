@@ -29,7 +29,6 @@ nixpkgs.lib.nixosSystem {
     gh
     gpg
     pass
-    vaultixSecrets
     piCodingAgent
     todoistCli
     todoistElectron
