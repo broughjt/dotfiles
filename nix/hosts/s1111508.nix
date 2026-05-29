@@ -22,6 +22,8 @@ nix-darwin.lib.darwinSystem {
 
       system.stateVersion = 6;
 
+      services.tailscale.enable = true;
+
       users.users.jtbroug.home = "/Users/jtbroug";
 
       home-manager = {
