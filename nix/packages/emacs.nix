@@ -7,6 +7,7 @@ in
   configureEmacsPackage =
     pkgs:
     let
+      enableGhostel = !pkgs.stdenv.isDarwin;
       enableTypst = !pkgs.stdenv.isDarwin;
       emacsBasePackage = if pkgs.stdenv.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk;
       emacsPackages = (pkgs.emacsPackagesFor emacsBasePackage).overrideScope (
@@ -69,9 +70,6 @@ in
         # rather than the trivialBuild derivation injected by overrideScope.
         epkgs.pi-coding-agent
 
-        # terminal.el
-        epkgs.ghostel
-
         # ui.el
         epkgs.ef-themes
         epkgs.modus-themes
@@ -79,6 +77,9 @@ in
 
         # Treesitter grammars needed for pi-coding-agent
         treesitGrammars
+      ]
+      ++ pkgs.lib.optionals enableGhostel [
+        epkgs.ghostel
       ]
       ++ pkgs.lib.optionals enableTypst [
         epkgs.typst-ts-mode
