@@ -22,8 +22,6 @@ nix-darwin.lib.darwinSystem {
 
       users.users.jtbroug.home = "/Users/jtbroug";
 
-      services.tailscale.enable = true;
-
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;
