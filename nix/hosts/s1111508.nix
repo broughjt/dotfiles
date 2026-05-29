@@ -11,7 +11,9 @@ nix-darwin.lib.darwinSystem {
   modules = [
     home-manager.darwinModules.home-manager
     {
-      nix.settings = nix-config.nixSettings;
+      nix.settings = nix-config.nixSettings // {
+        ssl-cert-file = "/etc/nix/macos-keychain.crt";
+      };
       nixpkgs = {
         hostPlatform = "aarch64-darwin";
         config = nix-config.nixpkgsConfig;
