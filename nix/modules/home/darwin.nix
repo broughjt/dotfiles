@@ -1,5 +1,6 @@
 {
   config,
+  pkgs,
   ...
 }:
 
@@ -29,4 +30,8 @@
   };
 
   xdg.enable = true;
+
+  home.packages = with pkgs; [
+    julia-mono
+  ];
 }
