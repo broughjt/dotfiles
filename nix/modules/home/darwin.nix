@@ -20,5 +20,13 @@
 
   programs.home-manager.enable = true;
 
+  programs.git = {
+    signing.signByDefault = false;
+    settings = {
+      commit.gpgSign = false;
+      tag.gpgSign = false;
+    };
+  };
+
   xdg.enable = true;
 }

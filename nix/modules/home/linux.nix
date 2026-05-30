@@ -175,6 +175,13 @@
           signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
         };
 
+        # Keep global Git config fully declarative on the impermanent Linux
+        # host. Home Manager still renders the config into the Nix store, but
+        # Git reads it directly from there instead of through a symlink at
+        # $XDG_CONFIG_HOME/git/config.
+        xdg.configFile."git/config".enable = false;
+        home.sessionVariables.GIT_CONFIG_GLOBAL = "${homeManagerUser.xdg.configFile."git/config".source}";
+
         home.file."local/secrets/ssh/id_ed25519.pub" = {
           force = true;
           text = config.personal.sshPublicKey + "\n";
