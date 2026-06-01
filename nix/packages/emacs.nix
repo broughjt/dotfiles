@@ -7,7 +7,6 @@ in
   configureEmacsPackage =
     pkgs:
     let
-      enableGhostel = !pkgs.stdenv.isDarwin;
       enableTypst = !pkgs.stdenv.isDarwin;
       emacsBasePackage = if pkgs.stdenv.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk;
       emacsPackages = (pkgs.emacsPackagesFor emacsBasePackage).overrideScope (
@@ -77,9 +76,6 @@ in
 
         # Treesitter grammars needed for pi-coding-agent
         treesitGrammars
-      ]
-      ++ pkgs.lib.optionals enableGhostel [
-        epkgs.ghostel
       ]
       ++ pkgs.lib.optionals enableTypst [
         epkgs.typst-ts-mode

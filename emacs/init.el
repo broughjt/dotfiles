@@ -131,7 +131,6 @@
         editing
         completion
         pi-coding-agent-config
-        terminal
         project-config
         language-tex
         language-racket
