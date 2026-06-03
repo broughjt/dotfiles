@@ -2,16 +2,16 @@ pkgs:
 
 pkgs.buildNpmPackage rec {
   pname = "pi-web-minimal";
-  version = "0.4.0";
+  version = "0.5.0";
 
   src = pkgs.fetchFromGitHub {
     owner = "drsh4dow";
     repo = "pi-web-minimal";
-    rev = "2927328def03d8b908a3f7e1b64e524434aa2ff7";
-    hash = "sha256-RpUi4y3WhCpliFfim7G2xryCEuf+eV0sy0mVMdVT80c=";
+    rev = "4c97e90233cfbfa34dfdb4961a7470dbbb99b830";
+    hash = "sha256-9sWKhcv3moy6jZMJQ4XArotUrMzScXZf1h7mRTprN70=";
   };
 
-  npmDepsHash = "sha256-6rV/tLQR5SKd9zqnJ+DACSYfTzTYqzFDdnxmonxRVvk=";
+  npmDepsHash = "sha256-LS2CwYubAX0nFBkhWaOjVO8KznxhwmsWtV4/Rxn4On4=";
   postPatch = ''
     cp ${../../pi/pi-web-minimal-package-lock.json} package-lock.json
   '';
