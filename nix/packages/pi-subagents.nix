@@ -2,16 +2,16 @@ pkgs:
 
 pkgs.buildNpmPackage rec {
   pname = "pi-subagents";
-  version = "0.25.0";
+  version = "0.28.0";
 
   src = pkgs.fetchFromGitHub {
     owner = "nicobailon";
     repo = "pi-subagents";
-    rev = "86326d731b106a85c2b3ec52779e442e1ba3bdd9";
-    hash = "sha256-MLQ7/+xEd2xTI37rMfWaYP7I724MWN+pgXhv78OxjL8=";
+    rev = "ff6f6c1dc83adca657b6f21c4e78718d24b71147";
+    hash = "sha256-GsEV55Yv5gG+bZiqrPAzFClMwRSjbLxSYpDfT5eF/nA=";
   };
 
-  npmDepsHash = "sha256-GXNsoy8zWgq5oUMwXst+RrNJdor+010pzOXmVWXWfBA=";
+  npmDepsHash = "sha256-nYsOATRaDnK+6n4J04C2jluGxKGZy4AIkSHEXh5G9z0=";
   postPatch = ''
     cp ${../../pi/pi-subagents-package-lock.json} package-lock.json
   '';
