@@ -10,6 +10,7 @@
   configureEmacsPackage,
   piWebMinimalPackage,
   piMcpAdapterPackage,
+  piAgentBrowserNativePackage,
   piSubagentsPackage,
   todoistCliOverlay,
   googleWorkspaceCliOverlay,
@@ -66,6 +67,7 @@ rec {
     inherit
       piWebMinimalPackage
       piMcpAdapterPackage
+      piAgentBrowserNativePackage
       piSubagentsPackage
       todoistCliOverlay
       ;

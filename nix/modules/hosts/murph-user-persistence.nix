@@ -107,6 +107,7 @@ in
       check_single_entry ${localDirectory}/hacks/pi/settings settings.json
       check_single_entry ${localDirectory}/secrets/pi/auth auth.json
       check_single_entry ${localDirectory}/secrets/pi/mcp mcp.json
+      check_single_entry ${localDirectory}/config/pi/agent-browser-native config.json
       check_single_entry ${localDirectory}/config/todoist-cli config.json
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg-agent.conf
@@ -151,6 +152,13 @@ in
       }
       {
         directory = "local/state/pi/mcp";
+        mode = "0700";
+      }
+      # pi-agent-browser-native package config can include plaintext Exa/Brave
+      # API keys or browser profile hints. The Pi package itself is store-backed
+      # and disabled unless listed in Pi settings.
+      {
+        directory = "local/config/pi/agent-browser-native";
         mode = "0700";
       }
       # pi-subagents run history and durable child-session metadata.

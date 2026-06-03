@@ -98,6 +98,7 @@
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
       piMcpAdapterPackage = import ./nix/packages/pi-mcp-adapter.nix;
+      piAgentBrowserNativePackage = import ./nix/packages/pi-agent-browser-native.nix;
       piSubagentsPackage = import ./nix/packages/pi-subagents.nix;
 
       nixosModules = import ./nix/modules {
@@ -112,6 +113,7 @@
           nixos-raspberrypi
           piWebMinimalPackage
           piMcpAdapterPackage
+          piAgentBrowserNativePackage
           piSubagentsPackage
           todoistCliOverlay
           googleWorkspaceCliOverlay
@@ -203,6 +205,7 @@
           todoist-cli-pi-skill = pkgs.todoist-cli-pi-skill;
           pi-web-minimal = piWebMinimalPackage pkgs;
           pi-mcp-adapter = piMcpAdapterPackage pkgs;
+          pi-agent-browser-native = piAgentBrowserNativePackage pkgs;
           pi-subagents = piSubagentsPackage pkgs;
         };
         apps = scriptApps;

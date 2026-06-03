@@ -2,6 +2,7 @@
   agenixHome,
   piWebMinimalPackage,
   piMcpAdapterPackage,
+  piAgentBrowserNativePackage,
   piSubagentsPackage,
   todoistCliOverlay,
 }:
@@ -30,6 +31,8 @@ let
   piAuthDir = "${localDirectory}/secrets/pi/auth";
   piAuthFile = "${piAuthDir}/auth.json";
   piMcpOAuthDir = "${localDirectory}/secrets/pi/mcp-oauth";
+  piAgentBrowserConfigDir = "${localDirectory}/config/pi/agent-browser-native";
+  piAgentBrowserConfigFile = "${piAgentBrowserConfigDir}/config.json";
   piPackagesDir = "${piAgentDir}/packages";
   piSkillsDir = "${piAgentDir}/skills";
   piExtensionsDir = "${piAgentDir}/extensions";
@@ -43,6 +46,7 @@ let
 
   piWebMinimal = piWebMinimalPackage pkgs;
   piMcpAdapter = piMcpAdapterPackage pkgs;
+  piAgentBrowserNative = piAgentBrowserNativePackage pkgs;
   piSubagents = piSubagentsPackage pkgs;
   todoistCliPiSkill = pkgs.todoist-cli-pi-skill;
   piMcpCacheFile = "${piStateDir}/mcp-cache.json";
@@ -63,6 +67,7 @@ let
     PI_MCP_CACHE = piMcpCacheFile;
     PI_MCP_ONBOARDING_STATE = piMcpOnboardingFile;
     MCP_OAUTH_DIR = piMcpOAuthDir;
+    PI_AGENT_BROWSER_CONFIG = piAgentBrowserConfigFile;
   };
 
   seededSettings = pkgs.writeText "pi-settings.json" (
@@ -83,6 +88,7 @@ let
     export PI_MCP_CACHE=${lib.escapeShellArg piMcpCacheFile}
     export PI_MCP_ONBOARDING_STATE=${lib.escapeShellArg piMcpOnboardingFile}
     export MCP_OAUTH_DIR=${lib.escapeShellArg piMcpOAuthDir}
+    export PI_AGENT_BROWSER_CONFIG=${lib.escapeShellArg piAgentBrowserConfigFile}
 
     if [ -r ${lib.escapeShellArg piWebMinimalExaApiKeyFile} ]; then
       export EXA_API_KEY="$(${pkgs.coreutils}/bin/cat ${lib.escapeShellArg piWebMinimalExaApiKeyFile})"
@@ -139,6 +145,7 @@ in
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpConfigDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAuthDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpOAuthDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAgentBrowserConfigDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSessionDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSessionDir}/subagent
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piStateDir}
@@ -168,6 +175,7 @@ in
     "d ${piAuthDir} 0700 ${user} users -"
     "f ${piAuthFile} 0600 ${user} users -"
     "d ${piMcpOAuthDir} 0700 ${user} users -"
+    "d ${piAgentBrowserConfigDir} 0700 ${user} users -"
     "d ${piSessionDir} 0700 ${user} users -"
     "d ${piSessionDir}/subagent 0700 ${user} users -"
     "d ${piStateDir} 0700 ${user} users -"
@@ -187,6 +195,7 @@ in
     "L+ ${piSkillsDir}/todoist-cli - - - - ${todoistCliPiSkill}/skills/todoist-cli"
     "L+ ${piPackagesDir}/pi-web-minimal - - - - ${piWebMinimal}"
     "L+ ${piPackagesDir}/pi-mcp-adapter - - - - ${piMcpAdapter}"
+    "L+ ${piPackagesDir}/pi-agent-browser-native - - - - ${piAgentBrowserNative}"
     "L+ ${piPackagesDir}/pi-subagents - - - - ${piSubagents}"
   ];
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Update one manually packaged upstream project.
 
-Updates the four packages whose upstream versions are pinned manually in
-nix/packages, refreshes local package-lock files where needed, computes the new
-npmDepsHash, and writes GitHub Actions outputs used by the PR workflow.
+Updates packages whose upstream versions are pinned manually in nix/packages,
+refreshes local package-lock files where needed, computes npmDepsHash for npm
+packages, and writes GitHub Actions outputs used by the PR workflow.
 
 """
 
@@ -36,6 +36,7 @@ class PackageSpec:
     tag_prefix: str = "v"
     branch: str | None = None
     lock_file: Path | None = None
+    npm_deps: bool = True
 
 
 PACKAGES: dict[str, PackageSpec] = {
@@ -63,6 +64,14 @@ PACKAGES: dict[str, PackageSpec] = {
         repo="pi-subagents",
         flake_attr="pi-subagents",
         lock_file=ROOT / "pi/pi-subagents-package-lock.json",
+    ),
+    "pi-agent-browser-native": PackageSpec(
+        name="pi-agent-browser-native",
+        nix_file=ROOT / "nix/packages/pi-agent-browser-native.nix",
+        owner="fitchmultz",
+        repo="pi-agent-browser-native",
+        flake_attr="pi-agent-browser-native",
+        npm_deps=False,
     ),
     "todoist-cli": PackageSpec(
         name="todoist-cli",
@@ -203,11 +212,12 @@ def update_nix_file(spec: PackageSpec, latest: Latest, src_hash: str) -> None:
     if re.search(r'\brev\s*=\s*"[^"]+";', spec.nix_file.read_text()):
         replace_one(spec.nix_file, r'\brev\s*=\s*"[^"]+";', f'rev = "{latest.rev}";')
     replace_one(spec.nix_file, r'\bhash\s*=\s*"sha256-[^"]+";', f'hash = "{src_hash}";')
-    replace_one(
-        spec.nix_file,
-        r'\bnpmDepsHash\s*=\s*"sha256-[^"]+";',
-        f'npmDepsHash = "{FAKE_HASH}";',
-    )
+    if spec.npm_deps:
+        replace_one(
+            spec.nix_file,
+            r'\bnpmDepsHash\s*=\s*"sha256-[^"]+";',
+            f'npmDepsHash = "{FAKE_HASH}";',
+        )
 
 
 def refresh_lock_file(spec: PackageSpec, rev: str) -> None:
@@ -289,12 +299,13 @@ def main() -> None:
         # bytes are part of the fixed-output derivation.
         parsed = json.loads(spec.lock_file.read_text())
         spec.lock_file.write_text(json.dumps(parsed, indent=2) + "\n")
-    npm_hash = compute_npm_deps_hash(spec)
-    replace_one(
-        spec.nix_file,
-        r'\bnpmDepsHash\s*=\s*"sha256-[^"]+";',
-        f'npmDepsHash = "{npm_hash}";',
-    )
+    if spec.npm_deps:
+        npm_hash = compute_npm_deps_hash(spec)
+        replace_one(
+            spec.nix_file,
+            r'\bnpmDepsHash\s*=\s*"sha256-[^"]+";',
+            f'npmDepsHash = "{npm_hash}";',
+        )
 
     run(["nix", "fmt", str(spec.nix_file.relative_to(ROOT))])
 

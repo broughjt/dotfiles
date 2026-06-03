@@ -188,7 +188,7 @@ Do not broaden secret backups without explaining why.
 
 When packaging Node/npm tools, follow the existing `buildNpmPackage` pattern and include fixed hashes. Package-generated Pi skills can be materialized into the Nix store, as with `todoist-cli-pi-skill`.
 
-Manually pinned upstream packages that should receive automated update PRs are tracked by `.github/ci/update-package.py` and `.github/workflows/update-packages.yml`. If adding or renaming one, expose it as a buildable flake package when practical, add/update its updater spec and workflow matrix entry, and validate with `nix run nixpkgs#actionlint -- .github/workflows/update-packages.yml` plus a package build.
+Manually pinned upstream packages that should receive automated update PRs are tracked by `.github/ci/update-package.py` and `.github/workflows/update-packages.yml`. Treat any new `fetchFromGitHub`/fixed-version package in `nix/packages/` as requiring an explicit updater decision: either add/update its updater spec and workflow matrix entry, or state why it is intentionally not CI-updated. If adding or renaming one, expose it as a buildable flake package when practical, add/update `.github/ci/update-package.py` plus `.github/workflows/update-packages.yml`, and validate with `nix run nixpkgs#actionlint -- .github/workflows/update-packages.yml`, a package build, and (when practical) a no-op/manual run of `.github/ci/update-package.py <package>`.
 
 ## Emacs conventions
 

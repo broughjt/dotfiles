@@ -25,6 +25,7 @@ jobs:
           - pi-web-minimal
           - pi-mcp-adapter
           - pi-subagents
+          - pi-agent-browser-native
           - todoist-cli
     steps:
       - name: Skip unrequested package
