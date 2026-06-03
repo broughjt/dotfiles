@@ -2,16 +2,16 @@ pkgs:
 
 pkgs.buildNpmPackage rec {
   pname = "pi-mcp-adapter";
-  version = "2.6.0";
+  version = "2.8.0";
 
   src = pkgs.fetchFromGitHub {
     owner = "nicobailon";
     repo = "pi-mcp-adapter";
-    rev = "e4c6437b3a40ab659e8885b3edd8d2647d1b7ffb";
-    hash = "sha256-An8T5HCzofCZ0iNDaUPu8NDk+8ndPgAm+owm6F9kmYM=";
+    rev = "1091b34da83d58bd2d9fcaff2dc31f449a94bf1f";
+    hash = "sha256-eHz/uivSIZ8HOalSCZgyCyOWodQJq5GapAqpT2ryn1k=";
   };
 
-  npmDepsHash = "sha256-4xv8qj4xZGwankS2CHuoII7/s4up0LsuJ06Qy0cgKJM=";
+  npmDepsHash = "sha256-rga1WzbUKgIXFJlC6K5zmVHSjN8QeFovtfAX17BSjlw=";
   postPatch = ''
     cp ${../../pi/pi-mcp-adapter-package-lock.json} package-lock.json
 
