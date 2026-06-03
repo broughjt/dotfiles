@@ -276,24 +276,11 @@ in
         directory = "local/state/todoist-electron/profile";
         mode = "0700";
       }
+      # Claude Code's CLAUDE_CONFIG_DIR points here. This is the ~/.claude
+      # equivalent and includes settings, ~/.claude.json-equivalent auth/app
+      # state, credentials, plugins, prompt history, and project transcripts.
       {
-        directory = "local/secrets/claude-code/auth";
-        mode = "0700";
-      }
-      {
-        directory = "local/secrets/claude-code/credentials";
-        mode = "0700";
-      }
-      {
-        directory = "local/state/claude-code/history";
-        mode = "0700";
-      }
-      {
-        directory = "local/state/claude-code/projects";
-        mode = "0700";
-      }
-      {
-        directory = "local/state/claude-code/sessions";
+        directory = "local/state/claude-code";
         mode = "0700";
       }
     ];
