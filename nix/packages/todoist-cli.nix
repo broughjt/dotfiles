@@ -7,16 +7,16 @@
 
 buildNpmPackage rec {
   pname = "todoist-cli";
-  version = "1.68.0";
+  version = "1.72.0";
 
   src = fetchFromGitHub {
     owner = "Doist";
     repo = "todoist-cli";
     tag = "v${version}";
-    hash = "sha256-jcxECkVlMfH6PtvNkJYoWAybCvX7m6rdO71w1ixRlEg=";
+    hash = "sha256-dMILcdeLWH7Hoj2omIsW43091UzCfwVbkRACJcKhLz8=";
   };
 
-  npmDepsHash = "sha256-71za66XKLTqVIYjQw+JXsb6iIZqzNpSDRhxJ04BMoSY=";
+  npmDepsHash = "sha256-pk9r6g32lt76gDrR/HHnFxVCVn9lguRwa0RjHjoAEOE=";
 
   inherit nodejs;
 
