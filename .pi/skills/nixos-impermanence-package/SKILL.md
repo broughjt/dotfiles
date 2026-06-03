@@ -121,6 +121,7 @@ If an app mixes durable profile data and cache data in one directory, consider p
 6. **Add the package**
    - Add the app/package/wrapper to `home-manager.users.${user}.home.packages` in the relevant module.
    - If adding overlays, follow existing overlay patterns and do not duplicate overlays unnecessarily.
+   - For manually pinned upstream packages that should get automated update PRs, expose a buildable flake package when practical and update `.github/ci/update-package.py` plus `.github/workflows/update-packages.yml`.
 
 ## Implementation patterns to copy
 
@@ -200,6 +201,7 @@ Add a matching persistence entry:
 Before final response:
 
 - Run `nix fmt` on touched Nix files.
+- If package-update CI changed, run `nix run nixpkgs#actionlint -- .github/workflows/update-packages.yml`.
 - Build the affected host:
   ```bash
   nix build --no-link .#nixosConfigurations.murph.config.system.build.toplevel

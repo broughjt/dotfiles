@@ -188,6 +188,8 @@ Do not broaden secret backups without explaining why.
 
 When packaging Node/npm tools, follow the existing `buildNpmPackage` pattern and include fixed hashes. Package-generated Pi skills can be materialized into the Nix store, as with `todoist-cli-pi-skill`.
 
+Manually pinned upstream packages that should receive automated update PRs are tracked by `.github/ci/update-package.py` and `.github/workflows/update-packages.yml`. If adding or renaming one, expose it as a buildable flake package when practical, add/update its updater spec and workflow matrix entry, and validate with `nix run nixpkgs#actionlint -- .github/workflows/update-packages.yml` plus a package build.
+
 ## Emacs conventions
 
 Emacs packages are Nix-managed; `package.el` installation is disabled. Init/config files live under `emacs/` and are loaded through the wrapped Emacs package in `nix/modules/home/emacs.nix`.
