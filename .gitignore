@@ -2,3 +2,4 @@
 .agent-shell/
 .claude/
 .scratch/
+__pycache__/

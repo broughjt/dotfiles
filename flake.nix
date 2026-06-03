@@ -201,6 +201,8 @@
         packages = scriptPackages // {
           todoist-cli = pkgs.todoist-cli;
           todoist-cli-pi-skill = pkgs.todoist-cli-pi-skill;
+          pi-web-minimal = piWebMinimalPackage pkgs;
+          pi-mcp-adapter = piMcpAdapterPackage pkgs;
           pi-subagents = piSubagentsPackage pkgs;
         };
         apps = scriptApps;
