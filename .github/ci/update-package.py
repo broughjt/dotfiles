@@ -284,6 +284,11 @@ def main() -> None:
     src_hash = source_hash(spec, latest.rev)
     update_nix_file(spec, latest, src_hash)
     refresh_lock_file(spec, latest.rev)
+    if spec.lock_file:
+        # Normalize JSON formatting before computing npmDepsHash; the lock file
+        # bytes are part of the fixed-output derivation.
+        parsed = json.loads(spec.lock_file.read_text())
+        spec.lock_file.write_text(json.dumps(parsed, indent=2) + "\n")
     npm_hash = compute_npm_deps_hash(spec)
     replace_one(
         spec.nix_file,
@@ -292,10 +297,6 @@ def main() -> None:
     )
 
     run(["nix", "fmt", str(spec.nix_file.relative_to(ROOT))])
-    if spec.lock_file:
-        # Normalize JSON formatting after npm has written the lock file.
-        parsed = json.loads(spec.lock_file.read_text())
-        spec.lock_file.write_text(json.dumps(parsed, indent=2) + "\n")
 
     if not git_has_changes():
         write_output("updated", "false")
