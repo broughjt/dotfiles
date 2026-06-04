@@ -25,6 +25,7 @@ const SHELL_GUIDANCE = `## Shell and file-tool usage
 
 - Prefer Pi's dedicated tools over shell commands: use \`read\` for file contents (not \`cat\`/\`head\`/\`tail\`/\`sed\`), \`grep\` to search file contents, \`find\` to locate files by name, and \`ls\` to list directories. Reach for \`bash\` to actually run programs — builds, tests, package managers, git, and other executables — not as a stand-in for those tools.
 - Pi runs the tool calls within a turn concurrently. When operations are independent, emit them as separate parallel tool calls in one turn instead of packing them into a single large shell command.
+- When a single bash command genuinely involves multiple steps, structure it for readability: separate the steps with labeled banners (for example \`echo "=== build ===" && cmd1 && echo "=== test ===" && cmd2\`) so the output is easy to scan. Reserve this for cases where the steps belong together (don't pad simple one-off commands with banners).`;
 
 export default function tameShell(pi: ExtensionAPI): void {
 	// Activate the dedicated search/list tools once per session. Filter against
