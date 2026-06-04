@@ -162,7 +162,6 @@
           killall
           lldb
           ripgrep
-          python3
         ];
 
         # Home Manager's fish module enables man-db cache generation by default

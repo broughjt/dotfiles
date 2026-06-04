@@ -44,6 +44,8 @@ let
   piWebMinimalExaApiKeyFile = "${localDirectory}/config/pi/web-minimal/exa-api-key";
   piWebMinimalContext7ApiKeyFile = "${localDirectory}/config/pi/web-minimal/context7-api-key";
 
+  agentToolPath = lib.makeBinPath [ pkgs.python3 ];
+
   piWebMinimal = piWebMinimalPackage pkgs;
   piMcpAdapter = piMcpAdapterPackage pkgs;
   piAgentBrowserNative = piAgentBrowserNativePackage pkgs;
@@ -89,6 +91,7 @@ let
     export PI_MCP_ONBOARDING_STATE=${lib.escapeShellArg piMcpOnboardingFile}
     export MCP_OAUTH_DIR=${lib.escapeShellArg piMcpOAuthDir}
     export PI_AGENT_BROWSER_CONFIG=${lib.escapeShellArg piAgentBrowserConfigFile}
+    export PATH=${lib.escapeShellArg agentToolPath}:''${PATH:-}
 
     if [ -r ${lib.escapeShellArg piWebMinimalExaApiKeyFile} ]; then
       export EXA_API_KEY="$(${pkgs.coreutils}/bin/cat ${lib.escapeShellArg piWebMinimalExaApiKeyFile})"
