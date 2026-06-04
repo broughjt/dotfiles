@@ -178,6 +178,7 @@ in
     "f ${piSubagentsRunHistoryFile} 0600 ${user} users -"
     "L+ ${piAgentDir}/sessions - - - - ${piSessionDir}"
     "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
+    "L+ ${piExtensionsDir}/tame-shell.ts - - - - ${../../../pi/extensions/tame-shell.ts}"
     "L+ ${piAgentDir}/settings.json - - - - ${piSettingsFile}"
     "L+ ${piAgentDir}/auth.json - - - - ${piAuthFile}"
     "L+ ${piAgentDir}/agents - - - - ${piSubagentsAgentsDir}"
