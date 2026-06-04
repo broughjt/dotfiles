@@ -1,5 +1,5 @@
 /**
- * tame-shell — steer Pi away from large, chained shell commands.
+ * Steer Pi away from large, chained shell commands.
  *
  * Two root-cause fixes, applied together:
  *
@@ -8,7 +8,9 @@
  *    injects the "Use bash for file operations like ls, rg, find" guideline
  *    (it is conditional on those tools being absent — see system-prompt.ts).
  *    Activating them gives the model real alternatives to bash and makes that
- *    guideline disappear on the next prompt rebuild.
+ *    guideline disappear on the next prompt rebuild. We add them to the existing
+ *    active set rather than replacing it, so tools other extensions register
+ *    (e.g. agent-browser) stay active.
  *
  * 2. Append guidance on command shape: prefer the dedicated tools and lean on
  *    Pi's parallel tool execution instead of packing work into one command.
@@ -18,8 +20,7 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-/** The tools we want active: the coding defaults plus the dedicated search/list tools. */
-const DESIRED_ACTIVE_TOOLS = ["read", "bash", "edit", "write", "grep", "find", "ls"];
+const EXTRA_ACTIVE_TOOLS = ["grep", "find", "ls"];
 
 const SHELL_GUIDANCE = `## Shell and file-tool usage
 
@@ -28,13 +29,20 @@ const SHELL_GUIDANCE = `## Shell and file-tool usage
 - When a single bash command genuinely involves multiple steps, structure it for readability: separate the steps with labeled banners (for example \`echo "=== build ===" && cmd1 && echo "=== test ===" && cmd2\`) so the output is easy to scan. Reserve this for cases where the steps belong together (don't pad simple one-off commands with banners).`;
 
 export default function tameShell(pi: ExtensionAPI): void {
-	// Activate the dedicated search/list tools once per session. Filter against
-	// the registry so an explicit `--tools` allowlist is still respected, and so
-	// we never try to enable a tool that isn't available.
+	// Switch on the dedicated search/list tools once per session, additively.
+	// Extension tools are registered (and made active) before session_start fires,
+	// so the current active set already includes them; we union our extras in and
+	// hand the whole set back. Filtering against the registry keeps an explicit
+	// `--tools` allowlist intact and avoids enabling a tool that isn't available.
 	pi.on("session_start", async () => {
 		const available = new Set(pi.getAllTools().map((tool) => tool.name));
-		const next = DESIRED_ACTIVE_TOOLS.filter((name) => available.has(name));
-		pi.setActiveTools(next);
+		const next = new Set(pi.getActiveTools());
+		for (const name of EXTRA_ACTIVE_TOOLS) {
+			if (available.has(name)) {
+				next.add(name);
+			}
+		}
+		pi.setActiveTools([...next]);
 	});
 
 	// Append the command-shape guidance for this turn. The base prompt is rebuilt
