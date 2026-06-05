@@ -37,6 +37,9 @@ class PackageSpec:
     branch: str | None = None
     lock_file: Path | None = None
     npm_deps: bool = True
+    version_file: str | None = None
+    version_regex: str | None = None
+    unstable_version: bool = False
 
 
 PACKAGES: dict[str, PackageSpec] = {
@@ -79,6 +82,18 @@ PACKAGES: dict[str, PackageSpec] = {
         owner="Doist",
         repo="todoist-cli",
         flake_attr="todoist-cli",
+    ),
+    "emacs-lean4-mode": PackageSpec(
+        name="emacs-lean4-mode",
+        nix_file=ROOT / "nix/packages/emacs-lean4-mode.nix",
+        owner="leanprover-community",
+        repo="lean4-mode",
+        branch="master",
+        flake_attr="emacs-lean4-mode",
+        npm_deps=False,
+        version_file="lean4-mode.el",
+        version_regex=r"^;; Version: (.+)$",
+        unstable_version=True,
     ),
 }
 
@@ -161,10 +176,46 @@ def latest_tag(spec: PackageSpec) -> Latest:
     return Latest(version=version, rev=revs_by_version[version])
 
 
-def fetch_json(url: str) -> dict[str, object]:
+def fetch_text(url: str) -> str:
     print(f"GET {url}", flush=True)
     with urlopen(url) as response:  # noqa: S310 - fixed GitHub URLs from package specs
-        return json.loads(response.read().decode())
+        return response.read().decode()
+
+
+def fetch_json(url: str) -> dict[str, object]:
+    return json.loads(fetch_text(url))
+
+
+def github_commit_date(spec: PackageSpec, rev: str) -> str:
+    data = fetch_json(f"https://api.github.com/repos/{spec.owner}/{spec.repo}/commits/{rev}")
+    commit = data["commit"]
+    if not isinstance(commit, dict):
+        raise RuntimeError(f"Unexpected commit response for {spec.owner}/{spec.repo}@{rev}")
+    committer = commit["committer"]
+    if not isinstance(committer, dict):
+        raise RuntimeError(f"Unexpected commit committer response for {spec.owner}/{spec.repo}@{rev}")
+    date = str(committer["date"])
+    return date[:10]
+
+
+def latest_branch_version(spec: PackageSpec, rev: str) -> str:
+    if spec.version_file is None:
+        package_json = fetch_json(
+            f"https://raw.githubusercontent.com/{spec.owner}/{spec.repo}/{rev}/package.json"
+        )
+        return str(package_json["version"])
+
+    text = fetch_text(
+        f"https://raw.githubusercontent.com/{spec.owner}/{spec.repo}/{rev}/{spec.version_file}"
+    )
+    regex = spec.version_regex or r"(.+)"
+    match = re.search(regex, text, flags=re.MULTILINE)
+    if not match:
+        raise RuntimeError(f"Could not find version in {spec.owner}/{spec.repo}:{spec.version_file}")
+    version = match.group(1)
+    if spec.unstable_version:
+        version = f"{version}-unstable-{github_commit_date(spec, rev)}-{rev[:7]}"
+    return version
 
 
 def latest_branch(spec: PackageSpec) -> Latest:
@@ -178,11 +229,7 @@ def latest_branch(spec: PackageSpec) -> Latest:
         ]
     )
     rev = result.stdout.split()[0]
-    package_json = fetch_json(
-        f"https://raw.githubusercontent.com/{spec.owner}/{spec.repo}/{rev}/package.json"
-    )
-    version = str(package_json["version"])
-    return Latest(version=version, rev=rev)
+    return Latest(version=latest_branch_version(spec, rev), rev=rev)
 
 
 def get_latest(spec: PackageSpec) -> Latest:

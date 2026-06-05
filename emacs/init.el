@@ -49,6 +49,7 @@
                            (expand-file-name "transient/" jackson/emacs-state-directory)
                            jackson/emacs-cache-directory
                            (expand-file-name "eln-cache/" jackson/emacs-cache-directory)
+                           (expand-file-name "lsp/" jackson/emacs-cache-directory)
                            jackson/emacs-hacks-directory
                            (expand-file-name "projects/" jackson/emacs-hacks-directory)))
     (make-directory directory t)))
@@ -141,7 +142,8 @@
         language-agda
         language-javascript
         language-verilog
-        language-markdown))
+        language-markdown
+        language-lean))
 
 ;; typst-ts-mode is intentionally omitted from the Darwin package set because
 ;; the work Mac has trouble fetching/building the NonGNU ELPA source during Nix

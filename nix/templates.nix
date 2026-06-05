@@ -11,6 +11,10 @@
     path = ../templates/haskell;
     description = "Haskell template";
   };
+  lean = {
+    path = ../templates/lean;
+    description = "Lean 4 template";
+  };
   rocq = {
     path = ../templates/rocq;
     description = "Coq template";

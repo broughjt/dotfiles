@@ -176,6 +176,12 @@
       let
         pkgs = makePkgs system;
         emacsPackage = emacsPackages.configureEmacsPackage pkgs;
+        emacsLean4ModePackage = import ./nix/packages/emacs-lean4-mode.nix {
+          inherit pkgs;
+          emacsPackages = pkgs.emacsPackagesFor (
+            if pkgs.stdenv.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk
+          );
+        };
         scriptPackages = import ./nix/packages/scripts.nix {
           inherit
             disko
@@ -201,6 +207,7 @@
       // (import ./nix/formatter.nix { inherit pkgs; })
       // {
         packages = scriptPackages // {
+          emacs-lean4-mode = emacsLean4ModePackage;
           todoist-cli = pkgs.todoist-cli;
           todoist-cli-pi-skill = pkgs.todoist-cli-pi-skill;
           pi-web-minimal = piWebMinimalPackage pkgs;

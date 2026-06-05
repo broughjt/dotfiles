@@ -11,6 +11,11 @@ in
       emacsBasePackage = if pkgs.stdenv.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk;
       emacsPackages = (pkgs.emacsPackagesFor emacsBasePackage).overrideScope (
         final: prev: {
+          lean4-mode = import ./emacs-lean4-mode.nix {
+            inherit pkgs;
+            emacsPackages = final;
+          };
+
           pi-coding-agent = pi-coding-agent.lib.mkPackage pkgs final;
         }
       );
@@ -54,6 +59,8 @@ in
         epkgs.auctex
         epkgs.grip-mode
         epkgs.haskell-mode
+        epkgs.lean4-mode
+        epkgs.lsp-mode
         epkgs.markdown-mode
         epkgs.nix-mode
         epkgs.racket-mode

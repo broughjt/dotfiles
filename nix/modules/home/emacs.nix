@@ -24,6 +24,7 @@ in
     "d ${emacsStateDirectory}/transient 0700 ${user} users -"
     "d ${emacsCacheDirectory} 0700 ${user} users -"
     "d ${emacsCacheDirectory}/eln-cache 0700 ${user} users -"
+    "d ${emacsCacheDirectory}/lsp 0700 ${user} users -"
   ];
 
   home-manager.users.${user}.imports = [ emacsHome ];

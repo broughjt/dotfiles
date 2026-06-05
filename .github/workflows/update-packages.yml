@@ -27,6 +27,7 @@ jobs:
           - pi-subagents
           - pi-agent-browser-native
           - todoist-cli
+          - emacs-lean4-mode
     steps:
       - name: Skip unrequested package
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.package != '' && github.event.inputs.package != matrix.package
