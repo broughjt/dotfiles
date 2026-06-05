@@ -29,7 +29,13 @@
         cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
         packageName = cargoToml.package.name;
 
-        toolchain = fenix.packages.${system}.stable.toolchain;
+        toolchain = fenix.packages.${system}.stable.withComponents [
+          "cargo"
+          "clippy"
+          "rust-src"
+          "rustc"
+          "rustfmt"
+        ];
         craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
 
         src = craneLib.cleanCargoSource ./.;
@@ -80,7 +86,7 @@
           packages = with pkgs; [
             cargo-edit
             cargo-machete
-            rust-analyzer
+            fenix.packages.${system}.stable.rust-analyzer
           ];
         };
       }
