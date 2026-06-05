@@ -21,6 +21,8 @@ emacsPackages.trivialBuild {
     magit-section
   ];
 
+  patches = [ ./emacs-lean4-mode-inlay-refresh.patch ];
+
   postInstall = ''
     cp -r data "$out/share/emacs/site-lisp/"
   '';

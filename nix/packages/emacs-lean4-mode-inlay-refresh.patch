@@ -1,0 +1,12 @@
+diff --git a/lean4-mode.el b/lean4-mode.el
+index a8ad594..78f66d5 100644
+--- a/lean4-mode.el
++++ b/lean4-mode.el
+@@ -293,6 +293,7 @@ otherwise return '/path/to/lean --server'."
+  (make-lsp-client :new-connection (lsp-stdio-connection #'lean4--server-cmd)
+                   :major-modes '(lean4-mode)
+                   :server-id 'lean4-lsp
++                  :request-handlers (ht ("workspace/inlayHint/refresh" #'ignore))
+                   :notification-handlers (ht ("$/lean/fileProgress" #'lean4-fringe-update))
+                   :semantic-tokens-faces-overrides '(:types (("leanSorryLike" . font-lock-warning-face)))))
+ 
