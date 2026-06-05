@@ -14,8 +14,10 @@
   :init
   (setq lsp-keymap-prefix "C-c l"
         lsp-lens-enable nil
+        lsp-enable-snippet nil ;; TODO: Get it to work with tempel maybe?
         lsp-session-file (expand-file-name "lsp-session-v1" jackson/emacs-state-directory)
         lsp-server-install-dir (expand-file-name "lsp/" jackson/emacs-cache-directory))
+  (require 'lsp-headerline)
   (require 'lsp-modeline))
 
 (use-package lean4-mode
