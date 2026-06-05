@@ -126,18 +126,20 @@ in
 
   systemd.services."home-manager-${user}".environment = piEnvironment;
 
-  # Pi's core state is not XDG-native, so keep the runtime agent directory
-  # ephemeral and link only the chosen durable pieces into it. A small
-  # activation script remains so a switch repairs directory ownership before
-  # the next boot's tmpfiles run.
-  # Known possible future state to classify if it appears: models.json,
-  # keybindings.json, SYSTEM.md/APPEND_SYSTEM.md, other extensions/,
-  # other skills/, prompts/, themes/, git/, npm/, bin/fd, bin/rg,
-  # pi-debug.log, project-local .pi/, and arbitrary third-party extension
-  # state.
+  # Pi's core state is not XDG-native, so keep its runtime share tree
+  # ephemeral and recreate it on every switch. Only chosen durable pieces live
+  # outside this tree and are linked back in. This makes removed declarative
+  # packages, skills, and extensions disappear immediately instead of waiting
+  # for an ephemeral-root reset.
+  # Known possible future state to classify if it appears outside the recreated
+  # tree: models.json, keybindings.json, SYSTEM.md/APPEND_SYSTEM.md, prompts/,
+  # themes/, git/, npm/, bin/fd, bin/rg, pi-debug.log, project-local .pi/, and
+  # arbitrary third-party extension state.
   system.activationScripts.migratePiCodingAgent = {
     deps = [ "persist-files" ];
     text = ''
+      install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg (localDirectory + "/share")}
+      rm -rf ${lib.escapeShellArg piShareDir}
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piShareDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAgentDir}
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piPackagesDir}
@@ -158,6 +160,35 @@ in
       }
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSubagentsAgentsDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSubagentsChainsDir}
+
+      ln -sfnT ${lib.escapeShellArg piSessionDir} ${lib.escapeShellArg (piAgentDir + "/sessions")}
+      ln -sfnT ${lib.escapeShellArg ../../../pi/AGENTS.md} ${
+        lib.escapeShellArg (piAgentDir + "/AGENTS.md")
+      }
+      ln -sfnT ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg (piAgentDir + "/settings.json")}
+      ln -sfnT ${lib.escapeShellArg piAuthFile} ${lib.escapeShellArg (piAgentDir + "/auth.json")}
+      ln -sfnT ${lib.escapeShellArg piSubagentsAgentsDir} ${lib.escapeShellArg (piAgentDir + "/agents")}
+      ln -sfnT ${lib.escapeShellArg piSubagentsChainsDir} ${lib.escapeShellArg (piAgentDir + "/chains")}
+      ln -sfnT ${lib.escapeShellArg piSubagentsRunHistoryFile} ${
+        lib.escapeShellArg (piAgentDir + "/run-history.jsonl")
+      }
+      ln -sfnT ${lib.escapeShellArg piSubagentsConfig} ${
+        lib.escapeShellArg (piSubagentsConfigDir + "/config.json")
+      }
+      ln -sfnT ${lib.escapeShellArg (todoistCliPiSkill + "/skills/todoist-cli")} ${
+        lib.escapeShellArg (piSkillsDir + "/todoist-cli")
+      }
+      ln -sfnT ${lib.escapeShellArg piWebMinimal} ${
+        lib.escapeShellArg (piPackagesDir + "/pi-web-minimal")
+      }
+      ln -sfnT ${lib.escapeShellArg piMcpAdapter} ${
+        lib.escapeShellArg (piPackagesDir + "/pi-mcp-adapter")
+      }
+      ln -sfnT ${lib.escapeShellArg piAgentBrowserNative} ${
+        lib.escapeShellArg (piPackagesDir + "/pi-agent-browser-native")
+      }
+      ln -sfnT ${lib.escapeShellArg piSubagents} ${lib.escapeShellArg (piPackagesDir + "/pi-subagents")}
+
       touch ${lib.escapeShellArg piSubagentsRunHistoryFile}
       chown ${user}:users ${lib.escapeShellArg piSubagentsRunHistoryFile}
       chmod 0600 ${lib.escapeShellArg piSubagentsRunHistoryFile}
