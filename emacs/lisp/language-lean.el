@@ -2,6 +2,7 @@
 
 (defvar jackson/emacs-state-directory)
 (defvar jackson/emacs-cache-directory)
+(defvar lsp-completion-provider)
 (defvar lsp-keymap-prefix)
 (defvar lsp-lens-enable)
 (defvar lsp-server-install-dir)
@@ -12,7 +13,8 @@
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
   :init
-  (setq lsp-keymap-prefix "C-c l"
+  (setq lsp-completion-provider :none
+        lsp-keymap-prefix "C-c l"
         lsp-lens-enable nil
         lsp-enable-snippet nil ;; TODO: Get it to work with tempel maybe?
         lsp-session-file (expand-file-name "lsp-session-v1" jackson/emacs-state-directory)
