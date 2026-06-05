@@ -86,13 +86,11 @@ PACKAGES: dict[str, PackageSpec] = {
     "emacs-lean4-mode": PackageSpec(
         name="emacs-lean4-mode",
         nix_file=ROOT / "nix/packages/emacs-lean4-mode.nix",
-        owner="leanprover-community",
+        owner="ultronozm",
         repo="lean4-mode",
-        branch="master",
+        branch="eglot",
         flake_attr="emacs-lean4-mode",
         npm_deps=False,
-        version_file="lean4-mode.el",
-        version_regex=r"^;; Version: (.+)$",
         unstable_version=True,
     ),
 }
@@ -200,6 +198,8 @@ def github_commit_date(spec: PackageSpec, rev: str) -> str:
 
 def latest_branch_version(spec: PackageSpec, rev: str) -> str:
     if spec.version_file is None:
+        if spec.unstable_version:
+            return f"0-unstable-{github_commit_date(spec, rev)}-{rev[:7]}"
         package_json = fetch_json(
             f"https://raw.githubusercontent.com/{spec.owner}/{spec.repo}/{rev}/package.json"
         )

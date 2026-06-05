@@ -60,7 +60,6 @@ in
         epkgs.grip-mode
         epkgs.haskell-mode
         epkgs.lean4-mode
-        epkgs.lsp-mode
         epkgs.markdown-mode
         epkgs.nix-mode
         epkgs.racket-mode
