@@ -12,6 +12,7 @@
   piMcpAdapterPackage,
   piAgentBrowserNativePackage,
   piSubagentsPackage,
+  piThemeSyncPackage,
   todoistCliOverlay,
   googleWorkspaceCliOverlay,
 }:
@@ -69,6 +70,7 @@ rec {
       piMcpAdapterPackage
       piAgentBrowserNativePackage
       piSubagentsPackage
+      piThemeSyncPackage
       todoistCliOverlay
       ;
     agenixHome = agenix.homeManagerModules.default;

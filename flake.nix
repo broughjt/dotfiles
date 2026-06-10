@@ -100,6 +100,7 @@
       piMcpAdapterPackage = import ./nix/packages/pi-mcp-adapter.nix;
       piAgentBrowserNativePackage = import ./nix/packages/pi-agent-browser-native.nix;
       piSubagentsPackage = import ./nix/packages/pi-subagents.nix;
+      piThemeSyncPackage = import ./nix/packages/pi-theme-sync.nix;
 
       nixosModules = import ./nix/modules {
         inherit
@@ -115,6 +116,7 @@
           piMcpAdapterPackage
           piAgentBrowserNativePackage
           piSubagentsPackage
+          piThemeSyncPackage
           todoistCliOverlay
           googleWorkspaceCliOverlay
           ;
@@ -214,6 +216,7 @@
           pi-mcp-adapter = piMcpAdapterPackage pkgs;
           pi-agent-browser-native = piAgentBrowserNativePackage pkgs;
           pi-subagents = piSubagentsPackage pkgs;
+          pi-theme-sync = piThemeSyncPackage pkgs;
         };
         apps = scriptApps;
       }

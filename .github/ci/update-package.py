@@ -68,6 +68,14 @@ PACKAGES: dict[str, PackageSpec] = {
         flake_attr="pi-subagents",
         lock_file=ROOT / "pi/pi-subagents-package-lock.json",
     ),
+    "pi-theme-sync": PackageSpec(
+        name="pi-theme-sync",
+        nix_file=ROOT / "nix/packages/pi-theme-sync.nix",
+        owner="sherif-fanous",
+        repo="pi-theme-sync",
+        flake_attr="pi-theme-sync",
+        npm_deps=False,
+    ),
     "pi-agent-browser-native": PackageSpec(
         name="pi-agent-browser-native",
         nix_file=ROOT / "nix/packages/pi-agent-browser-native.nix",

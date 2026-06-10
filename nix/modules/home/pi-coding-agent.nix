@@ -4,6 +4,7 @@
   piMcpAdapterPackage,
   piAgentBrowserNativePackage,
   piSubagentsPackage,
+  piThemeSyncPackage,
   todoistCliOverlay,
 }:
 
@@ -41,6 +42,8 @@ let
   piSubagentsAgentsDir = "${localDirectory}/hacks/pi/subagents/agents";
   piSubagentsChainsDir = "${localDirectory}/hacks/pi/subagents/chains";
   piSubagentsRunHistoryFile = "${piSubagentsStateDir}/run-history.jsonl";
+  piThemeSyncConfigDir = "${localDirectory}/hacks/pi/theme-sync";
+  piThemeSyncConfigFile = "${piThemeSyncConfigDir}/theme-sync.json";
   piWebMinimalExaApiKeyFile = "${localDirectory}/config/pi/web-minimal/exa-api-key";
   piWebMinimalContext7ApiKeyFile = "${localDirectory}/config/pi/web-minimal/context7-api-key";
 
@@ -50,12 +53,14 @@ let
   piMcpAdapter = piMcpAdapterPackage pkgs;
   piAgentBrowserNative = piAgentBrowserNativePackage pkgs;
   piSubagents = piSubagentsPackage pkgs;
+  piThemeSync = piThemeSyncPackage pkgs;
   todoistCliPiSkill = pkgs.todoist-cli-pi-skill;
   piMcpCacheFile = "${piStateDir}/mcp-cache.json";
   piMcpOnboardingFile = "${piStateDir}/mcp-onboarding.json";
   piRequiredPackages = [
     "packages/pi-web-minimal"
     "packages/pi-subagents"
+    "packages/pi-theme-sync"
   ];
   piSubagentsConfig = pkgs.writeText "pi-subagents-config.json" (
     builtins.toJSON {
@@ -160,6 +165,7 @@ in
       }
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSubagentsAgentsDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSubagentsChainsDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piThemeSyncConfigDir}
 
       ln -sfnT ${lib.escapeShellArg piSessionDir} ${lib.escapeShellArg (piAgentDir + "/sessions")}
       ln -sfnT ${lib.escapeShellArg ../../../pi/AGENTS.md} ${
@@ -171,6 +177,9 @@ in
       ln -sfnT ${lib.escapeShellArg piSubagentsChainsDir} ${lib.escapeShellArg (piAgentDir + "/chains")}
       ln -sfnT ${lib.escapeShellArg piSubagentsRunHistoryFile} ${
         lib.escapeShellArg (piAgentDir + "/run-history.jsonl")
+      }
+      ln -sfnT ${lib.escapeShellArg piThemeSyncConfigFile} ${
+        lib.escapeShellArg (piAgentDir + "/theme-sync.json")
       }
       ln -sfnT ${lib.escapeShellArg piSubagentsConfig} ${
         lib.escapeShellArg (piSubagentsConfigDir + "/config.json")
@@ -188,6 +197,7 @@ in
         lib.escapeShellArg (piPackagesDir + "/pi-agent-browser-native")
       }
       ln -sfnT ${lib.escapeShellArg piSubagents} ${lib.escapeShellArg (piPackagesDir + "/pi-subagents")}
+      ln -sfnT ${lib.escapeShellArg piThemeSync} ${lib.escapeShellArg (piPackagesDir + "/pi-theme-sync")}
 
       touch ${lib.escapeShellArg piSubagentsRunHistoryFile}
       chown ${user}:users ${lib.escapeShellArg piSubagentsRunHistoryFile}
@@ -217,6 +227,7 @@ in
     "d ${localDirectory}/hacks/pi/subagents 0700 ${user} users -"
     "d ${piSubagentsAgentsDir} 0700 ${user} users -"
     "d ${piSubagentsChainsDir} 0700 ${user} users -"
+    "d ${piThemeSyncConfigDir} 0700 ${user} users -"
     "f ${piSubagentsRunHistoryFile} 0600 ${user} users -"
     "L+ ${piAgentDir}/sessions - - - - ${piSessionDir}"
     "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
@@ -225,12 +236,14 @@ in
     "L+ ${piAgentDir}/agents - - - - ${piSubagentsAgentsDir}"
     "L+ ${piAgentDir}/chains - - - - ${piSubagentsChainsDir}"
     "L+ ${piAgentDir}/run-history.jsonl - - - - ${piSubagentsRunHistoryFile}"
+    "L+ ${piAgentDir}/theme-sync.json - - - - ${piThemeSyncConfigFile}"
     "L+ ${piSubagentsConfigDir}/config.json - - - - ${piSubagentsConfig}"
     "L+ ${piSkillsDir}/todoist-cli - - - - ${todoistCliPiSkill}/skills/todoist-cli"
     "L+ ${piPackagesDir}/pi-web-minimal - - - - ${piWebMinimal}"
     "L+ ${piPackagesDir}/pi-mcp-adapter - - - - ${piMcpAdapter}"
     "L+ ${piPackagesDir}/pi-agent-browser-native - - - - ${piAgentBrowserNative}"
     "L+ ${piPackagesDir}/pi-subagents - - - - ${piSubagents}"
+    "L+ ${piPackagesDir}/pi-theme-sync - - - - ${piThemeSync}"
   ];
 
   home-manager.users.${user} = {

@@ -105,6 +105,7 @@ in
       check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
       check_single_entry ${localDirectory}/hacks/emacs/projects projects.eld
       check_single_entry ${localDirectory}/hacks/pi/settings settings.json
+      check_single_entry ${localDirectory}/hacks/pi/theme-sync theme-sync.json
       check_single_entry ${localDirectory}/secrets/pi/auth auth.json
       check_single_entry ${localDirectory}/secrets/pi/mcp mcp.json
       check_single_entry ${localDirectory}/config/pi/agent-browser-native config.json
@@ -122,6 +123,12 @@ in
 
       {
         directory = "local/hacks/pi/settings";
+        mode = "0700";
+      }
+      # pi-theme-sync's /theme-sync config is mutable user preference state;
+      # the extension package itself stays store-backed under Pi packages.
+      {
+        directory = "local/hacks/pi/theme-sync";
         mode = "0700";
       }
       # pi-subagents can create user agents/chains at runtime. Treat those as
