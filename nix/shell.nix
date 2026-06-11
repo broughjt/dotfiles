@@ -7,6 +7,17 @@
         nil
         nixfmt
       ])
-      ++ builtins.attrValues scriptPackages;
+      ++ (with scriptPackages; [
+        backupMurphSecrets
+        piPrintSystemPrompt
+        restoreMurphSecrets
+      ])
+      ++ pkgs.lib.optionals pkgs.stdenv.isLinux (
+        with scriptPackages;
+        [
+          flashNixosInstaller
+          installMurph
+        ]
+      );
   };
 }
