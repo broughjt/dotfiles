@@ -31,7 +31,7 @@ nix-darwin.lib.darwinSystem {
 
         # Keep the existing admin user out of nix-darwin's managed users list,
         # but still declaratively point macOS at the Nix-managed fish shell.
-        system.activationScripts.setJtbrougLoginShell.text = ''
+        system.activationScripts.postActivation.text = lib.mkAfter ''
           desired_shell=${lib.escapeShellArg "/run/current-system/sw/bin/fish"}
           current_shell=$(/usr/bin/dscl . -read /Users/jtbroug UserShell 2>/dev/null | /usr/bin/sed 's/^UserShell: //')
 
