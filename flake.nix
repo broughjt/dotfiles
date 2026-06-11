@@ -157,7 +157,6 @@
             nix-darwin
             home-manager
             nix-config
-            llmAgentsOverlay
             emacsOverlays
             nixosModules
             ;
