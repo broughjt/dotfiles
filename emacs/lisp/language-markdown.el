@@ -6,6 +6,7 @@
 (declare-function grip-start-process "grip-mode")
 
 (use-package markdown-mode
+  :commands (markdown-mode gfm-mode gfm-view-mode)
   :mode
   (("README\\.md\\'" . gfm-mode)
    ("\\.md\\'" . markdown-mode))
