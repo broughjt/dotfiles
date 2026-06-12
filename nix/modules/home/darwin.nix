@@ -37,6 +37,7 @@
     julia-mono
     lldb
     ripgrep
+    spotify
   ];
 
   programs.direnv = {
