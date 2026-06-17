@@ -33,10 +33,6 @@
 
     impermanence.url = "github:nix-community/impermanence";
 
-    googleworkspace-cli.url = "github:googleworkspace/cli";
-    googleworkspace-cli.inputs.nixpkgs.follows = "nixpkgs";
-    googleworkspace-cli.inputs.flake-utils.follows = "flake-utils";
-
     pi-coding-agent.url = "github:broughjt/pi-coding-agent";
     # pi-coding-agent.url = "path:/home/jackson/repositories/pi-coding-agent";
     pi-coding-agent.inputs.nixpkgs.follows = "nixpkgs";
@@ -62,7 +58,6 @@
       emacs-overlay,
       disko,
       impermanence,
-      googleworkspace-cli,
       pi-coding-agent,
       flake-utils,
       llm-agents-nix,
@@ -77,9 +72,6 @@
         todoist-cli = final.callPackage ./nix/packages/todoist-cli.nix { };
         todoist-cli-pi-skill = final.callPackage ./nix/packages/todoist-cli-pi-skill.nix { };
       };
-      googleWorkspaceCliOverlay = final: _prev: {
-        gws = googleworkspace-cli.packages.${final.stdenv.hostPlatform.system}.default;
-      };
       emacsOverlays = with emacs-overlay.overlays; [
         emacs
         package
@@ -93,7 +85,6 @@
         };
       makePkgs = makePkgsWithOverlays [
         todoistCliOverlay
-        googleWorkspaceCliOverlay
       ];
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
@@ -118,7 +109,6 @@
           piSubagentsPackage
           piThemeSyncPackage
           todoistCliOverlay
-          googleWorkspaceCliOverlay
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };

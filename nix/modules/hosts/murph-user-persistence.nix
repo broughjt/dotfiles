@@ -231,19 +231,6 @@ in
         directory = "local/share/keyrings";
         mode = "0700";
       }
-      # Google Cloud SDK stores OAuth credentials, access token databases, and
-      # active project/account configuration here. Command logs are symlinked to
-      # ephemeral ~/local/cache/gcloud/logs by google-tools.nix.
-      {
-        directory = "local/config/gcloud";
-        mode = "0700";
-      }
-      # gws keeps OAuth client/credential files here when not using only the OS
-      # keyring or environment-provided tokens.
-      {
-        directory = "local/config/gws";
-        mode = "0700";
-      }
       {
         directory = "local/config/mozilla/firefox";
         mode = "0700";
