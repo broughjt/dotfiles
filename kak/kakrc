@@ -1,5 +1,9 @@
 colorscheme standard-dark
 
+set -add global autoinfo normal
+
+# LSP
+
 eval %sh{kak-lsp}
 lsp-enable
 
