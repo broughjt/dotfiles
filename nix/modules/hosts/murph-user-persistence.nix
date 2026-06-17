@@ -42,10 +42,13 @@ in
     # Emacs known-projects list. Backups and auto-saves are persisted at
     # their XDG state paths via environment.persistence below; other Emacs
     # state (eln-cache, auto-save-list, transient, custom, bookmarks) is
-    # intentionally ephemeral under ~/local/{cache,state}/emacs.
+    # intentionally ephemeral under ~/local/{cache,state}/emacs. Racket REPL
+    # history and the editable scratch REPL file are persisted narrowly under
+    # hacks/emacs/racket-mode.
     "d ${localDirectory}/hacks/emacs 0700 ${user} users -"
     "d ${localDirectory}/hacks/emacs/projects 0700 ${user} users -"
     "f ${localDirectory}/hacks/emacs/projects/projects.eld 0600 ${user} users - nil"
+    "d ${localDirectory}/hacks/emacs/racket-mode 0700 ${user} users -"
 
     # GnuPG: only durable subcomponents are persisted. GNUPGHOME itself is
     # ephemeral and only holds activation-managed symlinks plus throwaway
@@ -197,6 +200,10 @@ in
       }
       {
         directory = "local/hacks/emacs/projects";
+        mode = "0700";
+      }
+      {
+        directory = "local/hacks/emacs/racket-mode";
         mode = "0700";
       }
       {

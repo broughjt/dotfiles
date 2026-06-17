@@ -1,8 +1,13 @@
 ;;; -*- lexical-binding: t; -*-
 
-(defvar racket-xp-add-binding-faces)
-(defvar racket-repl-buffer-name-function)
+(defvar jackson/emacs-cache-directory)
+(defvar jackson/emacs-hacks-directory)
+(defvar racket-doc-index-directory)
 (defvar racket-hash-lang-module-language-hook)
+(defvar racket-repl-buffer-name-function)
+(defvar racket-repl-command-file)
+(defvar racket-repl-history-directory)
+(defvar racket-xp-add-binding-faces)
 
 (declare-function racket-hash-lang-mode "racket-hash-lang")
 (declare-function racket-mode "racket-mode")
@@ -22,6 +27,18 @@
          ("\\.rktl\\'" . racket-mode))
   :hook (racket-mode . racket-xp-mode)
   :custom
+  ;; `user-emacs-directory' is the read-only Nix store init directory. Keep
+  ;; racket-mode's mutable files under the configured XDG/local trees instead.
+  (racket-doc-index-directory
+   (file-name-as-directory
+    (expand-file-name "racket-mode" jackson/emacs-cache-directory)))
+  (racket-repl-command-file
+   (expand-file-name "repl.rkt"
+                     (file-name-as-directory
+                      (expand-file-name "racket-mode" jackson/emacs-hacks-directory))))
+  (racket-repl-history-directory
+   (file-name-as-directory
+    (expand-file-name "racket-mode" jackson/emacs-hacks-directory)))
   ;; Share one REPL per project instead of creating/using one global REPL.
   (racket-repl-buffer-name-function #'racket-repl-buffer-name-project)
   ;; Also enrich classic `racket-mode' buffers with check-syntax faces.
