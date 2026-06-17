@@ -13,10 +13,6 @@
   :hook ((haskell-mode . jackson/enable-haskell-apheleia-if-configured)
          (haskell-ts-mode . jackson/enable-haskell-apheleia-if-configured)))
 
-(use-package apheleia
-  :hook ((haskell-mode . apheleia-mode)
-         (haskell-ts-mode . apheleia-mode)))
-
 (use-package haskell-mode
   :mode "\\.hs\\'"
   :init
