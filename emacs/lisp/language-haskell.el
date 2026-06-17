@@ -1,5 +1,18 @@
 ;;; -*- lexical-binding: t; -*-
 
+(defun jackson/haskell-project-has-formatter-config-p ()
+  (or (locate-dominating-file default-directory "fourmolu.yaml")
+      (locate-dominating-file default-directory "ormolu.yaml")
+      (locate-dominating-file default-directory ".stylish-haskell.yaml")))
+
+(defun jackson/enable-haskell-apheleia-if-configured ()
+  (when (jackson/haskell-project-has-formatter-config-p)
+    (apheleia-mode 1)))
+
+(use-package apheleia
+  :hook ((haskell-mode . jackson/enable-haskell-apheleia-if-configured)
+         (haskell-ts-mode . jackson/enable-haskell-apheleia-if-configured)))
+
 (use-package apheleia
   :hook ((haskell-mode . apheleia-mode)
          (haskell-ts-mode . apheleia-mode)))
