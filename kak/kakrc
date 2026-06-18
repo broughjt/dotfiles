@@ -1,4 +1,9 @@
-colorscheme standard-dark
+eval %sh{
+    case "${KAK_COLORSCHEME:-standard-dark}" in
+        standard-light) printf 'colorscheme standard-light\n' ;;
+        *) printf 'colorscheme standard-dark\n' ;;
+    esac
+}
 
 set -add global autoinfo normal
 
