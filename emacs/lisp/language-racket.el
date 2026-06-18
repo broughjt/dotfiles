@@ -9,6 +9,7 @@
 (defvar racket-repl-history-directory)
 (defvar racket-xp-add-binding-faces)
 
+(declare-function corfu-mode "corfu" (&optional arg))
 (declare-function racket-hash-lang-mode "racket-hash-lang")
 (declare-function racket-mode "racket-mode")
 (declare-function racket-repl-buffer-name-project "racket-repl-buffer-name")
@@ -25,7 +26,8 @@
   :commands racket-mode
   :mode (("\\.rktd\\'" . racket-mode)
          ("\\.rktl\\'" . racket-mode))
-  :hook (racket-mode . racket-xp-mode)
+  :hook ((racket-mode . racket-xp-mode)
+         (racket-mode . corfu-mode))
   :custom
   ;; `user-emacs-directory' is the read-only Nix store init directory. Keep
   ;; racket-mode's mutable files under the configured XDG/local trees instead.
@@ -52,7 +54,11 @@
   :mode (("\\.rkt\\'" . racket-hash-lang-mode)
          ("\\.scrbl\\'" . racket-hash-lang-mode)
          ("\\.rhm\\'" . racket-hash-lang-mode))
-  :hook (racket-hash-lang-mode . racket-xp-mode)
+  :hook ((racket-hash-lang-mode . racket-xp-mode)
+         ;; `racket-hash-lang-mode' temporarily sets `buffer-read-only' while
+         ;; asynchronously starting its backend. `global-corfu-mode' skips
+         ;; read-only buffers, so enable Corfu explicitly for Racket buffers.
+         (racket-hash-lang-mode . corfu-mode))
   :config
   (add-hook 'racket-hash-lang-module-language-hook
             #'jackson/racket-hash-lang-module-language-setup))
