@@ -40,7 +40,14 @@
 (use-package orderless
   :custom
   (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
+  (completion-category-overrides
+   '((file (styles basic partial-completion))
+     (eglot (styles orderless))
+     (eglot-capf (styles orderless))
+     ;; Racket Mode registers these categories with `basic' defaults. Keep
+     ;; them prefix-based; Racket's CAPF intentionally starts after 2 chars.
+     (racket-identifier (styles basic))
+     (racket-module (styles basic)))))
 
 (defvar rg-ignore-flags
   "-g \"!*.mp3\" -g \"!*.jpg\" -g \"!*.JPG\" -g \"!*.jpeg\" -g \"!*.png\" \
@@ -123,6 +130,10 @@
   :custom
   (corfu-cycle t)
   (corfu-auto t)
+  ;; Corfu's default is 3, while Racket Mode's CAPF starts offering candidates
+  ;; after 2 chars. Use the lower threshold so Racket XP completions appear as
+  ;; soon as the backend can provide them.
+  (corfu-auto-prefix 2)
   ;; (corfu-quit-no-match t)
   ;; (corfu-quit-at-boundary t)
   :config
@@ -131,8 +142,6 @@
   (corfu-popupinfo-mode 1) ; shows documentation next to completions
   (global-corfu-mode))
 
-(setq completion-category-overrides '((eglot (styles orderless))
-                                      (eglot-capf (styles orderless))))
 (use-package cape
   :demand t
   :config
