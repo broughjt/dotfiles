@@ -68,10 +68,6 @@
       nix-config = import ./nix/nix-config.nix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
       llmAgentsOverlay = llm-agents-nix.overlays.default;
-      todoistCliOverlay = final: _prev: {
-        todoist-cli = final.callPackage ./nix/packages/todoist-cli.nix { };
-        todoist-cli-pi-skill = final.callPackage ./nix/packages/todoist-cli-pi-skill.nix { };
-      };
       emacsOverlays = with emacs-overlay.overlays; [
         emacs
         package
@@ -83,9 +79,7 @@
           overlays = [ llmAgentsOverlay ] ++ extraOverlays ++ emacsOverlays;
           config = nix-config.nixpkgsConfig;
         };
-      makePkgs = makePkgsWithOverlays [
-        todoistCliOverlay
-      ];
+      makePkgs = makePkgsWithOverlays [ ];
 
       piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
       piMcpAdapterPackage = import ./nix/packages/pi-mcp-adapter.nix;
@@ -108,7 +102,6 @@
           piAgentBrowserNativePackage
           piSubagentsPackage
           piThemeSyncPackage
-          todoistCliOverlay
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };
@@ -199,8 +192,6 @@
       // {
         packages = scriptPackages // {
           emacs-lean4-mode = emacsLean4ModePackage;
-          todoist-cli = pkgs.todoist-cli;
-          todoist-cli-pi-skill = pkgs.todoist-cli-pi-skill;
           pi-web-minimal = piWebMinimalPackage pkgs;
           pi-mcp-adapter = piMcpAdapterPackage pkgs;
           pi-agent-browser-native = piAgentBrowserNativePackage pkgs;

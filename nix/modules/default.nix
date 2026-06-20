@@ -13,7 +13,6 @@
   piAgentBrowserNativePackage,
   piSubagentsPackage,
   piThemeSyncPackage,
-  todoistCliOverlay,
 }:
 
 rec {
@@ -69,12 +68,9 @@ rec {
       piAgentBrowserNativePackage
       piSubagentsPackage
       piThemeSyncPackage
-      todoistCliOverlay
       ;
     agenixHome = agenix.homeManagerModules.default;
   };
-  todoistCli = import ./home/todoist-cli.nix { inherit todoistCliOverlay; };
-  todoistElectron = import ./home/todoist-electron.nix;
   claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
   firefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;

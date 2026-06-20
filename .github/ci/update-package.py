@@ -84,13 +84,6 @@ PACKAGES: dict[str, PackageSpec] = {
         flake_attr="pi-agent-browser-native",
         npm_deps=False,
     ),
-    "todoist-cli": PackageSpec(
-        name="todoist-cli",
-        nix_file=ROOT / "nix/packages/todoist-cli.nix",
-        owner="Doist",
-        repo="todoist-cli",
-        flake_attr="todoist-cli",
-    ),
     "emacs-lean4-mode": PackageSpec(
         name="emacs-lean4-mode",
         nix_file=ROOT / "nix/packages/emacs-lean4-mode.nix",

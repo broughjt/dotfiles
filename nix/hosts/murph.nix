@@ -30,8 +30,6 @@ nixpkgs.lib.nixosSystem {
     gpg
     pass
     piCodingAgent
-    todoistCli
-    todoistElectron
     claudeCode
     firefox
     mimeApps

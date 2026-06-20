@@ -16,8 +16,8 @@ Before editing, inspect the relevant existing modules. At minimum, read:
 - `nix/modules/hosts/murph-user-persistence.nix` for user impermanence declarations.
 - The module most similar to the requested app:
   - desktop bundle: `nix/modules/home/desktop-apps.nix`
-  - dedicated desktop app: `nix/modules/home/todoist-electron.nix`, `nix/modules/home/firefox.nix`, `nix/modules/home/vlc.nix`
-  - CLI config: `nix/modules/home/todoist-cli.nix`, `nix/modules/home/gh.nix`
+  - dedicated desktop app: `nix/modules/home/firefox.nix`, `nix/modules/home/vlc.nix`
+  - CLI config: `nix/modules/home/gh.nix`
   - complex app-specific state split: `nix/modules/home/pi-coding-agent.nix`, `nix/modules/home/claude-code.nix`, `nix/modules/home/emacs.nix`, `nix/modules/home/gpg.nix`
 - `nix/modules/default.nix` and the target host such as `nix/hosts/murph.nix` if adding a new dedicated module.
 
@@ -72,7 +72,7 @@ Leave rebuildable/noisy state ephemeral, normally under `~/local/cache`, an ephe
 - first-run prompts or local UI state the user does not care about
 - updater downloads for apps managed by Nix
 
-If an app mixes durable profile data and cache data in one directory, consider pointing the whole profile at a persisted location and symlinking cache subdirectories back to `~/local/cache/<app>`, as in `todoist-electron.nix`.
+If an app mixes durable profile data and cache data in one directory, consider pointing the whole profile at a persisted location and symlinking cache subdirectories back to `~/local/cache/<app>`, as in `nix/modules/home/browser-tools.nix`.
 
 ## Investigation workflow
 

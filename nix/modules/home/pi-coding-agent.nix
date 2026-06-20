@@ -5,7 +5,6 @@
   piAgentBrowserNativePackage,
   piSubagentsPackage,
   piThemeSyncPackage,
-  todoistCliOverlay,
 }:
 
 {
@@ -54,7 +53,6 @@ let
   piAgentBrowserNative = piAgentBrowserNativePackage pkgs;
   piSubagents = piSubagentsPackage pkgs;
   piThemeSync = piThemeSyncPackage pkgs;
-  todoistCliPiSkill = pkgs.todoist-cli-pi-skill;
   piMcpCacheFile = "${piStateDir}/mcp-cache.json";
   piMcpOnboardingFile = "${piStateDir}/mcp-onboarding.json";
   piRequiredPackages = [
@@ -122,8 +120,6 @@ let
   '';
 in
 {
-  nixpkgs.overlays = [ todoistCliOverlay ];
-
   systemd.services."user@${uid}" = {
     overrideStrategy = "asDropin";
     environment = piEnvironment;
@@ -184,9 +180,6 @@ in
       ln -sfnT ${lib.escapeShellArg piSubagentsConfig} ${
         lib.escapeShellArg (piSubagentsConfigDir + "/config.json")
       }
-      ln -sfnT ${lib.escapeShellArg (todoistCliPiSkill + "/skills/todoist-cli")} ${
-        lib.escapeShellArg (piSkillsDir + "/todoist-cli")
-      }
       ln -sfnT ${lib.escapeShellArg piWebMinimal} ${
         lib.escapeShellArg (piPackagesDir + "/pi-web-minimal")
       }
@@ -238,7 +231,6 @@ in
     "L+ ${piAgentDir}/run-history.jsonl - - - - ${piSubagentsRunHistoryFile}"
     "L+ ${piAgentDir}/theme-sync.json - - - - ${piThemeSyncConfigFile}"
     "L+ ${piSubagentsConfigDir}/config.json - - - - ${piSubagentsConfig}"
-    "L+ ${piSkillsDir}/todoist-cli - - - - ${todoistCliPiSkill}/skills/todoist-cli"
     "L+ ${piPackagesDir}/pi-web-minimal - - - - ${piWebMinimal}"
     "L+ ${piPackagesDir}/pi-mcp-adapter - - - - ${piMcpAdapter}"
     "L+ ${piPackagesDir}/pi-agent-browser-native - - - - ${piAgentBrowserNative}"

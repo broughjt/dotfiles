@@ -121,7 +121,7 @@ Persist user state in `environment.persistence."/persist".users.${user}.director
 
 Leave caches, logs, crash reports, sockets, lock files, generated code caches, first-run UI trivia, and other rebuildable state ephemeral. Use `~/local/cache`, unpersisted `~/local/state`, or an app-specific runtime directory.
 
-If an app mixes durable profile data with bulky cache subdirectories, prefer an explicit profile location plus symlinks from cache-like subtrees back to `~/local/cache/<app>`, as in `nix/modules/home/todoist-electron.nix`.
+If an app mixes durable profile data with bulky cache subdirectories, prefer an explicit profile location plus symlinks from cache-like subtrees back to `~/local/cache/<app>`, as in `nix/modules/home/browser-tools.nix`.
 
 ## Home directory and XDG layout
 
@@ -186,7 +186,7 @@ Do not broaden secret backups without explaining why.
 - `nix/checks.nix` currently contains the Emacs byte-compile check.
 - `nix/templates.nix` exposes templates under `templates/`.
 
-When packaging Node/npm tools, follow the existing `buildNpmPackage` pattern and include fixed hashes. Package-generated Pi skills can be materialized into the Nix store, as with `todoist-cli-pi-skill`.
+When packaging Node/npm tools, follow the existing `buildNpmPackage` pattern and include fixed hashes.
 
 Manually pinned upstream packages that should receive automated update PRs are tracked by `.github/ci/update-package.py` and `.github/workflows/update-packages.yml`. Treat any new `fetchFromGitHub`/fixed-version package in `nix/packages/` as requiring an explicit updater decision: either add/update its updater spec and workflow matrix entry, or state why it is intentionally not CI-updated. If adding or renaming one, expose it as a buildable flake package when practical, add/update `.github/ci/update-package.py` plus `.github/workflows/update-packages.yml`, and validate with `nix run nixpkgs#actionlint -- .github/workflows/update-packages.yml`, a package build, and (when practical) a no-op/manual run of `.github/ci/update-package.py <package>`.
 

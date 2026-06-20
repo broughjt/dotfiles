@@ -112,7 +112,6 @@ in
       check_single_entry ${localDirectory}/secrets/pi/auth auth.json
       check_single_entry ${localDirectory}/secrets/pi/mcp mcp.json
       check_single_entry ${localDirectory}/config/pi/agent-browser-native config.json
-      check_single_entry ${localDirectory}/config/todoist-cli config.json
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg-agent.conf
     '';
@@ -174,12 +173,6 @@ in
       # pi-subagents run history and durable child-session metadata.
       {
         directory = "local/state/pi/subagents";
-        mode = "0700";
-      }
-      # todoist-cli's XDG config can include a plaintext API token fallback if
-      # the OS keyring is unavailable, so persist it with secret-like perms.
-      {
-        directory = "local/config/todoist-cli";
         mode = "0700";
       }
       {
@@ -276,13 +269,6 @@ in
       # ephemeral ~/local/cache/agent-browser by the wrapper.
       {
         directory = "local/state/agent-browser/home/.agent-browser";
-        mode = "0700";
-      }
-      # Todoist Electron's profile includes encrypted API token state plus
-      # cookies/local storage and app preferences. Rebuildable Chromium cache
-      # subtrees are symlinked to ephemeral ~/local/cache by todoist-electron.nix.
-      {
-        directory = "local/state/todoist-electron/profile";
         mode = "0700";
       }
       # Claude Code's CLAUDE_CONFIG_DIR points here. This is the ~/.claude

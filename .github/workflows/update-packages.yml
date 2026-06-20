@@ -27,7 +27,6 @@ jobs:
           - pi-subagents
           - pi-theme-sync
           - pi-agent-browser-native
-          - todoist-cli
           - emacs-lean4-mode
     steps:
       - name: Skip unrequested package
