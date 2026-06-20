@@ -29,13 +29,23 @@
   (marginalia-mode))
 
 (use-package consult
+  ;; Nix's `emacsWithPackages' puts packages on `load-path' but does not load
+  ;; package.el autoload files.  Loading Consult eagerly keeps non-bound
+  ;; commands such as `consult-theme' visible in `M-x' from startup.
+  :demand t
   :bind (("C-x b" . consult-buffer)
          ("C-x p b" . consult-project-buffer)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-imenu-multi)
          ("M-g l" . consult-line)
          ;; ("M-s d" . consult-find)
          ("M-s g" . consult-ripgrep)))
+
+(use-package consult-imenu
+  ;; Recent Consult versions split Imenu commands into `consult-imenu.el'.  A
+  ;; `use-package consult' binding would autoload from the wrong file and fail
+  ;; with "failed to define function consult-imenu".
+  :demand t
+  :bind (("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)))
 
 (use-package orderless
   :custom
