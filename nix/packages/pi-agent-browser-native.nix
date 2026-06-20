@@ -2,13 +2,13 @@ pkgs:
 
 pkgs.stdenvNoCC.mkDerivation rec {
   pname = "pi-agent-browser-native";
-  version = "0.2.51";
+  version = "0.2.53";
 
   src = pkgs.fetchFromGitHub {
     owner = "fitchmultz";
     repo = "pi-agent-browser-native";
-    rev = "b2ff7637f8c0ae4a680719b37cd9b7c44fc03780";
-    hash = "sha256-HwgT/hCKSLZGWXVzAEp/Bi46URSuzU34E7MqFYLmnxo=";
+    rev = "63580de9d3c465872d51210cd201e4639f7a8e0b";
+    hash = "sha256-c8tblDWPPzNRuLQIgDMkCv1seg+xsnOMQJbUTk8Leug=";
   };
 
   installPhase = ''
