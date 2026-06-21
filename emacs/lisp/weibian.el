@@ -14,11 +14,12 @@
 ;; `#link-node("<id>")[description]'.
 
 (require 'calc)
+(require 'json)
 (require 'seq)
 (require 'subr-x)
 
-(defvar weibian-directory "~/repositories/notes-migration/"
-  "Root of the Weibian notes repository.")
+(defconst weibian--project-marker "weibian.json"
+  "Marker/config file at the root of a Weibian notes repository.")
 
 ;;; Base-36 ids (shared namespace across notes and subnodes)
 
@@ -33,6 +34,37 @@
     (if (< (length digits) 4)
         (concat (make-string (- 4 (length digits)) ?0) digits)
       digits)))
+
+;;; Project discovery and config
+
+(defun weibian--project-root (&optional directory)
+  "Return the Weibian project root containing DIRECTORY.
+DIRECTORY defaults to `default-directory'. Signal `user-error' when not
+inside a Weibian project."
+  (let ((root (locate-dominating-file (or directory default-directory)
+                                      weibian--project-marker)))
+    (unless root
+      (user-error "Not inside a Weibian project (no %s in this or any parent directory)"
+                  weibian--project-marker))
+    (file-name-as-directory (expand-file-name root))))
+
+(defun weibian--project-config (&optional root)
+  "Read and return weibian.json from ROOT as an alist."
+  (let ((file (expand-file-name weibian--project-marker
+                                (or root (weibian--project-root)))))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (json-parse-buffer :object-type 'alist :array-type 'list))))
+
+(defun weibian--source-globs (&optional root)
+  "Return the source glob strings from ROOT's weibian.json."
+  (let* ((config (weibian--project-config root))
+         (sources (alist-get 'sources config)))
+    (unless (and (listp sources) (seq-every-p #'stringp sources))
+      (user-error "%s sources must be a JSON array of strings"
+                  weibian--project-marker))
+    sources))
 
 ;;; Scanning
 
@@ -96,26 +128,27 @@ after the matching `]'."
           (goto-char (cdr bracket))))
       (nreverse nodes))))
 
-(defun weibian--source-files ()
-  "Return the list of note source files to scan."
-  (let* ((root (expand-file-name weibian-directory))
-         (notes (expand-file-name "notes" root))
-         (barb (expand-file-name "subtrees/barb/source" root)))
-    (append
-     (when (file-directory-p notes)
-       (directory-files notes t "\\.typ\\'"))
-     (when (file-directory-p barb)
-       (directory-files-recursively barb "\\.typ\\'")))))
+(defun weibian--source-files (&optional root)
+  "Return the list of note source files to scan for ROOT.
+Source globs are read from weibian.json."
+  (let ((root (weibian--project-root root)))
+    (delete-dups
+     (sort
+      (apply #'append
+             (mapcar (lambda (glob)
+                       (file-expand-wildcards (expand-file-name glob root) t))
+                     (weibian--source-globs root)))
+      #'string<))))
 
-(defun weibian-nodes ()
+(defun weibian-nodes (&optional root)
   "Scan all note sources and return a flat list of node plists.
 Each plist has :id, :title, :taxon, :file, :pos, and :kind."
-  (apply #'append (mapcar #'weibian--scan-file (weibian--source-files))))
+  (apply #'append (mapcar #'weibian--scan-file (weibian--source-files root))))
 
-(defun weibian--next-id ()
-  "Return the next free four-digit base-36 id across all nodes."
+(defun weibian--next-id (&optional root)
+  "Return the next free four-digit base-36 id across all nodes in ROOT."
   (let ((highest 0))
-    (dolist (node (weibian-nodes))
+    (dolist (node (weibian-nodes root))
       (let ((id (plist-get node :id)))
         (when (string-match-p "\\`[0-9a-z]\\{4\\}\\'" id)
           (setq highest (max highest (base36-parse id))))))
@@ -123,10 +156,10 @@ Each plist has :id, :title, :taxon, :file, :pos, and :kind."
 
 ;;; Completion
 
-(defun weibian--candidate-table ()
-  "Return a hash table mapping candidate strings to node plists.
+(defun weibian--candidate-table (&optional root)
+  "Return a hash table mapping candidate strings to node plists for ROOT.
 Titles shared by more than one node are disambiguated with their id."
-  (let ((nodes (weibian-nodes))
+  (let ((nodes (weibian-nodes root))
         (counts (make-hash-table :test 'equal))
         (table (make-hash-table :test 'equal)))
     (dolist (node nodes)
@@ -140,9 +173,9 @@ Titles shared by more than one node are disambiguated with their id."
         (puthash candidate node table)))
     table))
 
-(defun weibian--affixation-function (table)
+(defun weibian--affixation-function (table &optional root)
   "Return an affixation function over TABLE: taxon prefix, file suffix."
-  (let ((root (expand-file-name weibian-directory)))
+  (let ((root (weibian--project-root root)))
     (lambda (candidates)
       (mapcar
        (lambda (candidate)
@@ -158,8 +191,9 @@ Titles shared by more than one node are disambiguated with their id."
 
 (defun weibian--read-node (prompt)
   "Prompt with PROMPT for a node and return its plist."
-  (let* ((table (weibian--candidate-table))
-         (affix (weibian--affixation-function table))
+  (let* ((root (weibian--project-root))
+         (table (weibian--candidate-table root))
+         (affix (weibian--affixation-function table root))
          (collection
           (lambda (string predicate action)
             (if (eq action 'metadata)
@@ -229,7 +263,7 @@ bare `#link-node(\"id\")'."
     (unless id
       (user-error "No #link-node at point"))
     (let ((node (seq-find (lambda (n) (equal (plist-get n :id) id))
-                          (weibian-nodes))))
+                          (weibian-nodes (weibian--project-root)))))
       (unless node
         (user-error "No node with id %s" id))
       (weibian--visit node))))
@@ -237,8 +271,9 @@ bare `#link-node(\"id\")'."
 (defun weibian-new-note (title)
   "Create a new note under notes/ titled TITLE and visit it."
   (interactive "sNote title: ")
-  (let* ((id (weibian--next-id))
-         (dir (expand-file-name "notes" (expand-file-name weibian-directory)))
+  (let* ((root (weibian--project-root))
+         (id (weibian--next-id root))
+         (dir (expand-file-name "notes" root))
          (path (expand-file-name (concat id ".typ") dir)))
     (when (file-exists-p path)
       (user-error "Note file already exists: %s" path))
@@ -253,7 +288,7 @@ bare `#link-node(\"id\")'."
 (defun weibian-insert-subnode (title)
   "Insert a `#subnode' skeleton titled TITLE at point, with a fresh id."
   (interactive "sSubnode title: ")
-  (let ((id (weibian--next-id)))
+  (let ((id (weibian--next-id (weibian--project-root))))
     (insert (format "#subnode(\"%s\", [%s])[\n  \n]\n" id title))
     (forward-line -2)
     (end-of-line)))
