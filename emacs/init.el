@@ -143,7 +143,8 @@
         language-javascript
         language-verilog
         language-markdown
-        language-lean))
+        language-lean
+        weibian))
 
 ;; typst-ts-mode is intentionally omitted from the Darwin package set because
 ;; the work Mac has trouble fetching/building the NonGNU ELPA source during Nix
