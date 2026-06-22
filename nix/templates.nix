@@ -1,4 +1,12 @@
 {
+  c = {
+    path = ../templates/c;
+    description = "C template";
+  };
+  cpp = {
+    path = ../templates/cpp;
+    description = "C++ template";
+  };
   rust = {
     path = ../templates/rust;
     description = "Rust template";
