@@ -136,6 +136,7 @@
         language-tex
         language-racket
         language-rust
+        language-c-cpp
         language-haskell
         language-nix-config
         language-python
