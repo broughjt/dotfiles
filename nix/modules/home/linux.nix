@@ -155,7 +155,6 @@
         };
 
         home.packages = with pkgs; [
-          direnv
           fd
           go-grip
           jq
@@ -163,6 +162,11 @@
           lldb
           ripgrep
         ];
+
+        programs.direnv = {
+          enable = true;
+          nix-direnv.enable = true;
+        };
 
         # Home Manager's fish module enables man-db cache generation by default
         # so fish can complete `man` topics via `apropos`. That creates a
