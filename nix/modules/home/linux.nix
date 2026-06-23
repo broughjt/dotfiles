@@ -103,6 +103,11 @@
       ];
 
       programs.ssh.extraConfig = ''
+        Host jtbroug-localhost-2222
+          HostName localhost
+          User jtbroug
+          Port 2222
+
         Match localuser ${user}
           AddKeysToAgent yes
           IdentityFile ${localDirectory}/secrets/ssh/id_ed25519

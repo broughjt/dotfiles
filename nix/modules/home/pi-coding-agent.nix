@@ -36,6 +36,7 @@ let
   piPackagesDir = "${piAgentDir}/packages";
   piSkillsDir = "${piAgentDir}/skills";
   piExtensionsDir = "${piAgentDir}/extensions";
+  piSshExtension = "${pkgs.llm-agents.pi}/lib/node_modules/@earendil-works/pi-coding-agent/examples/extensions/ssh.ts";
   piSubagentsConfigDir = "${piExtensionsDir}/subagent";
   piSubagentsStateDir = "${localDirectory}/state/pi/subagents";
   piSubagentsAgentsDir = "${localDirectory}/hacks/pi/subagents/agents";
@@ -180,6 +181,7 @@ in
       ln -sfnT ${lib.escapeShellArg piSubagentsConfig} ${
         lib.escapeShellArg (piSubagentsConfigDir + "/config.json")
       }
+      ln -sfnT ${lib.escapeShellArg piSshExtension} ${lib.escapeShellArg (piExtensionsDir + "/ssh.ts")}
       ln -sfnT ${lib.escapeShellArg piWebMinimal} ${
         lib.escapeShellArg (piPackagesDir + "/pi-web-minimal")
       }
@@ -231,6 +233,7 @@ in
     "L+ ${piAgentDir}/run-history.jsonl - - - - ${piSubagentsRunHistoryFile}"
     "L+ ${piAgentDir}/theme-sync.json - - - - ${piThemeSyncConfigFile}"
     "L+ ${piSubagentsConfigDir}/config.json - - - - ${piSubagentsConfig}"
+    "L+ ${piExtensionsDir}/ssh.ts - - - - ${piSshExtension}"
     "L+ ${piPackagesDir}/pi-web-minimal - - - - ${piWebMinimal}"
     "L+ ${piPackagesDir}/pi-mcp-adapter - - - - ${piMcpAdapter}"
     "L+ ${piPackagesDir}/pi-agent-browser-native - - - - ${piAgentBrowserNative}"
