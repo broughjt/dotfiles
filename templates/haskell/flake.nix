@@ -12,30 +12,8 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        hs = pkgs.haskellPackages;
-
         packageName = "haskell-project";
-
-        haskellDeps = hpkgs: [
-          hpkgs.base
-        ];
-
-        ghcWithDeps = hs.ghcWithPackages haskellDeps;
-
-        package = hs.callPackage
-          ({ base, lib }:
-            hs.mkDerivation {
-              pname = packageName;
-              version = "0.1.0.0";
-              src = lib.cleanSource ./.;
-              isLibrary = false;
-              isExecutable = true;
-              executableHaskellDepends = [ base ];
-              description = "Haskell project";
-              license = lib.licenses.bsd3;
-              mainProgram = packageName;
-            })
-          { };
+        package = pkgs.haskellPackages.callCabal2nix packageName ./. { };
       in
       {
         packages = {
@@ -49,9 +27,10 @@
           meta.description = "Run ${packageName}";
         };
 
-        devShells.default = pkgs.mkShell {
-          packages = [
-            ghcWithDeps
+        devShells.default = pkgs.haskellPackages.shellFor {
+          packages = _: [ package ];
+
+          buildInputs = [
             pkgs.cabal-install
             pkgs.haskell-language-server
             pkgs.fourmolu
