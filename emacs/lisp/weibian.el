@@ -98,10 +98,12 @@ the scan did not land on the default."
 ;;; Scanning
 
 (defconst weibian--node-regexp
-  "\\(node\\.with\\|subnode\\)(\"\\([0-9a-z]+\\)\",[[:space:]]*\\["
+  "\\(node\\.with\\|subnode\\)([[:space:]]*\"\\([0-9a-z]+\\)\",[[:space:]]*\\["
   "Match a `node.with(\"id\", [' or `subnode(\"id\", [' opening.
 Group 1 is the kind, group 2 is the id; the match ends just past the
-title's opening bracket.")
+title's opening bracket. Whitespace (including newlines) is tolerated
+after `(' and before the title `[', so a header wrapped across several
+lines still matches.")
 
 (defconst weibian--link-regexp
   "#link-node(\"\\([0-9a-z]+\\)\")\\(\\[\\)?"
@@ -130,23 +132,56 @@ after the matching `]'."
   "Collapse whitespace in STRING for display."
   (replace-regexp-in-string "[ \t\n]+" " " (string-trim string)))
 
-(defun weibian--taxon-after (pos)
-  "Return a `taxon: \"...\"' value found between POS and end of line, or nil."
+(defun weibian--call-args-end (pos)
+  "Return the position just after the `)' closing the call continuing at POS.
+
+POS is just past a node/subnode call's title block; the remaining
+arguments (taxon, tags, ...) run from there to the call's closing paren.
+Skips string literals and balances nested parens -- e.g. a `tags: (...)'
+tuple -- so only the call's own `)' ends the scan. Returns nil if it
+never closes.
+
+The arguments after the title are strings, tuples, and atoms (never a
+content `[...]' block in this corpus), so unlike `weibian--content-end'
+this only has to track parens and strings, not the full span zoo. It is
+what bounds the taxon/tags scans, so a header wrapped across lines (with
+`taxon:'/`tags:' on a line past the title) is still searched in full."
+  (save-excursion
+    (goto-char pos)
+    (let ((depth 0) (result nil) (end (point-max)))
+      (while (and (not result) (< (point) end))
+        (let ((c (char-after)))
+          (cond
+           ((eq c ?\\) (forward-char 2))
+           ((eq c ?\") (weibian--skip-delimited ?\"))
+           ((eq c ?\() (setq depth (1+ depth)) (forward-char))
+           ((eq c ?\))
+            (forward-char)
+            (if (zerop depth) (setq result (point)) (setq depth (1- depth))))
+           (t (forward-char)))))
+      result)))
+
+(defun weibian--taxon-after (pos &optional limit)
+  "Return a `taxon: \"...\"' value found between POS and LIMIT, or nil.
+LIMIT defaults to the end of POS's line; pass the call's argument-list
+end (see `weibian--call-args-end') to find a taxon on a wrapped header."
   (save-excursion
     (goto-char pos)
     (when (re-search-forward "taxon:[[:space:]]*\"\\([a-z]+\\)\""
-                             (line-end-position) t)
+                             (or limit (line-end-position)) t)
       (match-string-no-properties 1))))
 
-(defun weibian--tags-after (pos)
-  "Return the `tags: (\"...\", ...)' strings between POS and end of line.
+(defun weibian--tags-after (pos &optional limit)
+  "Return the `tags: (\"...\", ...)' strings between POS and LIMIT.
+LIMIT defaults to the end of POS's line; pass the call's argument-list
+end (see `weibian--call-args-end') to find tags on a wrapped header.
 Returns nil when there is no tags argument. Tags are an array of string
 literals; the corpus does not use them yet, but the node API supports
 them and they are rendered as chips, so we scan them so search is ready."
   (save-excursion
     (goto-char pos)
     (when (re-search-forward "tags:[[:space:]]*(\\([^)]*\\))"
-                             (line-end-position) t)
+                             (or limit (line-end-position)) t)
       (let ((inner (match-string-no-properties 1))
             (tags '())
             (start 0))
@@ -167,8 +202,9 @@ them and they are rendered as chips, so we scan them so search is ready."
                (open (1- (match-end 0)))
                (bracket (weibian--bracket-content open))
                (title (weibian--normalize (car bracket)))
-               (taxon (or (weibian--taxon-after (cdr bracket)) "note"))
-               (tags (weibian--tags-after (cdr bracket))))
+               (args-end (weibian--call-args-end (cdr bracket)))
+               (taxon (or (weibian--taxon-after (cdr bracket) args-end) "note"))
+               (tags (weibian--tags-after (cdr bracket) args-end)))
           (push (list :id id :title title :taxon taxon :tags tags
                       :file file :pos (match-beginning 0) :kind kind)
                 nodes)
@@ -416,7 +452,8 @@ not a `#link-node' under point."
                (bracket (weibian--bracket-content (1- (match-end 0))))
                (title (weibian--normalize (car bracket)))
                (title-end (cdr bracket))
-               (taxon (or (weibian--taxon-after title-end) "note")))
+               (args-end (weibian--call-args-end title-end))
+               (taxon (or (weibian--taxon-after title-end args-end) "note")))
           (cond
            ;; `node.with' has no delimiting body bracket -- it is applied to the
            ;; rest of the file via `#show'. Treat it as the file root: the
