@@ -98,12 +98,16 @@ the scan did not land on the default."
 ;;; Scanning
 
 (defconst weibian--node-regexp
-  "\\(node\\.with\\|subnode\\)([[:space:]]*\"\\([0-9a-z]+\\)\",[[:space:]]*\\["
+  "\\(node\\.with\\|subnode\\)([ \t\n\r]*\"\\([0-9a-z]+\\)\",[ \t\n\r]*\\["
   "Match a `node.with(\"id\", [' or `subnode(\"id\", [' opening.
 Group 1 is the kind, group 2 is the id; the match ends just past the
 title's opening bracket. Whitespace (including newlines) is tolerated
 after `(' and before the title `[', so a header wrapped across several
-lines still matches.")
+lines still matches.
+
+Use an explicit newline-inclusive whitespace class rather than
+`[[:space:]]': across Emacs builds/modes that class is not a reliable
+way to match wrapped Typst call headers.")
 
 (defconst weibian--link-regexp
   "#link-node(\"\\([0-9a-z]+\\)\")\\(\\[\\)?"
@@ -440,41 +444,46 @@ inside any node, e.g. a buffer with no node declaration.
 Unlike `weibian--link-id-at-point', this is about the node point sits in,
 not a `#link-node' under point."
   (save-excursion
-    (let ((target (point))
-          (root nil)
-          (best nil)
-          (best-beg -1))
-      (goto-char (point-min))
-      (while (re-search-forward weibian--node-regexp nil t)
-        (let* ((subnode? (equal (match-string 1) "subnode"))
-               (id (match-string-no-properties 2))
-               (beg (match-beginning 0))
-               (bracket (weibian--bracket-content (1- (match-end 0))))
-               (title (weibian--normalize (car bracket)))
-               (title-end (cdr bracket))
-               (args-end (weibian--call-args-end title-end))
-               (taxon (or (weibian--taxon-after title-end args-end) "note")))
-          (cond
-           ;; `node.with' has no delimiting body bracket -- it is applied to the
-           ;; rest of the file via `#show'. Treat it as the file root: the
-           ;; fallback used when no subnode encloses point. Record the first one.
-           ((not subnode?)
-            (unless root
-              (setq root (list :id id :title title :taxon taxon :kind 'note))))
-           ;; A subnode's body is the bracket block following the call -- the
-           ;; next `[' past the title. No argument after the title carries a
-           ;; bracket in this corpus (taxon and tags are strings), so the next
-           ;; `[' is the body opener. Computed in an excursion so the outer scan
-           ;; keeps descending past it into any nested subnodes.
-           (t
-            (let ((end (save-excursion
-                         (goto-char title-end)
-                         (when (re-search-forward "\\[" nil t)
-                           (weibian--content-end (1- (point)))))))
-              (when (and end (<= beg target) (<= target end) (> beg best-beg))
-                (setq best (list :id id :title title :taxon taxon :kind 'subnode)
-                      best-beg beg)))))))
-      (or best root))))
+    ;; Commands like `narrow-to-region' can hide the file-level `#show:
+    ;; node.with(...)' header even though point is still inside that node's body.
+    ;; Node detection is a whole-buffer question, so ignore narrowing here.
+    (save-restriction
+      (widen)
+      (let ((target (point))
+            (root nil)
+            (best nil)
+            (best-beg -1))
+        (goto-char (point-min))
+        (while (re-search-forward weibian--node-regexp nil t)
+          (let* ((subnode? (equal (match-string 1) "subnode"))
+                 (id (match-string-no-properties 2))
+                 (beg (match-beginning 0))
+                 (bracket (weibian--bracket-content (1- (match-end 0))))
+                 (title (weibian--normalize (car bracket)))
+                 (title-end (cdr bracket))
+                 (args-end (weibian--call-args-end title-end))
+                 (taxon (or (weibian--taxon-after title-end args-end) "note")))
+            (cond
+             ;; `node.with' has no delimiting body bracket -- it is applied to the
+             ;; rest of the file via `#show'. Treat it as the file root: the
+             ;; fallback used when no subnode encloses point. Record the first one.
+             ((not subnode?)
+              (unless root
+                (setq root (list :id id :title title :taxon taxon :kind 'note))))
+             ;; A subnode's body is the bracket block following the call -- the
+             ;; next `[' past the title. No argument after the title carries a
+             ;; bracket in this corpus (taxon and tags are strings), so the next
+             ;; `[' is the body opener. Computed in an excursion so the outer scan
+             ;; keeps descending past it into any nested subnodes.
+             (t
+              (let ((end (save-excursion
+                           (goto-char title-end)
+                           (when (re-search-forward "\\[" nil t)
+                             (weibian--content-end (1- (point)))))))
+                (when (and end (<= beg target) (<= target end) (> beg best-beg))
+                  (setq best (list :id id :title title :taxon taxon :kind 'subnode)
+                        best-beg beg)))))))
+        (or best root)))))
 
 ;;; Commands
 
