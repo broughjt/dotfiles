@@ -128,6 +128,49 @@ after the matching `]'."
           (goto-char (cdr bracket))))
       (nreverse nodes))))
 
+(defun weibian--glob->regexp (glob)
+  "Translate a restricted shell GLOB into an anchored regexp over full paths.
+`**' matches any number of path components (including none); `*' matches a
+run of non-slash characters; `?' matches one non-slash character. Other
+characters are matched literally."
+  (let ((out "")
+        (i 0)
+        (n (length glob)))
+    (while (< i n)
+      (let ((c (aref glob i)))
+        (cond
+         ((and (eq c ?*) (< (1+ i) n) (eq (aref glob (1+ i)) ?*))
+          ;; `**/' collapses an optional run of directories; a trailing `**'
+          ;; matches the rest of the path.
+          (cond
+           ((and (< (+ i 2) n) (eq (aref glob (+ i 2)) ?/))
+            (setq out (concat out "\\(?:.*/\\)?")
+                  i (+ i 3)))
+           (t (setq out (concat out ".*")
+                    i (+ i 2)))))
+         ((eq c ?*) (setq out (concat out "[^/]*") i (1+ i)))
+         ((eq c ??) (setq out (concat out "[^/]") i (1+ i)))
+         (t (setq out (concat out (regexp-quote (char-to-string c)))
+                  i (1+ i))))))
+    (concat "\\`" out "\\'")))
+
+(defun weibian--expand-glob (glob)
+  "Expand absolute GLOB to a list of matching files.
+Unlike `file-expand-wildcards', this supports `**' as a recursive
+wildcard matching any number of intervening directories, matching the
+`file/glob' semantics weibian.json's globs are written against. The
+build tool reads these same globs, so the two must agree on `**'."
+  (if (not (string-match-p "\\*\\*" glob))
+      (file-expand-wildcards glob t)
+    ;; Walk the tree from the static prefix (everything before the first
+    ;; wildcard) and keep the files whose full path matches the glob.
+    (let ((base (file-name-directory
+                 (substring glob 0 (string-match "[*?]" glob))))
+          (regexp (weibian--glob->regexp glob)))
+      (when (file-directory-p base)
+        (seq-filter (lambda (file) (string-match-p regexp file))
+                    (directory-files-recursively base ".*"))))))
+
 (defun weibian--source-files (&optional root)
   "Return the list of note source files to scan for ROOT.
 Source globs are read from weibian.json."
@@ -136,7 +179,7 @@ Source globs are read from weibian.json."
      (sort
       (apply #'append
              (mapcar (lambda (glob)
-                       (file-expand-wildcards (expand-file-name glob root) t))
+                       (weibian--expand-glob (expand-file-name glob root)))
                      (weibian--source-globs root)))
       #'string<))))
 
