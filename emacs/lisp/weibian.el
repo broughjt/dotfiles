@@ -17,6 +17,19 @@
 (require 'json)
 (require 'seq)
 (require 'subr-x)
+(require 'url)
+
+(defgroup weibian nil
+  "Editing support for the Typst-bundle note system."
+  :group 'tools
+  :prefix "weibian-")
+
+(defcustom weibian-server-url "http://127.0.0.1:3000"
+  "Fallback base URL of the `weibian watch' dev server.
+Used by `weibian-browse-node-at-point' only when the running server's URL
+file (written by `weibian watch') is absent -- e.g. the watch is not
+running, or used a non-default port the file would otherwise report."
+  :type 'string)
 
 (defconst weibian--project-marker "weibian.json"
   "Marker/config file at the root of a Weibian notes repository.")
@@ -65,6 +78,22 @@ inside a Weibian project."
       (user-error "%s sources must be a JSON array of strings"
                   weibian--project-marker))
     sources))
+
+(defun weibian--server-url (&optional root)
+  "Return the running dev server's base URL for ROOT, else `weibian-server-url'.
+`weibian watch' writes its chosen URL to a file under the project's watch
+inputs directory; read it so navigation reaches the actual port even when
+the scan did not land on the default."
+  (let* ((root (weibian--project-root root))
+         (file (expand-file-name ".typst-dependencies/watch-inputs/server.json"
+                                 root)))
+    (or (and (file-readable-p file)
+             (ignore-errors
+               (with-temp-buffer
+                 (insert-file-contents file)
+                 (goto-char (point-min))
+                 (alist-get 'url (json-parse-buffer :object-type 'alist)))))
+        weibian-server-url)))
 
 ;;; Scanning
 
@@ -300,6 +329,116 @@ beginning before point."
         (when (re-search-backward weibian--link-regexp nil t)
           (match-string-no-properties 1)))))
 
+(defun weibian--skip-delimited (delim)
+  "Point is on DELIM, which opens a span closed by the next unescaped DELIM.
+Move point past the closing DELIM (or to end of buffer). Used for string
+literals (\") and math (\\=$), where brackets are not content delimiters."
+  (forward-char)
+  (let ((end (point-max)))
+    (while (and (< (point) end) (not (eq (char-after) delim)))
+      (if (eq (char-after) ?\\) (forward-char 2) (forward-char)))
+    (when (< (point) end) (forward-char))))
+
+(defun weibian--skip-raw ()
+  "Point is on a backtick run opening a raw span; move past the closing run.
+Typst raw is delimited by matching runs of backticks (one for inline, three
+or more for a block), so a span opened by N backticks ends at the next run
+of at least N. Brackets inside Agda code blocks are thus ignored."
+  (let ((end (point-max)) (ticks 0))
+    (while (and (< (point) end) (eq (char-after) ?`))
+      (setq ticks (1+ ticks))
+      (forward-char))
+    (let ((closed nil))
+      (while (and (not closed) (< (point) end))
+        (if (eq (char-after) ?`)
+            (let ((run 0))
+              (while (and (< (point) end) (eq (char-after) ?`))
+                (setq run (1+ run))
+                (forward-char))
+              (when (>= run ticks) (setq closed t)))
+          (forward-char))))))
+
+(defun weibian--content-end (open)
+  "Return the position just after the `]' closing the content block at OPEN.
+OPEN is the position of a `['. Counts `[' / `]' nesting but skips the Typst
+spans where brackets are not content delimiters -- string literals, math
+`$...$', raw `\\=`...\\=`' / ```...``` blocks, and line/block comments -- and
+honours backslash escapes. Returns nil if the block never closes.
+
+A node body's literate-Agda and math content contains unbalanced brackets,
+so the naive counter `weibian--bracket-content' (fine for plain titles)
+miscounts it; this is the scanner for body extents."
+  (save-excursion
+    (goto-char open)
+    (let ((depth 0) (result nil) (end (point-max)))
+      (while (and (not result) (< (point) end))
+        (let ((c (char-after))
+              (next (char-after (1+ (point)))))
+          (cond
+           ((eq c ?\\) (forward-char 2))
+           ((and (eq c ?/) (eq next ?/)) (forward-line 1))
+           ((and (eq c ?/) (eq next ?*))
+            (forward-char 2)
+            (unless (search-forward "*/" nil t) (goto-char end)))
+           ((eq c ?\") (weibian--skip-delimited ?\"))
+           ((eq c ?$) (weibian--skip-delimited ?$))
+           ((eq c ?`) (weibian--skip-raw))
+           ((eq c ?\[) (setq depth (1+ depth)) (forward-char))
+           ((eq c ?\])
+            (setq depth (1- depth))
+            (forward-char)
+            (when (zerop depth) (setq result (point))))
+           (t (forward-char)))))
+      result)))
+
+(defun weibian--node-at-point ()
+  "Return the plist of the innermost node or subnode enclosing point.
+Scans the current buffer. A top-level `node.with' (a note file's node or
+a Barb module) encloses the whole file and is the fallback container;
+each `#subnode(...)[...]' encloses its declaration through the end of its
+body. Among all nodes whose range contains point, the one with the
+latest start wins, so a subnode beats the module that contains it (and a
+nested subnode would beat its parent). Returns nil when point is not
+inside any node, e.g. a buffer with no node declaration.
+
+Unlike `weibian--link-id-at-point', this is about the node point sits in,
+not a `#link-node' under point."
+  (save-excursion
+    (let ((target (point))
+          (root nil)
+          (best nil)
+          (best-beg -1))
+      (goto-char (point-min))
+      (while (re-search-forward weibian--node-regexp nil t)
+        (let* ((subnode? (equal (match-string 1) "subnode"))
+               (id (match-string-no-properties 2))
+               (beg (match-beginning 0))
+               (bracket (weibian--bracket-content (1- (match-end 0))))
+               (title (weibian--normalize (car bracket)))
+               (title-end (cdr bracket))
+               (taxon (or (weibian--taxon-after title-end) "note")))
+          (cond
+           ;; `node.with' has no delimiting body bracket -- it is applied to the
+           ;; rest of the file via `#show'. Treat it as the file root: the
+           ;; fallback used when no subnode encloses point. Record the first one.
+           ((not subnode?)
+            (unless root
+              (setq root (list :id id :title title :taxon taxon :kind 'note))))
+           ;; A subnode's body is the bracket block following the call -- the
+           ;; next `[' past the title. No argument after the title carries a
+           ;; bracket in this corpus (taxon and tags are strings), so the next
+           ;; `[' is the body opener. Computed in an excursion so the outer scan
+           ;; keeps descending past it into any nested subnodes.
+           (t
+            (let ((end (save-excursion
+                         (goto-char title-end)
+                         (when (re-search-forward "\\[" nil t)
+                           (weibian--content-end (1- (point)))))))
+              (when (and end (<= beg target) (<= target end) (> beg best-beg))
+                (setq best (list :id id :title title :taxon taxon :kind 'subnode)
+                      best-beg beg)))))))
+      (or best root))))
+
 ;;; Commands
 
 (defun weibian-find-note ()
@@ -363,10 +502,52 @@ bare `#link-node(\"id\")'."
     (forward-line -2)
     (end-of-line)))
 
+(defun weibian--navigate-request (base id)
+  "Ask the dev server at BASE to navigate its current tab to node ID.
+Return the decoded JSON alist (keys `navigated' and `tabs') on success,
+or nil when the server is unreachable or errors -- the caller then opens a
+new browser tab instead."
+  (let ((url-request-method "POST")
+        (url-request-extra-headers '(("Content-Type" . "application/json")))
+        (url-request-data (encode-coding-string (json-serialize `((id . ,id)))
+                                                'utf-8)))
+    (ignore-errors
+      (with-current-buffer
+          (url-retrieve-synchronously (concat base "/__navigate") t t 2)
+        (goto-char (point-min))
+        (when (re-search-forward "\n\n" nil t)
+          (json-parse-buffer :object-type 'alist :false-object nil))))))
+
+(defun weibian-browse-node-at-point (&optional new-tab)
+  "Open the node or subnode enclosing point in the browser.
+With a running `weibian watch', this navigates the most-recently-active
+tab to the node, reusing it; if no tab is open it opens a new one. With a
+prefix argument NEW-TAB, always open a new browser tab (e.g. to compare
+two nodes side by side)."
+  (interactive "P")
+  (let* ((node (weibian--node-at-point))
+         (id (and node (plist-get node :id))))
+    (unless id
+      (user-error "Point is not inside a node"))
+    (let* ((base (weibian--server-url))
+           (url (format "%s/%s.html" base id))
+           (response (and (not new-tab) (weibian--navigate-request base id))))
+      (cond
+       ((and response (alist-get 'navigated response))
+        (let ((tabs (alist-get 'tabs response)))
+          (message "weibian: navigated to %s%s" id
+                   (if (and (integerp tabs) (> tabs 1))
+                       (format " (1 of %d tabs)" tabs)
+                     ""))))
+       (t
+        (browse-url url)
+        (message "weibian: opened %s in a new tab" id))))))
+
 (bind-key "C-c n f" #'weibian-find-note)
 (bind-key "C-c n i" #'weibian-insert-node)
 (bind-key "C-c n g" #'weibian-goto-note-at-point)
 (bind-key "C-c n c" #'weibian-new-note)
 (bind-key "C-c n s" #'weibian-insert-subnode)
+(bind-key "C-c n b" #'weibian-browse-node-at-point)
 
 (provide 'weibian)
