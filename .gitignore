@@ -1,5 +1,6 @@
 .direnv/
 .agent-shell/
-.claude/
+.claude/*
+!.claude/skills
 .scratch/
 __pycache__/
