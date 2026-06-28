@@ -109,6 +109,23 @@ after the matching `]'."
                              (line-end-position) t)
       (match-string-no-properties 1))))
 
+(defun weibian--tags-after (pos)
+  "Return the `tags: (\"...\", ...)' strings between POS and end of line.
+Returns nil when there is no tags argument. Tags are an array of string
+literals; the corpus does not use them yet, but the node API supports
+them and they are rendered as chips, so we scan them so search is ready."
+  (save-excursion
+    (goto-char pos)
+    (when (re-search-forward "tags:[[:space:]]*(\\([^)]*\\))"
+                             (line-end-position) t)
+      (let ((inner (match-string-no-properties 1))
+            (tags '())
+            (start 0))
+        (while (string-match "\"\\([^\"]*\\)\"" inner start)
+          (push (match-string 1 inner) tags)
+          (setq start (match-end 0)))
+        (nreverse tags)))))
+
 (defun weibian--scan-file (file)
   "Return the list of node plists defined in FILE."
   (with-temp-buffer
@@ -121,8 +138,9 @@ after the matching `]'."
                (open (1- (match-end 0)))
                (bracket (weibian--bracket-content open))
                (title (weibian--normalize (car bracket)))
-               (taxon (or (weibian--taxon-after (cdr bracket)) "note")))
-          (push (list :id id :title title :taxon taxon
+               (taxon (or (weibian--taxon-after (cdr bracket)) "note"))
+               (tags (weibian--tags-after (cdr bracket))))
+          (push (list :id id :title title :taxon taxon :tags tags
                       :file file :pos (match-beginning 0) :kind kind)
                 nodes)
           (goto-char (cdr bracket))))
@@ -199,21 +217,30 @@ Each plist has :id, :title, :taxon, :file, :pos, and :kind."
 
 ;;; Completion
 
+(defun weibian--candidate (node)
+  "Return the completion candidate string for NODE.
+The visible text is the title; the id, taxon, and tags are appended as
+an `invisible' suffix. The characters stay in the string, so completion
+styles match on them (type an id, taxon, or tag to narrow) and the hash
+lookup resolves, but the minibuffer hides text carrying a non-nil
+`invisible' property, so the displayed list stays titles only. Including
+the id makes every candidate unique, which is why identically-titled
+nodes no longer need a visible \"(id)\" suffix to disambiguate."
+  (let ((title (plist-get node :title))
+        (id (plist-get node :id))
+        (taxon (plist-get node :taxon))
+        (tags (plist-get node :tags)))
+    (concat title
+            (propertize (concat " " id " " taxon
+                                (and tags (concat " " (string-join tags " "))))
+                        'invisible t))))
+
 (defun weibian--candidate-table (&optional root)
   "Return a hash table mapping candidate strings to node plists for ROOT.
-Titles shared by more than one node are disambiguated with their id."
-  (let ((nodes (weibian-nodes root))
-        (counts (make-hash-table :test 'equal))
-        (table (make-hash-table :test 'equal)))
-    (dolist (node nodes)
-      (let ((title (plist-get node :title)))
-        (puthash title (1+ (gethash title counts 0)) counts)))
-    (dolist (node nodes)
-      (let* ((title (plist-get node :title))
-             (candidate (if (> (gethash title counts) 1)
-                            (format "%s (%s)" title (plist-get node :id))
-                          title)))
-        (puthash candidate node table)))
+See `weibian--candidate' for the candidate format."
+  (let ((table (make-hash-table :test 'equal)))
+    (dolist (node (weibian-nodes root))
+      (puthash (weibian--candidate node) node table))
     table))
 
 (defun weibian--affixation-function (table &optional root)
