@@ -541,10 +541,12 @@ bare `#link-node(\"id\")'."
     (goto-char (point-max))))
 
 (defun weibian-insert-subnode (title)
-  "Insert a `#subnode' skeleton titled TITLE at point, with a fresh id."
+  "Insert a `#subnode' skeleton titled TITLE at point, with a fresh id.
+Leave the initial body line unindented so literate Agda code blocks can stay
+flush-left; prose can still be indented manually or by `typst-ts-mode'."
   (interactive "sSubnode title: ")
   (let ((id (weibian--next-id (weibian--project-root))))
-    (insert (format "#subnode(\"%s\", [%s])[\n  \n]\n" id title))
+    (insert (format "#subnode(\"%s\", [%s])[\n\n]\n" id title))
     (forward-line -2)
     (end-of-line)))
 
