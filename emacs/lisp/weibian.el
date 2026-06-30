@@ -17,6 +17,7 @@
 (require 'json)
 (require 'seq)
 (require 'subr-x)
+(require 'treesit)
 (require 'url)
 
 (defgroup weibian nil
@@ -97,122 +98,158 @@ the scan did not land on the default."
 
 ;;; Scanning
 
-(defconst weibian--node-regexp
-  "\\(node\\.with\\|subnode\\)([ \t\n\r]*\"\\([0-9a-z]+\\)\",[ \t\n\r]*\\["
-  "Match a `node.with(\"id\", [' or `subnode(\"id\", [' opening.
-Group 1 is the kind, group 2 is the id; the match ends just past the
-title's opening bracket. Whitespace (including newlines) is tolerated
-after `(' and before the title `[', so a header wrapped across several
-lines still matches.
-
-Use an explicit newline-inclusive whitespace class rather than
-`[[:space:]]': across Emacs builds/modes that class is not a reliable
-way to match wrapped Typst call headers.")
-
-(defconst weibian--link-regexp
-  "#link-node(\"\\([0-9a-z]+\\)\")\\(\\[\\)?"
-  "Match a `#link-node(\"id\")' with an optional body opening.
-Group 1 is the target id.")
-
-(defun weibian--bracket-content (open)
-  "Given OPEN, the position of a `[', return (CONTENT . END).
-CONTENT is the bracket-balanced text between the brackets; END is just
-after the matching `]'."
-  (save-excursion
-    (goto-char open)
-    (let ((depth 0)
-          (start (1+ open)))
-      (while (and (not (eobp))
-                  (progn
-                    (pcase (char-after)
-                      (?\[ (setq depth (1+ depth)))
-                      (?\] (setq depth (1- depth))))
-                    (forward-char)
-                    (> depth 0))))
-      (cons (buffer-substring-no-properties start (1- (point)))
-            (point)))))
-
 (defun weibian--normalize (string)
   "Collapse whitespace in STRING for display."
   (replace-regexp-in-string "[ \t\n]+" " " (string-trim string)))
 
-(defun weibian--call-args-end (pos)
-  "Return the position just after the `)' closing the call continuing at POS.
+(defun weibian--treesit-root ()
+  "Return the Typst tree-sitter root node for the current buffer."
+  (unless (treesit-parser-list nil 'typst t)
+    (treesit-parser-create 'typst))
+  (treesit-buffer-root-node 'typst))
 
-POS is just past a node/subnode call's title block; the remaining
-arguments (taxon, tags, ...) run from there to the call's closing paren.
-Skips string literals and balances nested parens -- e.g. a `tags: (...)'
-tuple -- so only the call's own `)' ends the scan. Returns nil if it
-never closes.
+(defun weibian--treesit-walk (node fn)
+  "Call FN on NODE and every descendant."
+  (funcall fn node)
+  (dotimes (i (treesit-node-child-count node))
+    (weibian--treesit-walk (treesit-node-child node i) fn)))
 
-The arguments after the title are strings, tuples, and atoms (never a
-content `[...]' block in this corpus), so unlike `weibian--content-end'
-this only has to track parens and strings, not the full span zoo. It is
-what bounds the taxon/tags scans, so a header wrapped across lines (with
-`taxon:'/`tags:' on a line past the title) is still searched in full."
-  (save-excursion
-    (goto-char pos)
-    (let ((depth 0) (result nil) (end (point-max)))
-      (while (and (not result) (< (point) end))
-        (let ((c (char-after)))
-          (cond
-           ((eq c ?\\) (forward-char 2))
-           ((eq c ?\") (weibian--skip-delimited ?\"))
-           ((eq c ?\() (setq depth (1+ depth)) (forward-char))
-           ((eq c ?\))
-            (forward-char)
-            (if (zerop depth) (setq result (point)) (setq depth (1- depth))))
-           (t (forward-char)))))
-      result)))
+(defun weibian--treesit-named-children (node)
+  "Return NODE's named children."
+  (treesit-node-children node t))
 
-(defun weibian--taxon-after (pos &optional limit)
-  "Return a `taxon: \"...\"' value found between POS and LIMIT, or nil.
-LIMIT defaults to the end of POS's line; pass the call's argument-list
-end (see `weibian--call-args-end') to find a taxon on a wrapped header."
-  (save-excursion
-    (goto-char pos)
-    (when (re-search-forward "taxon:[[:space:]]*\"\\([a-z]+\\)\""
-                             (or limit (line-end-position)) t)
-      (match-string-no-properties 1))))
+(defun weibian--treesit-node-text (node)
+  "Return NODE's source text without text properties."
+  (treesit-node-text node t))
 
-(defun weibian--tags-after (pos &optional limit)
-  "Return the `tags: (\"...\", ...)' strings between POS and LIMIT.
-LIMIT defaults to the end of POS's line; pass the call's argument-list
-end (see `weibian--call-args-end') to find tags on a wrapped header.
-Returns nil when there is no tags argument. Tags are an array of string
-literals; the corpus does not use them yet, but the node API supports
-them and they are rendered as chips, so we scan them so search is ready."
-  (save-excursion
-    (goto-char pos)
-    (when (re-search-forward "tags:[[:space:]]*(\\([^)]*\\))"
-                             (or limit (line-end-position)) t)
-      (let ((inner (match-string-no-properties 1))
-            (tags '())
-            (start 0))
-        (while (string-match "\"\\([^\"]*\\)\"" inner start)
-          (push (match-string 1 inner) tags)
-          (setq start (match-end 0)))
-        (nreverse tags)))))
+(defun weibian--treesit-string-value (node)
+  "Return the unquoted source value of Typst string NODE."
+  (when (and node (string= (treesit-node-type node) "string"))
+    (let ((text (weibian--treesit-node-text node)))
+      (if (and (>= (length text) 2)
+               (eq (aref text 0) ?\")
+               (eq (aref text (1- (length text))) ?\"))
+          (substring text 1 -1)
+        text))))
+
+(defun weibian--treesit-content-text (node)
+  "Return the source text inside Typst content NODE's outer brackets."
+  (when (and node (string= (treesit-node-type node) "content"))
+    (let ((text (weibian--treesit-node-text node)))
+      (if (and (>= (length text) 2)
+               (eq (aref text 0) ?\[)
+               (eq (aref text (1- (length text))) ?\]))
+          (substring text 1 -1)
+        text))))
+
+(defun weibian--treesit-call-head (call)
+  "Return CALL's innermost function-call header.
+For a Typst body application like `subnode(...)[body]', the outer `call'
+has the header call as its item and the body content as a later child."
+  (let ((item (treesit-node-child-by-field-name call "item")))
+    (if (and item (string= (treesit-node-type item) "call"))
+        (weibian--treesit-call-head item)
+      call)))
+
+(defun weibian--treesit-call-name (call)
+  "Return CALL's callee name as source text, or nil."
+  (let* ((head (weibian--treesit-call-head call))
+         (item (treesit-node-child-by-field-name head "item")))
+    (when item
+      (weibian--treesit-node-text item))))
+
+(defun weibian--treesit-call-group (call)
+  "Return CALL's argument group node, or nil."
+  (let ((head (weibian--treesit-call-head call)))
+    (seq-find (lambda (child) (string= (treesit-node-type child) "group"))
+              (weibian--treesit-named-children head))))
+
+(defun weibian--treesit-call-body (call)
+  "Return CALL's trailing content body node, or nil.
+This is the `[body]' in `#subnode(...)[body]' or `#link-node(...)[body]',
+not a positional content argument inside the parenthesized group."
+  (let ((head (weibian--treesit-call-head call)))
+    (seq-find (lambda (child)
+                (and (string= (treesit-node-type child) "content")
+                     (>= (treesit-node-start child) (treesit-node-end head))))
+              (weibian--treesit-named-children call))))
+
+(defun weibian--treesit-arguments (call)
+  "Return the named syntax nodes inside CALL's parenthesized argument group."
+  (when-let* ((group (weibian--treesit-call-group call)))
+    (seq-filter (lambda (child)
+                  (not (string= (treesit-node-type child) "tagged")))
+                (weibian--treesit-named-children group))))
+
+(defun weibian--treesit-named-argument (call name)
+  "Return the value node for CALL's named argument NAME, or nil."
+  (when-let* ((group (weibian--treesit-call-group call)))
+    (seq-some (lambda (child)
+                (when (string= (treesit-node-type child) "tagged")
+                  (let ((field (treesit-node-child-by-field-name child "field")))
+                    (when (and field (string= (weibian--treesit-node-text field) name))
+                      (seq-find (lambda (grandchild)
+                                  (not (treesit-node-eq grandchild field)))
+                                (weibian--treesit-named-children child))))))
+              (weibian--treesit-named-children group))))
+
+(defun weibian--treesit-string-argument (call name)
+  "Return CALL's named string argument NAME, or nil."
+  (weibian--treesit-string-value (weibian--treesit-named-argument call name)))
+
+(defun weibian--treesit-tags-argument (call)
+  "Return CALL's `tags: (...)' string values, or nil when absent."
+  (when-let* ((tags-node (weibian--treesit-named-argument call "tags")))
+    (let (tags)
+      (weibian--treesit-walk
+       tags-node
+       (lambda (node)
+         (when (string= (treesit-node-type node) "string")
+           (push (weibian--treesit-string-value node) tags))))
+      (nreverse tags))))
+
+(defun weibian--treesit-node-plist (call kind &optional file)
+  "Build a Weibian node plist for Typst CALL of KIND in FILE."
+  (let* ((args (weibian--treesit-arguments call))
+         (id (weibian--treesit-string-value (nth 0 args)))
+         (title-node (nth 1 args))
+         (title (and title-node
+                     (weibian--normalize
+                      (weibian--treesit-content-text title-node))))
+         (taxon (or (weibian--treesit-string-argument call "taxon") "note"))
+         (tags (weibian--treesit-tags-argument call))
+         (supersedes (weibian--treesit-string-argument call "supersedes"))
+         (head (weibian--treesit-call-head call))
+         (plist (list :id id :title title :taxon taxon :tags tags
+                      :file file :pos (treesit-node-start head) :kind kind)))
+    (when supersedes
+      (setq plist (plist-put plist :supersedes supersedes)))
+    plist))
+
+(defun weibian--treesit-node-calls ()
+  "Return Typst calls that define Weibian nodes in the current buffer."
+  (let (calls)
+    (weibian--treesit-walk
+     (weibian--treesit-root)
+     (lambda (node)
+       (when (string= (treesit-node-type node) "call")
+         (let ((name (weibian--treesit-call-name node)))
+           (cond
+            ((string= name "node.with")
+             (push (cons node 'note) calls))
+            ((and (string= name "subnode")
+                  (weibian--treesit-call-body node))
+             (push (cons node 'subnode) calls)))))))
+    (nreverse calls)))
 
 (defun weibian--scan-file (file)
   "Return the list of node plists defined in FILE."
   (with-temp-buffer
     (insert-file-contents file)
-    (goto-char (point-min))
     (let (nodes)
-      (while (re-search-forward weibian--node-regexp nil t)
-        (let* ((kind (if (equal (match-string 1) "subnode") 'subnode 'note))
-               (id (match-string-no-properties 2))
-               (open (1- (match-end 0)))
-               (bracket (weibian--bracket-content open))
-               (title (weibian--normalize (car bracket)))
-               (args-end (weibian--call-args-end (cdr bracket)))
-               (taxon (or (weibian--taxon-after (cdr bracket) args-end) "note"))
-               (tags (weibian--tags-after (cdr bracket) args-end)))
-          (push (list :id id :title title :taxon taxon :tags tags
-                      :file file :pos (match-beginning 0) :kind kind)
-                nodes)
-          (goto-char (cdr bracket))))
+      (dolist (entry (weibian--treesit-node-calls))
+        (pcase-let ((`(,call . ,kind) entry))
+          (push (weibian--treesit-node-plist call kind file) nodes)))
       (nreverse nodes))))
 
 (defun weibian--glob->regexp (glob)
@@ -349,140 +386,64 @@ See `weibian--candidate' for the candidate format."
 
 (defun weibian--link-id-at-point ()
   "Return the target id of the `#link-node' at point, or nil.
-Looks on the current line first, then falls back to the nearest link
-beginning before point."
-  (or (save-excursion
-        (let ((p (point))
-              (found nil))
-          (goto-char (line-beginning-position))
-          (while (and (not found)
-                      (re-search-forward weibian--link-regexp
-                                         (line-end-position) t))
-            (let ((start (match-beginning 0))
-                  (end (if (match-beginning 2)
-                           (cdr (weibian--bracket-content (match-beginning 2)))
-                         (point))))
-              (when (and (<= start p) (<= p end))
-                (setq found (match-string-no-properties 1)))))
-          found))
-      (save-excursion
-        (when (re-search-backward weibian--link-regexp nil t)
-          (match-string-no-properties 1)))))
-
-(defun weibian--skip-delimited (delim)
-  "Point is on DELIM, which opens a span closed by the next unescaped DELIM.
-Move point past the closing DELIM (or to end of buffer). Used for string
-literals (\") and math (\\=$), where brackets are not content delimiters."
-  (forward-char)
-  (let ((end (point-max)))
-    (while (and (< (point) end) (not (eq (char-after) delim)))
-      (if (eq (char-after) ?\\) (forward-char 2) (forward-char)))
-    (when (< (point) end) (forward-char))))
-
-(defun weibian--skip-raw ()
-  "Point is on a backtick run opening a raw span; move past the closing run.
-Typst raw is delimited by matching runs of backticks (one for inline, three
-or more for a block), so a span opened by N backticks ends at the next run
-of at least N. Brackets inside Agda code blocks are thus ignored."
-  (let ((end (point-max)) (ticks 0))
-    (while (and (< (point) end) (eq (char-after) ?`))
-      (setq ticks (1+ ticks))
-      (forward-char))
-    (let ((closed nil))
-      (while (and (not closed) (< (point) end))
-        (if (eq (char-after) ?`)
-            (let ((run 0))
-              (while (and (< (point) end) (eq (char-after) ?`))
-                (setq run (1+ run))
-                (forward-char))
-              (when (>= run ticks) (setq closed t)))
-          (forward-char))))))
-
-(defun weibian--content-end (open)
-  "Return the position just after the `]' closing the content block at OPEN.
-OPEN is the position of a `['. Counts `[' / `]' nesting but skips the Typst
-spans where brackets are not content delimiters -- string literals, math
-`$...$', raw `\\=`...\\=`' / ```...``` blocks, and line/block comments -- and
-honours backslash escapes. Returns nil if the block never closes.
-
-A node body's literate-Agda and math content contains unbalanced brackets,
-so the naive counter `weibian--bracket-content' (fine for plain titles)
-miscounts it; this is the scanner for body extents."
+Looks for a tree-sitter `link-node' call enclosing point first, then falls
+back to the nearest link beginning before point."
   (save-excursion
-    (goto-char open)
-    (let ((depth 0) (result nil) (end (point-max)))
-      (while (and (not result) (< (point) end))
-        (let ((c (char-after))
-              (next (char-after (1+ (point)))))
-          (cond
-           ((eq c ?\\) (forward-char 2))
-           ((and (eq c ?/) (eq next ?/)) (forward-line 1))
-           ((and (eq c ?/) (eq next ?*))
-            (forward-char 2)
-            (unless (search-forward "*/" nil t) (goto-char end)))
-           ((eq c ?\") (weibian--skip-delimited ?\"))
-           ((eq c ?$) (weibian--skip-delimited ?$))
-           ((eq c ?`) (weibian--skip-raw))
-           ((eq c ?\[) (setq depth (1+ depth)) (forward-char))
-           ((eq c ?\])
-            (setq depth (1- depth))
-            (forward-char)
-            (when (zerop depth) (setq result (point))))
-           (t (forward-char)))))
-      result)))
-
-(defun weibian--node-at-point ()
-  "Return the plist of the innermost node or subnode enclosing point.
-Scans the current buffer. A top-level `node.with' (a note file's node or
-a Barb module) encloses the whole file and is the fallback container;
-each `#subnode(...)[...]' encloses its declaration through the end of its
-body. Among all nodes whose range contains point, the one with the
-latest start wins, so a subnode beats the module that contains it (and a
-nested subnode would beat its parent). Returns nil when point is not
-inside any node, e.g. a buffer with no node declaration.
-
-Unlike `weibian--link-id-at-point', this is about the node point sits in,
-not a `#link-node' under point."
-  (save-excursion
-    ;; Commands like `narrow-to-region' can hide the file-level `#show:
-    ;; node.with(...)' header even though point is still inside that node's body.
-    ;; Node detection is a whole-buffer question, so ignore narrowing here.
     (save-restriction
       (widen)
       (let ((target (point))
+            (containing nil)
+            (containing-width nil)
+            (previous nil)
+            (previous-start -1))
+        (weibian--treesit-walk
+         (weibian--treesit-root)
+         (lambda (node)
+           (when (and (string= (treesit-node-type node) "call")
+                      (string= (weibian--treesit-call-name node) "link-node"))
+             (let* ((head (weibian--treesit-call-head node))
+                    (args (weibian--treesit-arguments node))
+                    (id (weibian--treesit-string-value (car args)))
+                    (start (treesit-node-start head))
+                    (end (treesit-node-end node)))
+               (when id
+                 (when (and (<= start target) (<= target end))
+                   (let ((width (- end start)))
+                     (when (or (not containing-width) (< width containing-width))
+                       (setq containing id
+                             containing-width width))))
+                 (when (and (<= start target) (> start previous-start))
+                   (setq previous id
+                         previous-start start)))))))
+        (or containing previous)))))
+
+(defun weibian--node-at-point ()
+  "Return the plist of the innermost node or subnode enclosing point.
+A top-level `node.with' is the file root fallback; each `#subnode(...)[...]'
+encloses its declaration through the end of its body."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (let ((target (point))
+            (file buffer-file-name)
             (root nil)
             (best nil)
             (best-beg -1))
-        (goto-char (point-min))
-        (while (re-search-forward weibian--node-regexp nil t)
-          (let* ((subnode? (equal (match-string 1) "subnode"))
-                 (id (match-string-no-properties 2))
-                 (beg (match-beginning 0))
-                 (bracket (weibian--bracket-content (1- (match-end 0))))
-                 (title (weibian--normalize (car bracket)))
-                 (title-end (cdr bracket))
-                 (args-end (weibian--call-args-end title-end))
-                 (taxon (or (weibian--taxon-after title-end args-end) "note")))
-            (cond
-             ;; `node.with' has no delimiting body bracket -- it is applied to the
-             ;; rest of the file via `#show'. Treat it as the file root: the
-             ;; fallback used when no subnode encloses point. Record the first one.
-             ((not subnode?)
-              (unless root
-                (setq root (list :id id :title title :taxon taxon :kind 'note))))
-             ;; A subnode's body is the bracket block following the call -- the
-             ;; next `[' past the title. No argument after the title carries a
-             ;; bracket in this corpus (taxon and tags are strings), so the next
-             ;; `[' is the body opener. Computed in an excursion so the outer scan
-             ;; keeps descending past it into any nested subnodes.
-             (t
-              (let ((end (save-excursion
-                           (goto-char title-end)
-                           (when (re-search-forward "\\[" nil t)
-                             (weibian--content-end (1- (point)))))))
-                (when (and end (<= beg target) (<= target end) (> beg best-beg))
-                  (setq best (list :id id :title title :taxon taxon :kind 'subnode)
-                        best-beg beg)))))))
+        (dolist (entry (weibian--treesit-node-calls))
+          (pcase-let ((`(,call . ,kind) entry))
+            (let* ((plist (weibian--treesit-node-plist call kind file))
+                   (head (weibian--treesit-call-head call))
+                   (beg (treesit-node-start head))
+                   (end (if (eq kind 'note)
+                            (point-max)
+                          (treesit-node-end call))))
+              (cond
+               ((eq kind 'note)
+                (unless root
+                  (setq root plist)))
+               ((and (<= beg target) (<= target end) (> beg best-beg))
+                (setq best plist
+                      best-beg beg))))))
         (or best root)))))
 
 ;;; Commands
