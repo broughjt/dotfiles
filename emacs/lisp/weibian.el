@@ -449,8 +449,9 @@ See `weibian--candidate' for the candidate format."
                              'face 'completions-annotations))))
        candidates))))
 
-(defun weibian--read-node (prompt)
-  "Prompt with PROMPT for a node and return its plist."
+(defun weibian--read-node (prompt &optional initial-input)
+  "Prompt with PROMPT for a node and return its plist.
+When INITIAL-INPUT is non-nil, prefill the minibuffer with it."
   (let* ((root (weibian--project-root))
          (table (weibian--candidate-table root))
          (affix (weibian--affixation-function table root))
@@ -460,7 +461,7 @@ See `weibian--candidate' for the candidate format."
                 `(metadata (category . weibian-node)
                            (affixation-function . ,affix))
               (complete-with-action action table string predicate))))
-         (choice (completing-read prompt collection nil t)))
+         (choice (completing-read prompt collection nil t initial-input)))
     (gethash choice table)))
 
 (defun weibian--visit (node)
@@ -828,7 +829,8 @@ bare `#link-node(\"id\")'."
   (let* ((region (when (use-region-p)
                    (buffer-substring-no-properties
                     (region-beginning) (region-end))))
-         (node (weibian--read-node "Insert link to node: "))
+         (initial-input (and region (weibian--normalize region)))
+         (node (weibian--read-node "Insert link to node: " initial-input))
          (id (plist-get node :id))
          (title (plist-get node :title))
          (description (and region (not (string= region title)) region)))
