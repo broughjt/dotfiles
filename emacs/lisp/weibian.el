@@ -446,6 +446,298 @@ encloses its declaration through the end of its body."
                       best-beg beg))))))
         (or best root)))))
 
+
+;;; Versioning
+
+(defun weibian--node-by-id (id &optional root)
+  "Return the node plist for ID in ROOT, or nil."
+  (seq-find (lambda (node) (equal (plist-get node :id) id))
+            (weibian-nodes (or root (weibian--project-root)))))
+
+(defun weibian--with-leading-hash-start (pos)
+  "Return POS adjusted left to include a preceding Typst `#', if present."
+  (if (and (> pos (point-min)) (eq (char-before pos) ?#))
+      (1- pos)
+    pos))
+
+(defun weibian--treesit-parent-of-type (node type)
+  "Return NODE's nearest parent whose tree-sitter type is TYPE."
+  (let ((parent (treesit-node-parent node))
+        (found nil))
+    (while (and parent (not found))
+      (if (string= (treesit-node-type parent) type)
+          (setq found parent)
+        (setq parent (treesit-node-parent parent))))
+    found))
+
+(defun weibian--version-arg-sources (call)
+  "Return CALL's named argument source strings, except `supersedes'."
+  (when-let* ((group (weibian--treesit-call-group call)))
+    (delq nil
+          (mapcar (lambda (child)
+                    (when (string= (treesit-node-type child) "tagged")
+                      (let ((field (treesit-node-child-by-field-name child "field")))
+                        (unless (and field
+                                     (string= (weibian--treesit-node-text field)
+                                              "supersedes"))
+                          (weibian--treesit-node-text child)))))
+                  (weibian--treesit-named-children group)))))
+
+(defun weibian--version-node-source-info (node)
+  "Return source/range details for NODE's definition."
+  (let ((id (plist-get node :id))
+        (file (plist-get node :file))
+        found)
+    (with-current-buffer (find-file-noselect file)
+      (save-excursion
+        (save-restriction
+          (widen)
+          (dolist (entry (weibian--treesit-node-calls))
+            (pcase-let ((`(,call . ,kind) entry))
+              (let ((plist (weibian--treesit-node-plist call kind file)))
+                (when (and (not found) (equal (plist-get plist :id) id))
+                  (let* ((head (weibian--treesit-call-head call))
+                         (args (weibian--treesit-arguments call))
+                         (title-node (nth 1 args))
+                         (body-node (weibian--treesit-call-body call))
+                         (head-start (treesit-node-start head))
+                         (definition-start (weibian--with-leading-hash-start head-start))
+                         (definition-end (treesit-node-end call))
+                         (show-node (and (eq kind 'note)
+                                         (weibian--treesit-parent-of-type call "show")))
+                         (show-start (and show-node
+                                          (weibian--with-leading-hash-start
+                                           (treesit-node-start show-node))))
+                         (show-end (and show-node (treesit-node-end show-node))))
+                    (setq found
+                          (list :buffer (current-buffer)
+                                :file file
+                                :kind kind
+                                :id id
+                                :title-source (and title-node
+                                                   (weibian--treesit-node-text title-node))
+                                :arg-sources (weibian--version-arg-sources call)
+                                :body-source (and body-node
+                                                  (weibian--treesit-node-text body-node))
+                                :definition-start (or show-start definition-start)
+                                :definition-end (or show-end definition-end)
+                                :call-start definition-start
+                                :call-end definition-end))))))))))
+    (unless found
+      (user-error "Could not find node %s in %s" id file))
+    found))
+
+(defun weibian--version-format-items (id title-source arg-sources old-id)
+  "Return formatted call items for a new version of OLD-ID with ID."
+  (append (list (format "\"%s\"" id) title-source)
+          arg-sources
+          (list (format "supersedes: \"%s\"" old-id))))
+
+(defun weibian--version-format-show (id title-source arg-sources old-id)
+  "Return a `#show: node.with' source block for a new version."
+  (concat "#show: node.with(\n  "
+          (string-join (weibian--version-format-items id title-source arg-sources old-id)
+                       ",\n  ")
+          "\n)"))
+
+(defun weibian--version-body-point-offset (header body-source)
+  "Return the point offset into HEADER + BODY-SOURCE for editing the body."
+  (let ((offset (1+ (length header))))
+    (when (and (> (length body-source) 1)
+               (eq (aref body-source 1) ?\n))
+      (setq offset (1+ offset)))
+    offset))
+
+(defun weibian--version-next-ids (root count)
+  "Return COUNT fresh consecutive ids in ROOT."
+  (let ((first (base36-parse (weibian--next-id root)))
+        ids)
+    (dotimes (i count)
+      (push (base36-format (+ first i)) ids))
+    (nreverse ids)))
+
+(defun weibian--file-in-directory-p (file directory)
+  "Return non-nil when FILE is in DIRECTORY."
+  (file-in-directory-p (file-truename file) (file-truename directory)))
+
+(defun weibian--barb-source-root (root)
+  "Return Barb's source directory in ROOT."
+  (file-name-as-directory (expand-file-name "subtrees/barb/source" root)))
+
+(defun weibian--barb-live-subnode-p (node root)
+  "Return non-nil when NODE is a live Barb subnode."
+  (let* ((file (plist-get node :file))
+         (source (weibian--barb-source-root root))
+         (scratch (expand-file-name "Scratch" source)))
+    (and (eq (plist-get node :kind) 'subnode)
+         (weibian--file-in-directory-p file source)
+         (not (weibian--file-in-directory-p file scratch)))))
+
+(defun weibian--top-level-note-p (node root)
+  "Return non-nil when NODE is a top-level note under notes/."
+  (and (eq (plist-get node :kind) 'note)
+       (weibian--file-in-directory-p
+        (plist-get node :file)
+        (expand-file-name "notes" root))))
+
+(defun weibian--barb-module-path (live-file root)
+  "Return the Agda module path for LIVE-FILE under Barb source."
+  (let* ((relative (file-relative-name live-file (weibian--barb-source-root root)))
+         (without-ext (replace-regexp-in-string "\\.lagda\\.typ\\'" "" relative)))
+    (replace-regexp-in-string "/" "." without-ext)))
+
+(defun weibian--barb-scratch-file (live-file root)
+  "Return the Scratch mirror file path for LIVE-FILE."
+  (expand-file-name (file-relative-name live-file (weibian--barb-source-root root))
+                    (expand-file-name "Scratch" (weibian--barb-source-root root))))
+
+(defun weibian--barb-open-import-lines (live-file)
+  "Return all Agda `open import' lines in LIVE-FILE."
+  (with-temp-buffer
+    (insert-file-contents live-file)
+    (goto-char (point-min))
+    (let (lines)
+      (while (re-search-forward "^open import .+$" nil t)
+        (push (match-string-no-properties 0) lines))
+      (nreverse lines))))
+
+(defun weibian--barb-create-scratch-file (scratch-file scratch-id module imports)
+  "Create SCRATCH-FILE with SCRATCH-ID, MODULE, and IMPORTS."
+  (make-directory (file-name-directory scratch-file) t)
+  (with-temp-file scratch-file
+    (insert (format "#import \"/note.typ\": *\n#import \"/library/math.typ\": *\n\n#show: node.with(\"%s\", [Scratch.%s])\n```agda\nmodule Scratch.%s where\n\n"
+                    scratch-id module module))
+    (when imports
+      (insert (string-join imports "\n") "\n"))
+    (insert "```\n\n")))
+
+(defun weibian--barb-add-aggregator-import (root scratch-module)
+  "Ensure Barb.lagda.typ imports SCRATCH-MODULE."
+  (let ((file (expand-file-name "Barb.lagda.typ" (weibian--barb-source-root root)))
+        (line (concat "import " scratch-module)))
+    (with-current-buffer (find-file-noselect file)
+      (save-excursion
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (unless (re-search-forward (concat "^" (regexp-quote line) "$") nil t)
+            (goto-char (point-min))
+            (let (imports beg end)
+              (while (re-search-forward "^import Scratch\\..+$" nil t)
+                (unless beg
+                  (setq beg (line-beginning-position)))
+                (setq end (line-end-position))
+                (push (match-string-no-properties 0) imports))
+              (push line imports)
+              (setq imports (sort (delete-dups imports) #'string<))
+              (if (and beg end)
+                  (progn
+                    (delete-region beg end)
+                    (goto-char beg)
+                    (insert (string-join imports "\n")))
+                (goto-char (point-max))
+                (unless (bolp) (insert "\n"))
+                (insert line))))))
+      (let ((make-backup-files nil))
+        (save-buffer)))))
+
+(defun weibian--append-node-source (file source)
+  "Append SOURCE as a node block to FILE."
+  (with-current-buffer (find-file-noselect file)
+    (save-excursion
+      (goto-char (point-max))
+      (unless (bolp) (insert "\n"))
+      (unless (looking-back "\n\n" nil) (insert "\n"))
+      (insert source)
+      (unless (bolp) (insert "\n"))
+      (let ((make-backup-files nil))
+        (save-buffer)))))
+
+(defun weibian--version-non-barb-note (node root)
+  "Create a new top-level version of NODE in ROOT."
+  (let* ((old-id (plist-get node :id))
+         (new-id (car (weibian--version-next-ids root 1)))
+         (info (weibian--version-node-source-info node))
+         (path (expand-file-name (concat new-id ".typ")
+                                 (expand-file-name "notes" root)))
+         (show-source (weibian--version-format-show
+                       new-id
+                       (plist-get info :title-source)
+                       (plist-get info :arg-sources)
+                       old-id)))
+    (when (file-exists-p path)
+      (user-error "Note file already exists: %s" path))
+    (let (body-start)
+      (with-current-buffer (plist-get info :buffer)
+        (let ((prelude (buffer-substring-no-properties
+                        (point-min) (plist-get info :definition-start)))
+              (body (buffer-substring-no-properties
+                     (plist-get info :definition-end) (point-max))))
+          (setq body-start (+ (point-min) (length prelude) (length show-source)))
+          (with-temp-file path
+            (insert prelude show-source body))))
+      (find-file path)
+      (goto-char body-start))
+    (message "weibian: created %s superseding %s" new-id old-id)))
+
+(defun weibian--version-barb-subnode (node root)
+  "Create a new live Barb version of subnode NODE in ROOT."
+  (let* ((old-id (plist-get node :id))
+         (live-file (plist-get node :file))
+         (scratch-file (weibian--barb-scratch-file live-file root))
+         (scratch-exists (file-exists-p scratch-file))
+         (ids (weibian--version-next-ids root (if scratch-exists 1 2)))
+         (new-id (car ids))
+         (scratch-id (cadr ids))
+         (module (weibian--barb-module-path live-file root))
+         (scratch-module (concat "Scratch." module))
+         (info (weibian--version-node-source-info node))
+         (old-source (with-current-buffer (plist-get info :buffer)
+                       (buffer-substring-no-properties
+                        (plist-get info :call-start)
+                        (plist-get info :call-end))))
+         (body-source (plist-get info :body-source))
+         (new-header (concat "#subnode(\n  "
+                             (string-join
+                              (weibian--version-format-items
+                               new-id
+                               (plist-get info :title-source)
+                               (plist-get info :arg-sources)
+                               old-id)
+                              ",\n  ")
+                             "\n)"))
+         (new-source (concat new-header body-source))
+         (point-offset (weibian--version-body-point-offset new-header body-source)))
+    (unless scratch-exists
+      (weibian--barb-create-scratch-file
+       scratch-file scratch-id module (weibian--barb-open-import-lines live-file)))
+    (weibian--barb-add-aggregator-import root scratch-module)
+    (weibian--append-node-source scratch-file old-source)
+    (with-current-buffer (plist-get info :buffer)
+      (goto-char (plist-get info :call-start))
+      (delete-region (plist-get info :call-start) (plist-get info :call-end))
+      (insert new-source)
+      (let ((make-backup-files nil))
+        (save-buffer))
+      (goto-char (+ (plist-get info :call-start) point-offset))
+      (switch-to-buffer (current-buffer)))
+    (message "weibian: created %s superseding %s; moved %s to %s"
+             new-id old-id old-id scratch-file)))
+
+(defun weibian-version-node (node)
+  "Create the next version of NODE and visit the new version's body."
+  (interactive (list (weibian--read-node "Version node: ")))
+  (let ((root (weibian--project-root)))
+    (cond
+     ((weibian--barb-live-subnode-p node root)
+      (weibian--version-barb-subnode node root))
+     ((weibian--top-level-note-p node root)
+      (weibian--version-non-barb-note node root))
+     (t
+      (user-error "Don't know how to version node %s in %s"
+                  (plist-get node :id)
+                  (file-relative-name (plist-get node :file) root))))))
+
 ;;; Commands
 
 (defun weibian-find-note ()
@@ -558,5 +850,6 @@ two nodes side by side)."
 (bind-key "C-c n c" #'weibian-new-note)
 (bind-key "C-c n s" #'weibian-insert-subnode)
 (bind-key "C-c n b" #'weibian-browse-node-at-point)
+(bind-key "C-c n v" #'weibian-version-node)
 
 (provide 'weibian)
