@@ -98,6 +98,35 @@ the scan did not land on the default."
 
 ;;; Scanning
 
+(defvar weibian--scan-file-cache (make-hash-table :test 'equal)
+  "Cache of on-disk Weibian scans.
+Keys are absolute file names.  Values are plists with `:stamp' and
+`:nodes'.  The stamp is derived from file attributes, so saved files are
+rescanned lazily while unchanged files are reused across project scans.")
+
+(defvar-local weibian--buffer-scan-cache nil
+  "Buffer-local cache of tree-sitter scan data.
+Invalidated by `buffer-chars-modified-tick'.  This is for point-local
+commands that repeatedly ask about the current buffer; project-wide scans
+use `weibian--scan-file-cache' because they read from disk.")
+
+(defun weibian-clear-cache ()
+  "Clear Weibian's in-memory scan caches."
+  (interactive)
+  (clrhash weibian--scan-file-cache)
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (setq weibian--buffer-scan-cache nil)))
+  (message "weibian: cleared scan caches"))
+
+(defun weibian--file-stamp (file)
+  "Return a cache stamp for FILE based on its file attributes."
+  (let ((attrs (file-attributes file)))
+    (unless attrs
+      (user-error "No such file: %s" file))
+    (list (file-attribute-modification-time attrs)
+          (file-attribute-size attrs))))
+
 (defun weibian--normalize (string)
   "Collapse whitespace in STRING for display."
   (replace-regexp-in-string "[ \t\n]+" " " (string-trim string)))
@@ -242,8 +271,49 @@ not a positional content argument inside the parenthesized group."
              (push (cons node 'subnode) calls)))))))
     (nreverse calls)))
 
-(defun weibian--scan-file (file)
-  "Return the list of node plists defined in FILE."
+(defun weibian--buffer-scan-data ()
+  "Return cached node/link range data for the current buffer."
+  (let ((tick (buffer-chars-modified-tick)))
+    (if (and weibian--buffer-scan-cache
+             (eq tick (plist-get weibian--buffer-scan-cache :tick)))
+        weibian--buffer-scan-cache
+      (let ((file buffer-file-name)
+            node-ranges
+            link-ranges)
+        (weibian--treesit-walk
+         (weibian--treesit-root)
+         (lambda (node)
+           (when (string= (treesit-node-type node) "call")
+             (let ((name (weibian--treesit-call-name node)))
+               (cond
+                ((string= name "link-node")
+                 (let* ((head (weibian--treesit-call-head node))
+                        (args (weibian--treesit-arguments node))
+                        (id (weibian--treesit-string-value (car args))))
+                   (when id
+                     (push (list :id id
+                                 :start (treesit-node-start head)
+                                 :end (treesit-node-end node))
+                           link-ranges))))
+                ((or (string= name "node.with")
+                     (and (string= name "subnode")
+                          (weibian--treesit-call-body node)))
+                 (let* ((kind (if (string= name "node.with") 'note 'subnode))
+                        (plist (weibian--treesit-node-plist node kind file))
+                        (head (weibian--treesit-call-head node))
+                        (start (treesit-node-start head))
+                        (end (if (eq kind 'note)
+                                 (point-max)
+                               (treesit-node-end node))))
+                   (push (list :node plist :start start :end end)
+                         node-ranges))))))))
+        (setq weibian--buffer-scan-cache
+              (list :tick tick
+                    :node-ranges (nreverse node-ranges)
+                    :link-ranges (nreverse link-ranges)))))))
+
+(defun weibian--scan-file-uncached (file)
+  "Return the list of node plists defined in FILE without consulting caches."
   (with-temp-buffer
     (insert-file-contents file)
     (let (nodes)
@@ -251,6 +321,20 @@ not a positional content argument inside the parenthesized group."
         (pcase-let ((`(,call . ,kind) entry))
           (push (weibian--treesit-node-plist call kind file) nodes)))
       (nreverse nodes))))
+
+(defun weibian--scan-file (file)
+  "Return the list of node plists defined in FILE.
+Results are cached per file and invalidated when FILE's modification time
+or size changes.  The returned plists describe the on-disk contents; unsaved
+buffer edits are intentionally not reflected in this project-wide cache."
+  (let* ((file (expand-file-name file))
+         (stamp (weibian--file-stamp file))
+         (cached (gethash file weibian--scan-file-cache)))
+    (if (equal stamp (plist-get cached :stamp))
+        (plist-get cached :nodes)
+      (let ((nodes (weibian--scan-file-uncached file)))
+        (puthash file (list :stamp stamp :nodes nodes) weibian--scan-file-cache)
+        nodes))))
 
 (defun weibian--glob->regexp (glob)
   "Translate a restricted shell GLOB into an anchored regexp over full paths.
@@ -386,8 +470,8 @@ See `weibian--candidate' for the candidate format."
 
 (defun weibian--link-id-at-point ()
   "Return the target id of the `#link-node' at point, or nil.
-Looks for a tree-sitter `link-node' call enclosing point first, then falls
-back to the nearest link beginning before point."
+Looks for a cached tree-sitter `link-node' range enclosing point first, then
+falls back to the nearest link beginning before point."
   (save-excursion
     (save-restriction
       (widen)
@@ -396,25 +480,19 @@ back to the nearest link beginning before point."
             (containing-width nil)
             (previous nil)
             (previous-start -1))
-        (weibian--treesit-walk
-         (weibian--treesit-root)
-         (lambda (node)
-           (when (and (string= (treesit-node-type node) "call")
-                      (string= (weibian--treesit-call-name node) "link-node"))
-             (let* ((head (weibian--treesit-call-head node))
-                    (args (weibian--treesit-arguments node))
-                    (id (weibian--treesit-string-value (car args)))
-                    (start (treesit-node-start head))
-                    (end (treesit-node-end node)))
-               (when id
-                 (when (and (<= start target) (<= target end))
-                   (let ((width (- end start)))
-                     (when (or (not containing-width) (< width containing-width))
-                       (setq containing id
-                             containing-width width))))
-                 (when (and (<= start target) (> start previous-start))
-                   (setq previous id
-                         previous-start start)))))))
+        (dolist (range (plist-get (weibian--buffer-scan-data) :link-ranges))
+          (let ((id (plist-get range :id))
+                (start (plist-get range :start))
+                (end (plist-get range :end)))
+            (when id
+              (when (and (<= start target) (<= target end))
+                (let ((width (- end start)))
+                  (when (or (not containing-width) (< width containing-width))
+                    (setq containing id
+                          containing-width width))))
+              (when (and (<= start target) (> start previous-start))
+                (setq previous id
+                      previous-start start)))))
         (or containing previous)))))
 
 (defun weibian--node-at-point ()
@@ -425,25 +503,21 @@ encloses its declaration through the end of its body."
     (save-restriction
       (widen)
       (let ((target (point))
-            (file buffer-file-name)
             (root nil)
             (best nil)
             (best-beg -1))
-        (dolist (entry (weibian--treesit-node-calls))
-          (pcase-let ((`(,call . ,kind) entry))
-            (let* ((plist (weibian--treesit-node-plist call kind file))
-                   (head (weibian--treesit-call-head call))
-                   (beg (treesit-node-start head))
-                   (end (if (eq kind 'note)
-                            (point-max)
-                          (treesit-node-end call))))
-              (cond
-               ((eq kind 'note)
-                (unless root
-                  (setq root plist)))
-               ((and (<= beg target) (<= target end) (> beg best-beg))
-                (setq best plist
-                      best-beg beg))))))
+        (dolist (range (plist-get (weibian--buffer-scan-data) :node-ranges))
+          (let* ((plist (plist-get range :node))
+                 (kind (plist-get plist :kind))
+                 (beg (plist-get range :start))
+                 (end (plist-get range :end)))
+            (cond
+             ((eq kind 'note)
+              (unless root
+                (setq root plist)))
+             ((and (<= beg target) (<= target end) (> beg best-beg))
+              (setq best plist
+                    best-beg beg)))))
         (or best root)))))
 
 
