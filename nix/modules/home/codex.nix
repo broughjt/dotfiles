@@ -28,7 +28,10 @@ let
     CODEX_SQLITE_HOME = codexSqliteDir;
   };
 
-  agentToolPath = lib.makeBinPath [ pkgs.python3 ];
+  agentToolPath = lib.makeBinPath [
+    pkgs.nodejs
+    pkgs.python3
+  ];
   codexPackage = pkgs.writeShellScriptBin "codex" ''
     set -euo pipefail
 
