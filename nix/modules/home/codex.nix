@@ -42,6 +42,7 @@ let
     exec ${pkgs.llm-agents.codex}/bin/codex \
       --config ${lib.escapeShellArg "log_dir=${builtins.toJSON codexLogDir}"} \
       --config ${lib.escapeShellArg "sqlite_home=${builtins.toJSON codexSqliteDir}"} \
+      --dangerously-bypass-approvals-and-sandbox \
       "$@"
   '';
 in
