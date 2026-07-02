@@ -31,6 +31,7 @@ nixpkgs.lib.nixosSystem {
     pass
     piCodingAgent
     claudeCode
+    codex
     firefox
     mimeApps
     ghostty

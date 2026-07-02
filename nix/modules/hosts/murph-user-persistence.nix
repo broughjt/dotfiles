@@ -278,6 +278,15 @@ in
         directory = "local/state/claude-code";
         mode = "0700";
       }
+      # Codex's CODEX_HOME points here. This is the ~/.codex equivalent and
+      # includes config.toml/profile config, auth.json or keyring fallback
+      # material, MCP OAuth fallback credentials, history, sessions,
+      # archived_sessions, user skills/plugins, and SQLite state. codex.nix
+      # symlinks logs/caches/tmp/system-skill cache to ephemeral ~/local/cache.
+      {
+        directory = "local/state/codex";
+        mode = "0700";
+      }
     ];
 
     files = [ ];

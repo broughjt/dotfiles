@@ -72,6 +72,7 @@ rec {
     agenixHome = agenix.homeManagerModules.default;
   };
   claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
+  codex = import ./home/codex.nix { inherit llmAgentsOverlay; };
   firefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;
   ghostty = import ./home/ghostty.nix;
