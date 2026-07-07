@@ -133,6 +133,7 @@
         completion
         pi-coding-agent-config
         project-config
+        language-eglot
         language-tex
         language-racket
         language-rust

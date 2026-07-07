@@ -42,7 +42,7 @@
 (use-package cc-mode
   :ensure nil
   :mode (("\\.c\\'" . c-ts-mode)
-         ("\\.h\\'" . c-or-c++-ts-mode)
+         ("\\.h\\'" . c-or-c++-mode)
          ("\\.cc\\'" . c++-ts-mode)
          ("\\.cpp\\'" . c++-ts-mode)
          ("\\.cxx\\'" . c++-ts-mode)
