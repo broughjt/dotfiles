@@ -3,6 +3,22 @@
 ;; Disable package.el. Emacs packages are managed by Nix.
 (setq package-enable-at-startup nil)
 
+;; Steady-state GC tuning. Emacs's default `gc-cons-threshold' (800 KB) is far
+;; too small for eglot's JSON traffic plus syntax-propertize/corfu/jinx/eldoc on
+;; idle timers: editing allocates a few MB/s, so the threshold is crossed
+;; roughly every quarter-second, triggering a full stop-the-world collection
+;; each time. Measured on a 561-line Haskell buffer: 64 GCs in 15 s, ~21% of
+;; wall time in GC, felt as editing freezes. Raising the threshold cuts GC
+;; frequency by ~100x without meaningfully lengthening any single pause (pause
+;; length tracks live-heap size, not the threshold).
+(setq gc-cons-threshold (* 100 1024 1024)) ; 100 MB
+(setq gc-cons-percentage 0.2)
+
+;; LSP: read larger chunks from the server process so large JSON responses
+;; aren't reassembled 4 KB at a time. Recommended by the eglot manual; also
+;; reduces allocation churn feeding the GC.
+(setq read-process-output-max (* 1024 1024)) ; 1 MB
+
 ;; typst-ts-mode 0.12.2's generated autoloads contain a top-level
 ;; `define-compilation-mode' form. If anything activates package autoloads
 ;; before compile.el is loaded, startup reports:
