@@ -15,14 +15,28 @@
   :hook ((haskell-mode . jackson/enable-haskell-apheleia-if-configured)
          (haskell-ts-mode . jackson/enable-haskell-apheleia-if-configured)))
 
-(use-package haskell-mode
+;; Prefer the tree-sitter major mode for Haskell. Stock `haskell-mode' uses a
+;; regexp `syntax-propertize-function' to disambiguate apostrophes (identifier
+;; primes like `foldl'' from char literals like `?a') and to track backslash
+;; string gaps. On a buffer dense with both, that propertizer goes superlinear
+;; and is re-run from redisplay, freezing the buffer until `C-g'. `haskell-ts-mode'
+;; parses incrementally in C and installs no propertizer, so the freeze cannot
+;; occur; eglot still supplies every semantic feature.
+(use-package haskell-ts-mode
   :mode "\\.hs\\'"
   :init
-  ;; `haskell-mode' installs hooks/CAPFs pointing at helper functions in
-  ;; sibling files.  Normally package activation loads these autoloads, but we
-  ;; manage packages with Nix and disable package.el startup activation.
-  (require 'haskell-mode-autoloads)
-  :hook
-  ((haskell-mode . eglot-ensure)))
+  ;; Route anything that would otherwise enter `haskell-mode' (file-local
+  ;; `mode:' cookies, other packages) through the tree-sitter mode as well.
+  (add-to-list 'major-mode-remap-alist '(haskell-mode . haskell-ts-mode))
+  :hook (haskell-ts-mode . eglot-ensure))
+
+;; Keep stock `haskell-mode' installed as a fallback (`M-x haskell-mode' bypasses
+;; the remap above). Its interactive features live in sibling files wired up by
+;; autoloads, which we must load explicitly because package.el startup
+;; activation is disabled under Nix.
+(use-package haskell-mode
+  :defer t
+  :init
+  (require 'haskell-mode-autoloads))
 
 (provide 'language-haskell)

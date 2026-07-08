@@ -59,6 +59,7 @@ in
         epkgs.auctex
         epkgs.grip-mode
         epkgs.haskell-mode
+        epkgs.haskell-ts-mode
         epkgs.lean4-mode
         epkgs.markdown-mode
         epkgs.nix-mode
