@@ -8,6 +8,8 @@
   hardware.enableRedistributableFirmware = true;
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
+  services.fwupd.enable = true;
+
   nixpkgs.hostPlatform = "x86_64-linux";
 
   boot = {
