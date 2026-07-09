@@ -99,6 +99,11 @@ in
           "org/gnome/settings-daemon/plugins/housekeeping" = {
             donation-reminder-enabled = false;
           };
+          "org/gnome/settings-daemon/plugins/power" = {
+            # Keep long-running tasks alive when plugged in. Battery behavior
+            # remains GNOME's default suspend policy.
+            sleep-inactive-ac-type = "nothing";
+          };
         };
       }
     ];
