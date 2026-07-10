@@ -26,6 +26,9 @@ let
   piStateDir = "${localDirectory}/state/pi/mcp";
   piSettingsDir = "${localDirectory}/hacks/pi/settings";
   piSettingsFile = "${piSettingsDir}/settings.json";
+  piTrustDir = "${localDirectory}/hacks/pi/trust";
+  piTrustFile = "${piTrustDir}/trust.json";
+  piAgentTrustFile = "${piAgentDir}/trust.json";
   piMcpConfigDir = "${localDirectory}/secrets/pi/mcp";
   piMcpConfigFile = "${piMcpConfigDir}/mcp.json";
   piAuthDir = "${localDirectory}/secrets/pi/auth";
@@ -55,6 +58,8 @@ let
   piThemeSync = piThemeSyncPackage pkgs;
   piMcpCacheFile = "${piStateDir}/mcp-cache.json";
   piMcpOnboardingFile = "${piStateDir}/mcp-onboarding.json";
+  # pi-mcp-adapter and pi-agent-browser-native are still symlinked below, but
+  # intentionally omitted here so projects can opt into them in .pi/settings.json.
   piRequiredPackages = [
     "packages/pi-web-minimal"
     "packages/pi-subagents"
@@ -73,6 +78,7 @@ let
     PI_MCP_ONBOARDING_STATE = piMcpOnboardingFile;
     MCP_OAUTH_DIR = piMcpOAuthDir;
     PI_AGENT_BROWSER_CONFIG = piAgentBrowserConfigFile;
+    PI_SKIP_VERSION_CHECK = "1";
   };
 
   seededSettings = pkgs.writeText "pi-settings.json" (
@@ -80,6 +86,7 @@ let
       defaultProvider = "openai-codex";
       defaultModel = "gpt-5.5";
       defaultThinkingLevel = "high";
+      defaultProjectTrust = "ask";
       enableInstallTelemetry = false;
       packages = piRequiredPackages;
     }
@@ -94,6 +101,7 @@ let
     export PI_MCP_ONBOARDING_STATE=${lib.escapeShellArg piMcpOnboardingFile}
     export MCP_OAUTH_DIR=${lib.escapeShellArg piMcpOAuthDir}
     export PI_AGENT_BROWSER_CONFIG=${lib.escapeShellArg piAgentBrowserConfigFile}
+    export PI_SKIP_VERSION_CHECK=1
     export PATH=${lib.escapeShellArg agentToolPath}:''${PATH:-}
 
     if [ -r ${lib.escapeShellArg piWebMinimalExaApiKeyFile} ]; then
@@ -115,6 +123,7 @@ let
     export PI_MCP_CACHE=${lib.escapeShellArg piMcpCacheFile}
     export PI_MCP_ONBOARDING_STATE=${lib.escapeShellArg piMcpOnboardingFile}
     export MCP_OAUTH_DIR=${lib.escapeShellArg piMcpOAuthDir}
+    export PI_SKIP_VERSION_CHECK=1
 
     exec ${pkgs.nodejs}/bin/node ${piMcpAdapter}/cli.js "$@"
   '';
@@ -140,6 +149,9 @@ in
     deps = [ "persist-files" ];
     text = ''
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg (localDirectory + "/share")}
+      if [ -e ${lib.escapeShellArg piAgentTrustFile} ] && [ ! -e ${lib.escapeShellArg piTrustFile} ]; then
+        install -D -m 0600 -o ${user} -g users ${lib.escapeShellArg piAgentTrustFile} ${lib.escapeShellArg piTrustFile}
+      fi
       rm -rf ${lib.escapeShellArg piShareDir}
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piShareDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAgentDir}
@@ -148,6 +160,7 @@ in
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piExtensionsDir}
       install -d -m 0755 -o ${user} -g users ${lib.escapeShellArg piSubagentsConfigDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piSettingsDir}
+      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piTrustDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpConfigDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piAuthDir}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piMcpOAuthDir}
@@ -168,6 +181,7 @@ in
         lib.escapeShellArg (piAgentDir + "/AGENTS.md")
       }
       ln -sfnT ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg (piAgentDir + "/settings.json")}
+      ln -sfnT ${lib.escapeShellArg piTrustFile} ${lib.escapeShellArg piAgentTrustFile}
       ln -sfnT ${lib.escapeShellArg piAuthFile} ${lib.escapeShellArg (piAgentDir + "/auth.json")}
       ln -sfnT ${lib.escapeShellArg piSubagentsAgentsDir} ${lib.escapeShellArg (piAgentDir + "/agents")}
       ln -sfnT ${lib.escapeShellArg piSubagentsChainsDir} ${lib.escapeShellArg (piAgentDir + "/chains")}
@@ -192,6 +206,9 @@ in
       ln -sfnT ${lib.escapeShellArg piSubagents} ${lib.escapeShellArg (piPackagesDir + "/pi-subagents")}
       ln -sfnT ${lib.escapeShellArg piThemeSync} ${lib.escapeShellArg (piPackagesDir + "/pi-theme-sync")}
 
+      touch ${lib.escapeShellArg piTrustFile}
+      chown ${user}:users ${lib.escapeShellArg piTrustFile}
+      chmod 0600 ${lib.escapeShellArg piTrustFile}
       touch ${lib.escapeShellArg piSubagentsRunHistoryFile}
       chown ${user}:users ${lib.escapeShellArg piSubagentsRunHistoryFile}
       chmod 0600 ${lib.escapeShellArg piSubagentsRunHistoryFile}
@@ -208,6 +225,8 @@ in
     "d ${piSettingsDir} 0700 ${user} users -"
     "r ${piSettingsFile}"
     "C ${piSettingsFile} 0600 ${user} users - ${seededSettings}"
+    "d ${piTrustDir} 0700 ${user} users -"
+    "f ${piTrustFile} 0600 ${user} users -"
     "d ${piMcpConfigDir} 0700 ${user} users -"
     "d ${piAuthDir} 0700 ${user} users -"
     "f ${piAuthFile} 0600 ${user} users -"
@@ -225,6 +244,7 @@ in
     "L+ ${piAgentDir}/sessions - - - - ${piSessionDir}"
     "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
     "L+ ${piAgentDir}/settings.json - - - - ${piSettingsFile}"
+    "L+ ${piAgentTrustFile} - - - - ${piTrustFile}"
     "L+ ${piAgentDir}/auth.json - - - - ${piAuthFile}"
     "L+ ${piAgentDir}/agents - - - - ${piSubagentsAgentsDir}"
     "L+ ${piAgentDir}/chains - - - - ${piSubagentsChainsDir}"

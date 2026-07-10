@@ -108,6 +108,7 @@ in
       check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
       check_single_entry ${localDirectory}/hacks/emacs/projects projects.eld
       check_single_entry ${localDirectory}/hacks/pi/settings settings.json
+      check_single_entry ${localDirectory}/hacks/pi/trust trust.json
       check_single_entry ${localDirectory}/hacks/pi/theme-sync theme-sync.json
       check_single_entry ${localDirectory}/secrets/pi/auth auth.json
       check_single_entry ${localDirectory}/secrets/pi/mcp mcp.json
@@ -125,6 +126,12 @@ in
 
       {
         directory = "local/hacks/pi/settings";
+        mode = "0700";
+      }
+      # Pi project trust decisions gate project-local .pi resources and are
+      # deliberate security/user-preference state, not disposable runtime data.
+      {
+        directory = "local/hacks/pi/trust";
         mode = "0700";
       }
       # pi-theme-sync's /theme-sync config is mutable user preference state;

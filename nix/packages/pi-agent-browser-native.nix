@@ -1,6 +1,6 @@
 pkgs:
 
-pkgs.stdenvNoCC.mkDerivation rec {
+pkgs.buildNpmPackage rec {
   pname = "pi-agent-browser-native";
   version = "0.2.65";
 
@@ -11,18 +11,24 @@ pkgs.stdenvNoCC.mkDerivation rec {
     hash = "sha256-fKPhQNGoXtJkdyP4JGzeVAG5YKdMISJPiiD4FFJFGhk=";
   };
 
+  npmDepsFetcherVersion = 2;
+  npmDepsHash = "sha256-ZcfWtQzGHpiz3snD001e5fPVb+tMoPdO032V8tsCFTU=";
+  postPatch = ''
+    cp ${../../pi/pi-agent-browser-native-package-lock.json} package-lock.json
+  '';
+
   installPhase = ''
     runHook preInstall
-    mkdir -p $out
+    mkdir -p $out/scripts
+    cp scripts/config.mjs scripts/doctor.mjs $out/scripts/
     cp -r \
-      extensions \
-      scripts \
-      docs \
+      dist \
       platform-smoke.config.mjs \
       package.json \
       README.md \
       CHANGELOG.md \
       LICENSE \
+      docs \
       $out/
     runHook postInstall
   '';

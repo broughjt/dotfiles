@@ -37,6 +37,7 @@ class PackageSpec:
     branch: str | None = None
     lock_file: Path | None = None
     npm_deps: bool = True
+    npm_omit_dev: bool = True
     version_file: str | None = None
     version_regex: str | None = None
     unstable_version: bool = False
@@ -82,7 +83,8 @@ PACKAGES: dict[str, PackageSpec] = {
         owner="fitchmultz",
         repo="pi-agent-browser-native",
         flake_attr="pi-agent-browser-native",
-        npm_deps=False,
+        lock_file=ROOT / "pi/pi-agent-browser-native-package-lock.json",
+        npm_omit_dev=False,
     ),
     "emacs-lean4-mode": PackageSpec(
         name="emacs-lean4-mode",
@@ -328,18 +330,17 @@ def refresh_lock_file(spec: PackageSpec, rev: str) -> None:
             run(["git", "fetch", "--depth", "1", "origin", rev], cwd=checkout)
             run(["git", "checkout", "--detach", "FETCH_HEAD"], cwd=checkout)
             fill_missing_integrity(checkout / "package-lock.json")
-            # Match buildNpmPackage's production install and repair upstream
-            # lockfiles that omit integrity for registry dependencies.
-            run(
-                [
-                    "npm",
-                    "install",
-                    "--package-lock-only",
-                    "--ignore-scripts",
-                    "--omit=dev",
-                ],
-                cwd=checkout,
-            )
+            # Match each package's buildNpmPackage dependency set and repair
+            # upstream lockfiles that omit integrity for registry dependencies.
+            npm_install_command = [
+                "npm",
+                "install",
+                "--package-lock-only",
+                "--ignore-scripts",
+            ]
+            if spec.npm_omit_dev:
+                npm_install_command.append("--omit=dev")
+            run(npm_install_command, cwd=checkout)
             generated = checkout / "package-lock.json"
             if not generated.exists():
                 raise RuntimeError(
