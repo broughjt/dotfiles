@@ -288,6 +288,29 @@ def refresh_lock_file(spec: PackageSpec, rev: str) -> None:
                 return True
         return False
 
+    def fill_missing_integrity(lock_file: Path) -> None:
+        data = json.loads(lock_file.read_text())
+        packages = data.get("packages", {})
+        if not isinstance(packages, dict):
+            return
+        for package_path, package in packages.items():
+            if not isinstance(package, dict) or "resolved" not in package:
+                continue
+            resolved = str(package["resolved"])
+            is_git_dependency = resolved.startswith(
+                ("git+", "git://", "github:", "gitlab:", "bitbucket:")
+            )
+            if is_git_dependency or "integrity" in package:
+                continue
+            package_name = package_path.rsplit("node_modules/", 1)[-1]
+            integrity = run(
+                ["npm", "view", f"{package_name}@{package['version']}", "dist.integrity"]
+            ).stdout.strip()
+            if not integrity:
+                raise RuntimeError(f"Could not find npm integrity for {package_name}")
+            package["integrity"] = integrity
+        lock_file.write_text(json.dumps(data, indent=2) + "\n")
+
     def generate_lock_file() -> None:
         with tempfile.TemporaryDirectory(prefix=f"{spec.name}-") as tmp:
             checkout = Path(tmp) / "src"
@@ -304,6 +327,7 @@ def refresh_lock_file(spec: PackageSpec, rev: str) -> None:
             )
             run(["git", "fetch", "--depth", "1", "origin", rev], cwd=checkout)
             run(["git", "checkout", "--detach", "FETCH_HEAD"], cwd=checkout)
+            fill_missing_integrity(checkout / "package-lock.json")
             # Match buildNpmPackage's production install and repair upstream
             # lockfiles that omit integrity for registry dependencies.
             run(
