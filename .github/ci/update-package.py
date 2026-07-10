@@ -272,39 +272,78 @@ def refresh_lock_file(spec: PackageSpec, rev: str) -> None:
     if spec.lock_file is None:
         return
 
+    def needs_regeneration(lock_file: bytes) -> bool:
+        data = json.loads(lock_file)
+        packages = data.get("packages", {})
+        if not isinstance(packages, dict):
+            return False
+        for package in packages.values():
+            if not isinstance(package, dict) or "resolved" not in package:
+                continue
+            resolved = str(package["resolved"])
+            is_git_dependency = resolved.startswith(
+                ("git+", "git://", "github:", "gitlab:", "bitbucket:")
+            )
+            if not is_git_dependency and "integrity" not in package:
+                return True
+        return False
+
+    def generate_lock_file() -> None:
+        with tempfile.TemporaryDirectory(prefix=f"{spec.name}-") as tmp:
+            checkout = Path(tmp) / "src"
+            run(
+                [
+                    "git",
+                    "clone",
+                    "--depth",
+                    "1",
+                    f"https://github.com/{spec.owner}/{spec.repo}.git",
+                    str(checkout),
+                ],
+                cwd=Path(tmp),
+            )
+            run(["git", "fetch", "--depth", "1", "origin", rev], cwd=checkout)
+            run(["git", "checkout", "--detach", "FETCH_HEAD"], cwd=checkout)
+            # Match buildNpmPackage's production install and repair upstream
+            # lockfiles that omit integrity for registry dependencies.
+            run(
+                [
+                    "npm",
+                    "install",
+                    "--package-lock-only",
+                    "--ignore-scripts",
+                    "--omit=dev",
+                ],
+                cwd=checkout,
+            )
+            generated = checkout / "package-lock.json"
+            if not generated.exists():
+                raise RuntimeError(
+                    f"{spec.owner}/{spec.repo}@{rev} did not generate package-lock.json"
+                )
+            if needs_regeneration(generated.read_bytes()):
+                raise RuntimeError(
+                    f"{spec.owner}/{spec.repo}@{rev} generated a lockfile with missing integrity"
+                )
+            shutil.copyfile(generated, spec.lock_file)
+
     upstream_lock_url = (
         f"https://raw.githubusercontent.com/{spec.owner}/{spec.repo}/{rev}/package-lock.json"
     )
     try:
         print(f"GET {upstream_lock_url}", flush=True)
         with urlopen(upstream_lock_url) as response:  # noqa: S310 - fixed GitHub URL
-            spec.lock_file.write_bytes(response.read())
+            upstream_lock = response.read()
+        if not needs_regeneration(upstream_lock):
+            spec.lock_file.write_bytes(upstream_lock)
             return
+        print("Upstream lockfile is missing integrity; regenerating with npm", flush=True)
     except HTTPError as exc:
         if exc.code != 404:
             raise
         print("No upstream package-lock.json; generating one with npm", flush=True)
 
-    with tempfile.TemporaryDirectory(prefix=f"{spec.name}-") as tmp:
-        checkout = Path(tmp) / "src"
-        run(
-            [
-                "git",
-                "clone",
-                "--depth",
-                "1",
-                f"https://github.com/{spec.owner}/{spec.repo}.git",
-                str(checkout),
-            ],
-            cwd=Path(tmp),
-        )
-        run(["git", "fetch", "--depth", "1", "origin", rev], cwd=checkout)
-        run(["git", "checkout", "--detach", "FETCH_HEAD"], cwd=checkout)
-        run(["npm", "install", "--package-lock-only", "--ignore-scripts"], cwd=checkout)
-        generated = checkout / "package-lock.json"
-        if not generated.exists():
-            raise RuntimeError(f"{spec.owner}/{spec.repo}@{rev} did not generate package-lock.json")
-        shutil.copyfile(generated, spec.lock_file)
+    generate_lock_file()
 
 
 def compute_npm_deps_hash(spec: PackageSpec) -> str:
