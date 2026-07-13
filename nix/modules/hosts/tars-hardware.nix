@@ -11,6 +11,10 @@
   networking.hostName = "tars";
   networking.useDHCP = lib.mkDefault true;
 
+  # TODO: The nixos-raspberrypi cached kernel contains DTBs but was built with a
+  # Nixpkgs version that did not expose kernel.buildDTBs.
+  hardware.deviceTree.enable = true;
+
   boot.loader.raspberry-pi.bootloader = "kernel";
   boot.supportedFilesystems.zfs = lib.mkForce false;
 

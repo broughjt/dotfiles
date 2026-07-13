@@ -67,7 +67,7 @@
     let
       nix-config = import ./nix/nix-config.nix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
-      llmAgentsOverlay = llm-agents-nix.overlays.default;
+      llmAgentsOverlay = llm-agents-nix.overlays.shared-nixpkgs;
       emacsOverlays = with emacs-overlay.overlays; [
         emacs
         package
