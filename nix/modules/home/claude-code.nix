@@ -15,7 +15,10 @@ let
   # tree. Persist that whole tree.
   claudeStateDir = "${localDirectory}/state/claude-code";
 
-  agentToolPath = lib.makeBinPath [ pkgs.python3 ];
+  agentToolPath = lib.makeBinPath [
+    pkgs.python3
+    pkgs.sox
+  ];
   claudeCodePackage = pkgs.symlinkJoin {
     name = "claude-code-agent-tools";
     paths = [ pkgs.llm-agents.claude-code ];
