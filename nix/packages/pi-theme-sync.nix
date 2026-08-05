@@ -2,13 +2,13 @@ pkgs:
 
 pkgs.stdenvNoCC.mkDerivation rec {
   pname = "pi-theme-sync";
-  version = "0.3.1";
+  version = "0.4.2";
 
   src = pkgs.fetchFromGitHub {
     owner = "sherif-fanous";
     repo = "pi-theme-sync";
-    rev = "3670bf8785ee5ce4966fd1bde63f26e39337c22b";
-    hash = "sha256-iZnkzR4nW30hTp9v6MpYUjwdS5u09cg2wNWF6xkyLWQ=";
+    rev = "636d1a47fdc9cf424413bfb36ac2581957d6ca3a";
+    hash = "sha256-FkvjAFmyPV07jwQ/wwkK30N+X71Kt4x+B9Oqf6DunRI=";
   };
 
   postPatch = ''
