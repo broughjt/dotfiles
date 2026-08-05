@@ -54,8 +54,8 @@ in
 
         search = {
           force = true;
-          default = "ddg";
-          privateDefault = "ddg";
+          default = "google";
+          privateDefault = "google";
           order = [
             "google"
             "ddg"
