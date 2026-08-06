@@ -1,6 +1,6 @@
 ---
 name: handoff-create
-description: Create a handoff document for work expected to span multiple sessions, or add an item to a project's standing queue. Use when starting a sustained piece of work, when the user asks for a handoff doc, or when a task is clearly too big to finish in one session. Companion skills are handoff-start (resume from a doc) and handoff-update (record a session's work into one).
+description: Create a handoff document for work expected to span multiple sessions, or add an item to a project's standing queue. Use when starting a sustained piece of work, when the user asks for a handoff doc, or when a task is clearly too big to finish in one session. Companion skills are handoff-start (resume from a handoff doc) and handoff-update (record a session's work into a handoff doc).
 ---
 
 # Creating a handoff document

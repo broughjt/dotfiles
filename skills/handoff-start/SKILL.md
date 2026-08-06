@@ -29,7 +29,7 @@ Read the log file only if `Start here` points at it, or if something in the
 state document is unclear in a way history would resolve. It exists so you do
 *not* have to read it by default.
 
-If the document names a workflow pattern you do not recognise, read
+If the document names a workflow pattern you do not recognize, read
 `../handoff-create/reference/workflows.md` — the pattern governs how the
 session is allowed to proceed, so do not guess at it.
 
@@ -73,7 +73,7 @@ Without `go`, stop after the brief. The user reads it and directs — often
 redirecting away from the stated `Next`, which is the point of waiting.
 
 With `go`, begin the `Next` action under the stated workflow. Still surface
-any discrepancy from step 3 before acting on it; `go` authorises the work the
+any discrepancy from step 3 before acting on it; `go` authorizes the work the
 document describes, not work its own premises contradict.
 
 If the verify command was started, check it before finishing, and treat a
