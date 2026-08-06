@@ -1,0 +1,53 @@
+# Workflow patterns
+
+A handoff document names one of these as its default. Individual tasks may
+override it. Named patterns get followed more reliably than prose, so name
+one rather than describing a bespoke process — and if none fits, describe the
+new one precisely and add it here.
+
+## `claude-implements`
+
+Claude writes the code and leaves it **unstaged**. The user reviews and
+commits. Claude does not commit, does not stage, and does not push.
+
+Session ends with: what was written, what was verified (with real numbers),
+and anything the reviewer should look at first — especially places where the
+implementation deviated from the plan, and why.
+
+## `design-first-tdd`
+
+The full loop, for work where the output format or interface is the hard part:
+
+1. **Design conversation** with the user. Present decisions via
+   AskUserQuestion with the recommendation first, labelled `(Recommended)`.
+   Interview until genuinely aligned, not until the user stops objecting.
+2. **Plan document** — `.scratch/plan-<task>.md`, written so a *different*
+   agent can implement from it without the design conversation's context.
+3. **Tests first** — rendering/unit tests that pin the output format, and
+   scenario/integration tests for the paths the design conversation
+   identified. Written and left **red** before implementation exists.
+4. **Implement** — a fresh agent reads the handoff doc and the plan doc, then
+   makes the tests green.
+5. **Review** — the user reviews and commits. The plan doc is archived.
+
+Tests written before the implementation are the point: the format gets pinned
+with the user before there is code defending it.
+
+## `user-implements`
+
+The user writes the code. Claude either reviews it afterwards or writes the
+tests it has to pass — the task says which. Claude does not modify the
+implementation; findings go to the user.
+
+When writing tests under this pattern, write them against the agreed
+interface, not against whatever the user has written so far.
+
+## `spike`
+
+Time-boxed investigation. Explore, run experiments, **commit nothing** and
+leave no production code. The deliverable is a written verdict: what was
+tried, what was observed, what it means, and a recommendation.
+
+A spike that turns into an implementation has failed as a spike. If the
+answer becomes obvious mid-way, stop and report rather than continuing into
+the build.
