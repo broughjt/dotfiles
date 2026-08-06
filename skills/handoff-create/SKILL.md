@@ -56,8 +56,9 @@ the layout an agent needs, and any workflow the existing docs already state.
 
 ## Step 3 — Interview the gaps
 
-Use AskUserQuestion. Lead with your recommendation as the first option,
-labelled `(Recommended)`. Ask only what is genuinely in the user's head:
+Use the harness's structured question tool when available, otherwise ask in
+chat. Lead with your recommendation as the first option, labelled
+`(Recommended)`. Ask only what is genuinely in the user's head:
 
 - **Motivation** — why this work exists, what is inadequate today.
 - **Done** — what the finished state looks like, concretely enough to check.

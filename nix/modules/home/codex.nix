@@ -57,8 +57,8 @@ in
 
   systemd.services."home-manager-${user}".environment = codexEnvironment;
 
-  # Codex stores config, auth, history, sessions, plugins, skills, logs, caches,
-  # and SQLite state under CODEX_HOME by default. Persist CODEX_HOME as the
+  # Codex stores config, auth, history, sessions, plugins, legacy user skills,
+  # logs, caches, and SQLite state under CODEX_HOME. Persist CODEX_HOME as the
   # user-owned ~/.codex equivalent, while keeping logs/caches/tmp/system-skill
   # cache and Nix-unmanaged standalone updater payloads ephemeral.
   system.activationScripts.prepareCodexState = {

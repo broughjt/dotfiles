@@ -14,7 +14,7 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules.
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`, `kak/`: editor configs, generally consumed from the Nix store via wrappers rather than copied into mutable home paths.
-- `claude/skills/`: user-global Claude Code skills, store-backed and symlinked into `CLAUDE_CONFIG_DIR/skills` by `nix/modules/home/claude-code.nix`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead.
+- `skills/`: user-global Agent Skills shared by Claude Code, Codex, and Pi. `agent-skills.nix` exposes this immutable tree through `~/.agents/skills` for Codex and Pi, while `claude-code.nix` exposes it through `CLAUDE_CONFIG_DIR/skills`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead.
 - `scripts/`: implementation bodies for flake apps in `nix/packages/scripts.nix`.
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md`.
@@ -151,6 +151,10 @@ Special local subtrees:
 - `~/local/cache`: ephemeral caches.
 - `~/local/state`: app state; individual subtrees may or may not be persisted.
 - `~/share`, `~/repositories`, `~/scratch`: user-facing data that is persisted on `murph`.
+
+The intentional top-level compatibility exception is `~/.agents/skills`, an
+ephemeral symlink to the Nix-managed `skills/` tree for Codex and Pi discovery.
+It contains no mutable or persisted state.
 
 ## App/package module patterns
 

@@ -29,6 +29,7 @@ nixpkgs.lib.nixosSystem {
     gh
     gpg
     pass
+    agentSkills
     piCodingAgent
     claudeCode
     codex
