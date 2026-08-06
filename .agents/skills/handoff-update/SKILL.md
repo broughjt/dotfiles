@@ -56,7 +56,9 @@ needs; they know nothing. Rewrite every field:
 - **Read first** — the specific files that action requires, each with a
   clause saying why. This is the field that saves the next session the most
   time and the one most often left stale.
-- **Workflow** — including any override for the next task specifically.
+- **Workflow** — including any override for the next task specifically. The
+  palette is `../handoff-create/reference/workflows.md`; if the next task
+  needs a pattern that is not there, describe it precisely and add it.
 - **Awaiting review** — what is unstaged, or `nothing`.
 - **Verified state** — today's date, the command, the observed result.
 - **Open for \<user\>** — or `none`.

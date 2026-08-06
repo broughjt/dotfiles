@@ -29,6 +29,10 @@ Read the log file only if `Start here` points at it, or if something in the
 state document is unclear in a way history would resolve. It exists so you do
 *not* have to read it by default.
 
+If the document names a workflow pattern you do not recognise, read
+`../handoff-create/reference/workflows.md` — the pattern governs how the
+session is allowed to proceed, so do not guess at it.
+
 ## Step 3 — Check the claims
 
 Run these in parallel with the reads; they take seconds.
