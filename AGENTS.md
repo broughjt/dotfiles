@@ -14,6 +14,7 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules.
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`, `kak/`: editor configs, generally consumed from the Nix store via wrappers rather than copied into mutable home paths.
+- `claude/skills/`: user-global Claude Code skills, store-backed and symlinked into `CLAUDE_CONFIG_DIR/skills` by `nix/modules/home/claude-code.nix`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead.
 - `scripts/`: implementation bodies for flake apps in `nix/packages/scripts.nix`.
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md`.
