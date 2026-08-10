@@ -91,6 +91,12 @@ in
             enable-hot-corners = false;
             clock-format = "12h";
           };
+          "org/gnome/desktop/datetime" = {
+            automatic-timezone = true;
+          };
+          "org/gnome/system/location" = {
+            enabled = true;
+          };
           "org/gnome/desktop/background" = {
             picture-options = "none";
             color-shading-type = "solid";
