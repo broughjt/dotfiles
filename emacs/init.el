@@ -99,7 +99,10 @@
 (setq custom-file
       (expand-file-name "custom.el" jackson/emacs-state-directory))
 
-(unless (eq system-type 'windows-nt)
+(unless (or (eq system-type 'windows-nt)
+            ;; A macOS login shell prepends system paths, which can shadow
+            ;; wrappers supplied by an inherited Nix development shell.
+            (and (eq system-type 'darwin) (getenv "IN_NIX_SHELL")))
   (use-package exec-path-from-shell
     :config
     (dolist (var '("SSH_AUTH_SOCK"
