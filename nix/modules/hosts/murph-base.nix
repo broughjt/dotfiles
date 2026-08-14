@@ -40,6 +40,5 @@
   };
   console.keyMap = "us";
 
-  # Let GNOME set the time zone from GeoClue instead of pinning it to home.
-  time.timeZone = null;
+  time.timeZone = "America/Denver";
 }
