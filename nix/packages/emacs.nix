@@ -7,8 +7,9 @@ in
   configureEmacsPackage =
     pkgs:
     let
-      enableTypst = !pkgs.stdenv.isDarwin;
-      emacsBasePackage = if pkgs.stdenv.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk;
+      enableTypst = !pkgs.stdenv.hostPlatform.isDarwin;
+      emacsBasePackage =
+        if pkgs.stdenv.hostPlatform.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk;
       emacsPackages = (pkgs.emacsPackagesFor emacsBasePackage).overrideScope (
         final: prev: {
           lean4-mode = import ./emacs-lean4-mode.nix {

@@ -40,7 +40,7 @@ in
       };
     }
 
-    (lib.mkIf pkgs.stdenv.isLinux {
+    (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
       services.emacs = {
         enable = true;
         package = emacsPackage;

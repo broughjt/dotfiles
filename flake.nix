@@ -68,9 +68,21 @@
       nix-config = import ./nix/nix-config.nix;
       emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
       llmAgentsOverlay = llm-agents-nix.overlays.shared-nixpkgs;
-      emacsOverlays = with emacs-overlay.overlays; [
-        emacs
-        package
+      # emacs-overlay still reads deprecated stdenv platform aliases. Keep the
+      # compatibility values local to that overlay until upstream migrates.
+      emacsPlatformCompatOverlay =
+        final: prev:
+        emacs-overlay.overlays.emacs final (
+          prev
+          // {
+            stdenv = prev.stdenv // {
+              inherit (prev.stdenv.hostPlatform) isAarch64 isLinux;
+            };
+          }
+        );
+      emacsOverlays = [
+        emacsPlatformCompatOverlay
+        emacs-overlay.overlays.package
       ];
       makePkgsWithOverlays =
         extraOverlays: system:
@@ -163,7 +175,7 @@
         emacsLean4ModePackage = import ./nix/packages/emacs-lean4-mode.nix {
           inherit pkgs;
           emacsPackages = pkgs.emacsPackagesFor (
-            if pkgs.stdenv.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk
+            if pkgs.stdenv.hostPlatform.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk
           );
         };
         scriptPackages = import ./nix/packages/scripts.nix {
@@ -174,16 +186,25 @@
             system
             ;
         };
-        makeScriptApp = package: executable: {
+        makeScriptApp = package: executable: description: {
           type = "app";
           program = "${package}/bin/${executable}";
+          meta = { inherit description; };
         };
         scriptApps = {
-          backupMurphSecrets = makeScriptApp scriptPackages.backupMurphSecrets "backup-murph-secrets";
-          flashNixosInstaller = makeScriptApp scriptPackages.flashNixosInstaller "flash-nixos-installer";
-          installMurph = makeScriptApp scriptPackages.installMurph "install-murph";
-          piPrintSystemPrompt = makeScriptApp scriptPackages.piPrintSystemPrompt "pi-print-system-prompt";
-          restoreMurphSecrets = makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets";
+          backupMurphSecrets =
+            makeScriptApp scriptPackages.backupMurphSecrets "backup-murph-secrets"
+              "Back up Murph's persisted SSH and GPG secrets";
+          flashNixosInstaller =
+            makeScriptApp scriptPackages.flashNixosInstaller "flash-nixos-installer"
+              "Download and write a NixOS installer image";
+          installMurph = makeScriptApp scriptPackages.installMurph "install-murph" "Install NixOS on Murph";
+          piPrintSystemPrompt =
+            makeScriptApp scriptPackages.piPrintSystemPrompt "pi-print-system-prompt"
+              "Print Pi's resolved system prompt";
+          restoreMurphSecrets =
+            makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets"
+              "Restore Murph's persisted SSH and GPG secrets";
         };
       in
       (import ./nix/shell.nix { inherit pkgs scriptPackages; })

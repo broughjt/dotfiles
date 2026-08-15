@@ -54,7 +54,7 @@ in
     home.packages = with pkgs; [ pinentry-gnome3 ];
 
     # TODO: Does this belong here?
-    services.ssh-agent.enable = pkgs.stdenv.isLinux;
+    services.ssh-agent.enable = pkgs.stdenv.hostPlatform.isLinux;
 
     programs.gpg = {
       enable = true;
@@ -69,7 +69,7 @@ in
     home.file."${gpgHomedir}/gpg-agent.conf".enable = false;
 
     services.gpg-agent = {
-      enable = pkgs.stdenv.isLinux;
+      enable = pkgs.stdenv.hostPlatform.isLinux;
       pinentry.package = pkgs.pinentry-gnome3;
       # https://superuser.com/questions/624343/keep-gnupg-credentials-cached-for-entire-user-session
       defaultCacheTtl = 34560000;

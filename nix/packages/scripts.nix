@@ -26,11 +26,18 @@ let
     ];
     text = builtins.readFile ../../scripts/flash-nixos-installer.sh;
   };
+  # disko still reads the deprecated stdenv.isDarwin alias. Keep the
+  # compatibility value scoped to its package until upstream migrates.
+  diskoInstall = disko.packages.${system}.disko-install.override {
+    stdenv = pkgs.stdenv // {
+      inherit (pkgs.stdenv.hostPlatform) isDarwin;
+    };
+  };
   installMurph = pkgs.writeShellApplication {
     name = "install-murph";
     runtimeInputs = with pkgs; [
       coreutils
-      disko.packages.${system}.disko-install
+      diskoInstall
       kmod
       mkpasswd
       procps
