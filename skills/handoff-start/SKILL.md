@@ -18,7 +18,9 @@ Glob `.scratch/handoff-*.md`, excluding `*-log.md`.
 
 - **One match** → use it.
 - **Several** → list them with each one's `Next:` line and ask which. Do not
-  guess from recency; the user may be switching arcs deliberately.
+  guess from recency; the user may be switching arcs deliberately. This
+  listing is the only inventory of live arcs there is — no document tracks
+  them, by design.
 - **None** → say so, and offer `handoff-create`. Then stop.
 
 ## Step 2 — Load context
@@ -47,11 +49,37 @@ Run these in parallel with the reads; they take seconds.
   file, function or flag that has since been deleted is the characteristic
   stale-handoff failure.
 
-If the document records a verify command, start it **in the background** now
-so the brief is not blocked on a build. Report the result when it lands.
-
 Report discrepancies; do not silently reconcile them. The user decides
 whether the document or the tree is wrong.
+
+### Running the verify command
+
+Run it **synchronously, before briefing**. Do not put it in the background:
+a check the user has already moved past is worse than no check, because it
+surfaces later, out of context, attached to work it no longer describes.
+
+The command is the **first one named in `Verified state`** — written to be
+the cheapest check that would catch the document being wrong. The rest of
+that field is a report of what the last session verified, not an instruction.
+
+Choose the timeout from the duration recorded beside the command:
+
+- **Duration recorded** → timeout of 3× it, with a two-minute floor and the
+  harness maximum as the ceiling.
+- **No duration recorded** → the default two minutes. If it times out, that
+  is this session's `handoff-update` learning the real figure.
+- **Duration over ~10 minutes** → do not run it, and do not background it.
+  Brief with what it is and what it costs — "verification not run;
+  `<cmd>` takes ~15 min, say the word" — and let the user opt in.
+
+**A timeout is not a failure.** They brief differently and conflating them
+opens the session with a false alarm:
+
+- **Timed out** → verification *unconfirmed*. Say the check did not finish
+  and the document's claimed state is unverified, not contradicted. A cold
+  rebuild after a dependency change routinely lands here.
+- **Ran and failed** → a *discrepancy*. The document's claimed state is
+  wrong, and the user needs that before the session builds on it.
 
 ## Step 4 — Brief
 
@@ -60,9 +88,9 @@ Keep it under about fifteen lines:
 - where the work stands, in a sentence or two
 - the next action, and the workflow governing it
 - anything awaiting the user's review
-- discrepancies found in step 3
+- discrepancies found in step 3, including a failed verify
+- verification left unconfirmed, if the command timed out or was not run
 - open questions the document reserves for the user
-- that the verify command is running, if it is
 
 Do not restate the document. The user wrote most of it; they need the delta
 and the direction, not a summary.
@@ -74,8 +102,6 @@ redirecting away from the stated `Next`, which is the point of waiting.
 
 With `go`, begin the `Next` action under the stated workflow. Still surface
 any discrepancy from step 3 before acting on it; `go` authorizes the work the
-document describes, not work its own premises contradict.
-
-If the verify command was started, check it before finishing, and treat a
-failure as a discrepancy — the document's claimed state is wrong and the user
-needs to know before the session builds on it.
+document describes, not work its own premises contradict. A verify failure is
+such a discrepancy: raise it and get direction rather than building on a
+state the document has already got wrong.

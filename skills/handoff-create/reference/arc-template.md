@@ -14,7 +14,9 @@
 
 **Awaiting review:** <what is left unstaged and who owns it, or `nothing`>
 
-**Verified state:** <YYYY-MM-DD> — `<verify command>` → <observed result>
+**Verified state:** <YYYY-MM-DD> — `<cheapest command that would catch this
+doc being wrong>` (<observed duration>) → <observed result>; `<other command
+run>` → <result>. **Not run this session:** <commands skipped>.
 
 **Open for <user>:** <decisions reserved for the user, or `none`>
 
@@ -62,12 +64,18 @@ moving the answer into the relevant section above.>
 - **Edit in place; do not append corrections.** When a fact changes, change
   the fact. Superseded text is deleted, not annotated.
 - **State lives here; history lives in the log.** Session narrative goes to
-  `handoff-<slug>-log.md`. Findings that future work depends on get promoted
-  up into *Facts established*.
+  `handoff-<slug>-log.md`, which is append-only. Findings that future work
+  depends on get promoted up into *Facts established*.
 - **Refresh `Start here` at the end of every session** — especially `Next`
-  and `Read first`, which are written for an agent that knows nothing.
-- **Never record a verification number you did not observe.**
-- Keep this document under ~200 lines. If it grows past that, distil.
+  and `Read first`, which are written for an agent that knows nothing. Keep
+  the block under ~25 lines; it is the only part of this document that is
+  read cold and in full every time.
+- **Never record a verification number you did not observe** — including the
+  duration in *Verified state*.
+- Past ~400 lines, move material to a better home — `AGENTS.md`, the
+  project's published docs, the `.scratch/` background doc, a plan doc, the
+  log. Never delete to hit a length; *Facts established* and *Do not reopen*
+  have no limit.
 
 <!-- --- guidance below; delete this comment block and everything after it ---
 
@@ -78,5 +86,11 @@ Fill every section or delete it — an empty heading reads as an oversight.
 agent finishing a session, who knows what the next agent will need; it is
 executed by an agent that knows nothing. Name specific files and say why in a
 clause, not "the relevant source".
+
+`Verified state` faces both ways. The first command named is what the next
+session reruns before briefing, so put the cheapest useful check there and
+record how long it took — that duration is what stops a slow rebuild being
+killed and misreported as a failure. Everything after it is a report of what
+this session actually verified, including what it did not.
 
 -->
