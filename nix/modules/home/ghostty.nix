@@ -57,8 +57,8 @@ let
   # a CLI-only `config-default-files=false` switch plus repeatable
   # `config-file=...`, which lets regular terminal launches read the generated
   # config directly from /nix/store without touching $XDG_CONFIG_HOME. Patch the
-  # desktop, D-Bus, and systemd unit metadata too; upstream files contain an
-  # absolute Exec path to the original package, which would bypass this wrapper.
+  # desktop, D-Bus, and systemd unit metadata too; their Exec commands would
+  # otherwise resolve to or directly invoke the unwrapped package.
   ghosttyPackage = pkgs.symlinkJoin {
     name = "ghostty-store-backed-config";
     paths = [ pkgs.ghostty ];
@@ -66,8 +66,13 @@ let
       rm -f "$out/bin/ghostty"
       install -D -m 0755 ${ghosttyWrapper} "$out/bin/ghostty"
 
+      desktopFile=share/applications/com.mitchellh.ghostty.desktop
+      rm -f "$out/$desktopFile"
+      substitute ${pkgs.ghostty}/$desktopFile "$out/$desktopFile" \
+        --replace-fail "TryExec=ghostty" "TryExec=$out/bin/ghostty" \
+        --replace-fail "Exec=ghostty " "Exec=$out/bin/ghostty "
+
       for file in \
-        share/applications/com.mitchellh.ghostty.desktop \
         share/dbus-1/services/com.mitchellh.ghostty.service \
         share/systemd/user/app-com.mitchellh.ghostty.service
       do
