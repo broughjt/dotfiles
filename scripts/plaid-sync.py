@@ -340,7 +340,7 @@ def load_transactions(path: Path) -> dict[str, dict]:
 
 
 def save_transactions(path: Path, store: dict[str, dict]):
-    sorted(store.values(), key=lambda row: (row.get("date") or "", row.get("name") or ""))
+    rows = sorted(store.values(), key=lambda row: (row.get("date") or "", row.get("name") or ""))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rows, indent=2, default=str))
 
