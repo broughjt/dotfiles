@@ -9,4 +9,5 @@ in
 {
   "exa-api-key.age".publicKeys = users;
   "context7-api-key.age".publicKeys = users;
+  "plaid-secret.age".publicKeys = users;
 }

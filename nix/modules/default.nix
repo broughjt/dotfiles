@@ -71,6 +71,9 @@ rec {
       ;
     agenixHome = agenix.homeManagerModules.default;
   };
+  plaidSync = import ./home/plaid-sync.nix {
+    agenixHome = agenix.homeManagerModules.default;
+  };
   agentSkills = import ./home/agent-skills.nix;
   claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
   codex = import ./home/codex.nix { inherit llmAgentsOverlay; };

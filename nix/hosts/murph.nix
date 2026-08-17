@@ -31,6 +31,7 @@ nixpkgs.lib.nixosSystem {
     pass
     agentSkills
     piCodingAgent
+    plaidSync
     claudeCode
     codex
     firefox
