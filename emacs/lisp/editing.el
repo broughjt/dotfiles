@@ -30,6 +30,7 @@ then only reachable by scrolling horizontally."
   (setq-local truncate-lines nil))
 
 (use-package magit
+ :demand t
  :custom
  ;; Highlight the word-level differences between the removed and added
  ;; lines of a hunk.
