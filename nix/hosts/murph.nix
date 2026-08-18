@@ -17,6 +17,7 @@ nixpkgs.lib.nixosSystem {
     impermanenceModule
     murphDisko
     murphImpermanence
+    murphSuspendDiagnostics
     nixSettings
     linuxBase
     tailscale
