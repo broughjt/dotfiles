@@ -15,11 +15,16 @@ its log before writing anything.
 
 ## Step 1 — Write the log entry
 
-Prepend to `handoff-<slug>-log.md`, newest first:
+Entries in `handoff-<slug>-log.md` run newest first: a new one goes
+**directly below the preamble**, above the previous entry. The top of the file
+is the title, not an entry slot.
 
 ```markdown
 ## <YYYY-MM-DD> — <headline: what changed, not "worked on X">
 ```
+
+If the log does not exist, create it with the preamble `handoff-create` step 4
+specifies.
 
 Cover what was done, what was **observed** — real commands and real numbers —
 where the work deviated from the plan and why, and what is left unstaged for
@@ -27,7 +32,7 @@ review. Deviations are the most valuable thing in an entry: they are what a
 reviewer needs to look at first and what a future agent will otherwise
 rediscover the hard way.
 
-**The log is append-only.** Add entries; never rewrite, collapse or delete
+**Entries are immutable.** Add them; never rewrite, collapse or delete
 existing ones. Nobody reads this file by default, so its length costs nothing
 and is never a reason to touch it — that cheapness is the whole reason state
 and history are separate files. Correcting the record means a new entry

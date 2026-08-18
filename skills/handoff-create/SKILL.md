@@ -30,7 +30,8 @@ is the user's to track, and they mostly track it in their head. When they
 mention future work that is not arc-sized, say so and leave it with them — do
 not open a `TODO.md`, a queue, or a "future work" section to hold it. The list
 of arcs that does matter is derived at read time by globbing
-`.scratch/handoff-*.md`, which needs no maintenance to stay true.
+`.scratch/handoff-*.md`, excluding `*-log.md`, which needs no maintenance to
+stay true.
 
 ## Step 1 — Triage
 
@@ -52,8 +53,8 @@ Never ask about what you can observe. Read, in parallel:
 
 - `README.md`, `AGENTS.md` / `CLAUDE.md`, and whatever the project uses for
   architecture notes
-- existing `.scratch/handoff-*.md`, any background doc in `.scratch/`, and
-  `.scratch/archive/`
+- existing `.scratch/handoff-*.md`, excluding `*-log.md`, plus any background
+  doc in `.scratch/` and `.scratch/archive/`
 - build and test configuration; the commands that verify the project
 - `git log` for the last 10–20 commits, and `git status`
 
@@ -83,8 +84,18 @@ rounds is normal. Do not write the document while material questions are open.
 ## Step 4 — Write
 
 Copy `reference/arc-template.md` and fill it in. Create the companion
-`-log.md` with a single entry recording the doc's creation and the decisions
-taken in the interview.
+`-log.md` with this preamble, and a single entry below it recording the doc's
+creation and the decisions taken in the interview:
+
+```markdown
+# <Arc title>: log
+
+Append-only history for `handoff-<slug>.md`. Newest entries at the top.
+```
+
+The preamble is not decoration. It declares the entry order `handoff-update`
+writes against, and a log that does not state its own order gets a different
+one invented by each session that writes to it.
 
 Rules for the prose:
 
