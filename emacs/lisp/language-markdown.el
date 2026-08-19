@@ -5,11 +5,19 @@
 (declare-function grip-mode "grip-mode")
 (declare-function grip-start-process "grip-mode")
 
+(use-package markdown-ts-mode
+  :mode
+  (("\\.md\\'" . markdown-ts-mode)
+   ("\\.markdown\\'" . markdown-ts-mode)
+   ("\\.mdx\\'" . markdown-ts-mode))
+  :bind
+  (:map markdown-ts-mode-map
+        ("C-c g" . grip-mode))
+  :custom
+  (markdown-ts-fontify-code-blocks-natively t))
+
 (use-package markdown-mode
   :commands (markdown-mode gfm-mode gfm-view-mode)
-  :mode
-  (("README\\.md\\'" . gfm-mode)
-   ("\\.md\\'" . markdown-mode))
   :custom
   (markdown-enable-wiki-links t)
   (markdown-fontify-code-blocks-natively t)
