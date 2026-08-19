@@ -19,9 +19,15 @@ let
   # Code follows this directory symlink into the store.
   skillsSource = builtins.path {
     name = "skills";
-    path = ../../../skills;
+    path = ../../../agents/skills;
   };
   claudeSkillsDir = "${claudeStateDir}/skills";
+
+  # Shared user-global agent instructions, also consumed by Codex and Pi.
+  # Claude Code reads CLAUDE.md rather than AGENTS.md, so it reaches the same
+  # store file under that name.
+  instructionsSource = ../../../agents/AGENTS.md;
+  claudeInstructionsFile = "${claudeStateDir}/CLAUDE.md";
 
   agentToolPath = lib.makeBinPath [
     pkgs.python3
@@ -42,18 +48,21 @@ in
 {
   nixpkgs.overlays = [ llmAgentsOverlay ];
 
-  system.activationScripts.prepareClaudeCodeSkills = {
+  system.activationScripts.prepareClaudeCodeState = {
     deps = [ "persist-files" ];
     text = ''
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg claudeStateDir}
       rm -rf ${lib.escapeShellArg claudeSkillsDir}
       ln -sfnT ${lib.escapeShellArg skillsSource} ${lib.escapeShellArg claudeSkillsDir}
+      rm -f ${lib.escapeShellArg claudeInstructionsFile}
+      ln -sfnT ${lib.escapeShellArg instructionsSource} ${lib.escapeShellArg claudeInstructionsFile}
     '';
   };
 
   systemd.tmpfiles.rules = [
     "d ${claudeStateDir} 0700 ${user} users -"
     "L+ ${claudeSkillsDir} - - - - ${skillsSource}"
+    "L+ ${claudeInstructionsFile} - - - - ${instructionsSource}"
   ];
 
   home-manager.users.${user} = {

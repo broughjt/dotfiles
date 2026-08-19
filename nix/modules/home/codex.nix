@@ -23,6 +23,10 @@ let
   codexSystemSkillsDir = "${codexCacheDir}/system-skills";
   codexStandalonePackagesDir = "${codexCacheDir}/standalone-packages";
 
+  # Shared user-global agent instructions, also consumed by Claude Code and Pi.
+  instructionsSource = ../../../agents/AGENTS.md;
+  codexInstructionsFile = "${codexHomeDir}/AGENTS.md";
+
   codexEnvironment = {
     CODEX_HOME = codexHomeDir;
     CODEX_SQLITE_HOME = codexSqliteDir;
@@ -75,6 +79,9 @@ in
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg (codexHomeDir + "/skills")}
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg (codexHomeDir + "/packages")}
 
+      rm -f ${lib.escapeShellArg codexInstructionsFile}
+      ln -sfnT ${lib.escapeShellArg instructionsSource} ${lib.escapeShellArg codexInstructionsFile}
+
       rm -rf ${lib.escapeShellArg (codexHomeDir + "/cache")}
       ln -sfnT ${lib.escapeShellArg codexRuntimeCacheDir} ${lib.escapeShellArg (codexHomeDir + "/cache")}
       rm -rf ${lib.escapeShellArg (codexHomeDir + "/log")}
@@ -103,6 +110,7 @@ in
     "d ${codexStandalonePackagesDir} 0700 ${user} users -"
     "d ${codexHomeDir}/skills 0700 ${user} users -"
     "d ${codexHomeDir}/packages 0700 ${user} users -"
+    "L+ ${codexInstructionsFile} - - - - ${instructionsSource}"
     "L+ ${codexHomeDir}/cache - - - - ${codexRuntimeCacheDir}"
     "L+ ${codexHomeDir}/log - - - - ${codexLogDir}"
     "L+ ${codexHomeDir}/tmp - - - - ${codexTmpDir}"

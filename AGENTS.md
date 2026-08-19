@@ -14,7 +14,8 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules.
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`, `kak/`: editor configs, generally consumed from the Nix store via wrappers rather than copied into mutable home paths.
-- `skills/`: user-global Agent Skills shared by Claude Code, Codex, and Pi. `agent-skills.nix` exposes this immutable tree through `~/.agents/skills` for Codex and Pi, while `claude-code.nix` exposes it through `CLAUDE_CONFIG_DIR/skills`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead.
+- `agents/skills/`: user-global Agent Skills shared by Claude Code, Codex, and Pi. `agent-skills.nix` exposes this immutable tree through `~/.agents/skills` for Codex and Pi, while `claude-code.nix` exposes it through `CLAUDE_CONFIG_DIR/skills`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
+- `agents/AGENTS.md`: user-global agent instructions shared by Claude Code, Codex, and Pi. `claude-code.nix` exposes it as `CLAUDE_CONFIG_DIR/CLAUDE.md` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`), `codex.nix` as `CODEX_HOME/AGENTS.md`, and `pi-coding-agent.nix` as the Pi agent directory's `AGENTS.md`. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
 - `scripts/`: implementation bodies for flake apps in `nix/packages/scripts.nix`.
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md`.

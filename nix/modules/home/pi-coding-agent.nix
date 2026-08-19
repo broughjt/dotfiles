@@ -177,7 +177,7 @@ in
       install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg piThemeSyncConfigDir}
 
       ln -sfnT ${lib.escapeShellArg piSessionDir} ${lib.escapeShellArg (piAgentDir + "/sessions")}
-      ln -sfnT ${lib.escapeShellArg ../../../pi/AGENTS.md} ${
+      ln -sfnT ${lib.escapeShellArg ../../../agents/AGENTS.md} ${
         lib.escapeShellArg (piAgentDir + "/AGENTS.md")
       }
       ln -sfnT ${lib.escapeShellArg piSettingsFile} ${lib.escapeShellArg (piAgentDir + "/settings.json")}
@@ -242,7 +242,7 @@ in
     "d ${piThemeSyncConfigDir} 0700 ${user} users -"
     "f ${piSubagentsRunHistoryFile} 0600 ${user} users -"
     "L+ ${piAgentDir}/sessions - - - - ${piSessionDir}"
-    "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../pi/AGENTS.md}"
+    "L+ ${piAgentDir}/AGENTS.md - - - - ${../../../agents/AGENTS.md}"
     "L+ ${piAgentDir}/settings.json - - - - ${piSettingsFile}"
     "L+ ${piAgentTrustFile} - - - - ${piTrustFile}"
     "L+ ${piAgentDir}/auth.json - - - - ${piAuthFile}"

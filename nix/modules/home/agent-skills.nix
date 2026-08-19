@@ -8,7 +8,7 @@ let
   # directory is immutable and Nix-managed; no mutable skill state is kept.
   skillsSource = builtins.path {
     name = "skills";
-    path = ../../../skills;
+    path = ../../../agents/skills;
   };
   agentsDir = "${homeDirectory}/.agents";
   userSkillsDir = "${agentsDir}/skills";
