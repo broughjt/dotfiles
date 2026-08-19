@@ -11,8 +11,8 @@ generally useful, say so to the user and leave the decision with them.
 
 ## `agent-implements`
 
-The agent writes the code and leaves it **unstaged**. The user reviews and
-commits. The agent does not commit, does not stage, and does not push.
+The agent writes the code and commits it. The user reviews the commits
+and collapses them. The agent does not push.
 
 Session ends with: what was written, what was verified (with real numbers),
 and anything the reviewer should look at first — especially places where the

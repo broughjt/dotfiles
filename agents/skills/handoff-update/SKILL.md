@@ -27,7 +27,7 @@ If the log does not exist, create it with the preamble `handoff-create` step 4
 specifies.
 
 Cover what was done, what was **observed** — real commands and real numbers —
-where the work deviated from the plan and why, and what is left unstaged for
+where the work deviated from the plan and why, and which commits are awaiting
 review. Deviations are the most valuable thing in an entry: they are what a
 reviewer needs to look at first and what a future agent will otherwise
 rediscover the hard way.
@@ -74,7 +74,7 @@ needs; they know nothing. Rewrite every field, and keep the whole block
   needs a pattern that is not there, describe it precisely in this field;
   mention to the user that it might be worth adding, but do not edit the
   skill from a project session.
-- **Awaiting review** — what is unstaged, or `nothing`.
+- **Awaiting review** — which commits, or `nothing`.
 - **Verified state** — see below.
 - **Open for \<user\>** — or `none`.
 

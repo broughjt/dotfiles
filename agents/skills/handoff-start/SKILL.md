@@ -39,12 +39,13 @@ session is allowed to proceed, so do not guess at it.
 
 Run these in parallel with the reads; they take seconds.
 
-- `git status --short` — compare against **Awaiting review**. Uncommitted
-  work the document does not describe, or a clean tree where it claims work
-  is pending, both mean the document is behind reality.
-- `git log --oneline` since the **Verified state** date — catches work done
-  outside a handoff session, and review commits the document does not know
-  about.
+- `git status --short` — the tree should normally be clean, since work
+  awaiting review is committed rather than left uncommitted. Anything
+  uncommitted is unexplained and worth raising.
+- `git log --oneline` since the **Verified state** date — compare against
+  **Awaiting review**. Commits the document does not describe, or none where
+  it claims review is pending, both mean the document is behind reality. Also
+  catches work done outside a handoff session.
 - Confirm every path named in `Start here` still exists. A document naming a
   file, function or flag that has since been deleted is the characteristic
   stale-handoff failure.

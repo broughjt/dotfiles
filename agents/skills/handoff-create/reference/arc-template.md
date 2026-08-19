@@ -12,7 +12,8 @@
 
 **Workflow:** <pattern name from workflows.md><, plus any override for this task>
 
-**Awaiting review:** <what is left unstaged and who owns it, or `nothing`>
+**Awaiting review:** <which commits are awaiting review and who owns them, or
+`nothing`>
 
 **Verified state:** <YYYY-MM-DD> — `<cheapest command that would catch this
 doc being wrong>` (<observed duration>) → <observed result>; `<other command
