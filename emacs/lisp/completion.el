@@ -186,6 +186,8 @@
 
 (use-package jinx
   :hook (emacs-startup . global-jinx-mode)
+  :custom
+  (global-jinx-modes '((not markdown-mode) text-mode prog-mode conf-mode))
   :bind (("M-$" . jinx-correct)
          ("C-M-$" . jinx-languages)))
 
