@@ -2,17 +2,17 @@ pkgs:
 
 pkgs.buildNpmPackage rec {
   pname = "pi-agent-browser-native";
-  version = "0.2.77";
+  version = "0.5.0";
 
   src = pkgs.fetchFromGitHub {
     owner = "fitchmultz";
     repo = "pi-agent-browser-native";
-    rev = "128d7eb915fbb3b5e05720273aae6f6cc4349b9a";
-    hash = "sha256-vtvx4S7hCBsZP8ZE4XsCPLyIfvF+y2/C6ZJWcNhKDlM=";
+    rev = "fc051c4542fdad78b5a84b72919ee73966d8e71f";
+    hash = "sha256-Cn/2cQOyGZPnHTgydxrqVvwzAHoiqvLpmj9P6TbqQe0=";
   };
 
   npmDepsFetcherVersion = 2;
-  npmDepsHash = "sha256-bRsaUKcgx2Q5AS44aL+oiREg6G4hr01OH/S3OVrYq2E=";
+  npmDepsHash = "sha256-KiNtXRrCJad6yYiSMIPh9rrvOIuOJ9ejNZE/CJ/8hOc=";
   postPatch = ''
     cp ${../../pi/pi-agent-browser-native-package-lock.json} package-lock.json
   '';
