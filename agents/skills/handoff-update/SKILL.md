@@ -1,82 +1,99 @@
 ---
 name: handoff-update
-description: Record a session's work into a handoff document — write the progress-log entry, edit state in place, refresh the Start-here block for the next agent, and promote durable findings when work closes out. Use at the end of a session on multi-session work, before handing off, or when the user asks to update the handoff doc. Companion skills are handoff-create and handoff-start.
+description: Record a session's work into a handoff document: write the progress-log entry, edit state in place, refresh the Start-here block for the next agent, and promote durable findings when work closes out. Use at the end of a session on multi-session work or when the user asks to update the handoff doc. Companion skills are handoff-create and handoff-start.
 ---
 
 # Updating a handoff document
 
-Run this at the end of a working session on an arc. It is what keeps the
-document from degrading: state edited in place, history moved out, findings
+Run this at the end of a working session on an arc. It keeps the document from
+degrading. State should be edited in place, history moved out, and findings
 promoted up.
 
-Find the document as `handoff-start` does — glob `.scratch/handoff-*.md`
-excluding `*-log.md`; ask if several match. Read both the state document and
+Find the document as `handoff-start` does: glob `.scratch/handoff-*.md`,
+excluding `*-log.md`, and ask if several match. Read both the handoff document and
 its log before writing anything.
 
-## Step 1 — Write the log entry
+## Step 1: Write the log entry
 
-Entries in `handoff-<slug>-log.md` run newest first: a new one goes
-**directly below the preamble**, above the previous entry. The top of the file
-is the title, not an entry slot.
+Entries in `handoff-<slug>-log.md` run newest first. A new one goes **directly
+below the preamble**, above the previous entry.
 
 ```markdown
-## <YYYY-MM-DD> — <headline: what changed, not "worked on X">
+## <YYYY-MM-DD>: <headline: what changed, not "worked on X">
 ```
 
 If the log does not exist, create it with the preamble `handoff-create` step 4
 specifies.
 
-Cover what was done, what was **observed** — real commands and real numbers —
-where the work deviated from the plan and why, and which commits are awaiting
-review. Deviations are the most valuable thing in an entry: they are what a
-reviewer needs to look at first and what a future agent will otherwise
-rediscover the hard way.
+Cover what was done, what was **observed** with real commands and real numbers,
+where the work deviated from the plan and why, which commits are awaiting
+review, and any change of workflow along with the reason for it.
 
-**Entries are immutable.** Add them; never rewrite, collapse or delete
-existing ones. Nobody reads this file by default, so its length costs nothing
-and is never a reason to touch it — that cheapness is the whole reason state
-and history are separate files. Correcting the record means a new entry
-saying what turned out to be wrong, not an edit to the entry that got it
-wrong.
+**Deviations from the plan, each with its argument, are the entry's most
+valuable content.** This is the reviewer's brief, and it is the only part of
+what they read that you author. They already have the plan, the diff and this
+document, so anything here that duplicates those is dead weight.
+
+**Do not diagnose your own code.** Remark on deviations and on aspects you are
+uncertain about or think deserve attention. A deviation's argument is required
+and is not a diagnosis; a verdict on your own code's quality is out of bounds.
+Of course, if asked directly by the user, answer.
+
+**Entries are immutable.** Add them; never rewrite, collapse or delete previous
+ones.
 
 Never record a verification result you did not run this session. If the suite
-was not run, say so. A number carried forward unchecked is worse than no
-number, because the next agent will trust it.
+was not run, say so.
 
-## Step 2 — Edit state in place
+## Step 2: Edit state in place
 
-In the state document — **editing, never appending corrections**:
+In the handoff document, **editing, never appending corrections**:
 
-- **Tasks** — update status. Note the landing date and commit for finished
-  ones.
-- **Facts established** — promote durable findings out of this session's log
-  entry. A finding qualifies if future work would otherwise re-derive it.
-  Give each enough context to act on cold.
-- **Do not reopen** — add scope decisions settled this session and approaches
+- **Tasks**: update status. Note the date and commit for finished tasks.
+- **Facts established**: promote durable findings out of this session's log
+  entry. A finding qualifies if future work would otherwise re-derive it. Give
+  each enough context to act on cold.
+- **Do not reopen**: add scope decisions settled this session and approaches
   tried and rejected, with the reason and the date.
-- **Open questions** — delete answered ones, moving the answer into the
-  section it belongs in; add newly reserved decisions.
+- **Open questions**: delete answered ones, moving the answer into the section
+  it belongs in. Add newly reserved decisions.
 - Anything the session proved wrong gets **corrected where it stands**.
   Superseded text is deleted, not annotated with a correction beside it.
 
-## Step 3 — Refresh `Start here`
+## Step 3: Refresh `Start here`
 
 This block is the interface to the next session. You know what the next agent
-needs; they know nothing. Rewrite every field, and keep the whole block
-**under ~25 lines** — it is read cold and in full every session.
+needs; they know nothing. Rewrite every field, and keep the whole block **under
+~25 lines**.
 
-- **Next** — one concrete action, beginnable cold.
-- **Read first** — the specific files that action requires, each with a
-  clause saying why. This is the field that saves the next session the most
-  time and the one most often left stale.
-- **Workflow** — including any override for the next task specifically. The
-  palette is `../handoff-create/reference/workflows.md`. If the next task
-  needs a pattern that is not there, describe it precisely in this field;
-  mention to the user that it might be worth adding, but do not edit the
-  skill from a project session.
-- **Awaiting review** — which commits, or `nothing`.
-- **Verified state** — see below.
-- **Open for \<user\>** — or `none`.
+- **Next**: one concrete action, beginnable cold.
+- **Read first**: the specific files that action requires, each with a clause
+  saying why. This is the field that saves the next session the most time and
+  the one most often left stale.
+- **Workflow**: the pattern the next task runs under, plus any override for that
+  task. The shared patterns are in `../handoff-create/reference/workflows.md`; a
+  pattern coined for this arc is defined in the document's own `## Workflow`
+  section. If the workflow changed this session, update both this field and that
+  section so the document shows only the current pattern.
+- **Review**: see below.
+- **Verified state**: see below.
+- **Open for \<user\>**: or `none`.
+
+### Writing `Review`
+
+This field says whether a review is open. Two states:
+
+- `none`: no open review. `Next` proposes work.
+- `in-review`, with the proposal SHA: a review is open against that commit.
+  `Next` says what resumes once it closes, not what to do now.
+
+**State and SHA, nothing else.** Do not include what the review has found or how
+much of it is left.
+
+Move the field to `in-review` after committing the proposal and writing its
+brief. Move the field to `none` if the user indicates to you that review is
+finished. A review that opens and closes inside one session never needs the
+field, so `none` does not mean the work went unreviewed.
 
 ### Writing `Verified state`
 
@@ -84,52 +101,34 @@ Two jobs in one field: an instruction for the next session, then a report of
 this one.
 
 Name commands **cheapest-catch-all first**. `handoff-start` reruns whichever
-command appears first, so that slot belongs to the check most likely to
-notice the document going stale for the least time spent — not to the most
-thorough one.
+command appears first, so that slot belongs to the check most likely to notice
+the document going stale for the least time spent, not to the most thorough one.
 
-Record the **observed duration** beside it: `` `stack build` (~90s warm) →
-green ``. The next session derives its timeout from that figure, so it is
-worth the seconds it costs to notice. Only ever record a duration you
-actually observed — an estimate here gets a slow build killed and reported as
-unverified. If you did not time it, write nothing rather than guessing, and
-if `handoff-start` timed out this session, record that instead of a duration.
+Record the **observed duration** beside it: `` `stack build` (~90s warm): green
+``. The next session derives its timeout from that figure. Only record a
+duration you actually observed. If you did not time it, write nothing rather
+than guessing, and if `handoff-start` timed out this session, record that
+instead of a duration.
 
-End with what was **not** run — `**Not run this session:** stack test, nix
-flake check`. That negative is what stops the next agent trusting a green
-that only ever covered half the tree.
+End with what was **not** run: `**Not run this session:** stack test, nix flake
+check`. That negative is what stops the next agent trusting a green that only
+ever covered half the tree.
 
-## Step 4 — Promote and prune (every run)
+## Step 4: Promote and prune
 
-This is a check on every update, not a separate ritual. A step you have to
-remember is one that never happens.
+**When a task closes** (landed and reviewed, or abandoned): confirm its durable
+findings reached *Facts established* and its rejected approaches reached *Do not
+reopen*. The log entries behind it can then be left exactly where they are.
 
-**When a task closes** (landed and reviewed, or abandoned): confirm its
-durable findings reached *Facts established* and its rejected approaches
-reached *Do not reopen*. Once that is done the log entries behind it can be
-left exactly where they are — the state document no longer depends on them.
+**When the handoff document is getting long**: follow the handoff document's
+*Keeping this doc current* section, and tell the user what you moved.
 
-**When the state document is getting long** (past roughly 400 lines): check
-whether it is carrying material that belongs elsewhere. In order of
-preference — task-independent operational rules to `AGENTS.md`, architecture
-and rationale to the project's published docs, durable agent-facing
-background to the `.scratch/` background doc, per-task detail to
-`.scratch/plan-<task>.md`, and narrative to the log. Tell the user what you
-moved.
+**When an arc completes**: move both files to `.scratch/archive/`. Promote
+anything durable that outlives the arc first. An archived document is history,
+and nothing should have to be grepped out of it.
 
-**Relocate; never delete to hit a length.** If nothing in the document
-qualifies for a better home, it is simply that long. `Facts established` and
-`Do not reopen` are expected to grow without limit — they are read
-selectively, and pruning them is how a project forgets what it paid to learn.
-Do not report the document's length to the user or justify it.
+## Step 5: Report
 
-**When an arc completes**: move both files to `.scratch/archive/`. If
-anything durable was learned that outlives the arc, promote it out first — an
-archived document is history, and nothing should have to be grepped out of
-it.
-
-## Step 5 — Report
-
-Tell the user what you changed in the document, what you promoted, and what
-you moved or archived. If you found a claim you could not verify, say which
-one and leave it marked rather than quietly dropping it.
+Tell the user what you changed in the document, what you promoted, and what you
+moved or archived. If you found a claim you could not verify, say which one and
+leave it marked rather than quietly dropping it.
