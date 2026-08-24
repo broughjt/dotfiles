@@ -20,6 +20,7 @@ nixpkgs.lib.nixosSystem {
     nixSettings
     linuxBase
     tailscale
+    utahWireless
     docker
     home-manager.nixosModules.home-manager
     personal

@@ -83,6 +83,7 @@ rec {
   kakoune = import ./home/kakoune.nix;
   vlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;
+  utahWireless = import ./utah-wireless.nix;
   emacsHome = import ./home/emacs-home.nix { inherit configureEmacsPackage; };
   emacs = import ./home/emacs.nix {
     inherit
