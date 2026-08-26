@@ -10,7 +10,10 @@
 
 **Workflow:** <pattern name> — `.scratch/workflow-<name>.md`
 
-**Review:** <`none`, or: in-review, proposal \<sha\>>
+**Review:** <`none`, or `in-review, proposal <sha>`. The proposal is the commit
+submitted for the user to review. `in-review` parks `Next`, which then says what
+resumes once the review closes, not what to do now. State and SHA only; review
+findings do not belong here. A new arc starts `none`.>
 
 **Verified state:** <YYYY-MM-DD>: `<cheapest command that would catch this doc
 being wrong>` (<observed duration>) → <observed result>; `<other command run>`

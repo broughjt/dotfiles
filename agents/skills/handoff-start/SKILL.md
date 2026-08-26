@@ -42,12 +42,12 @@ Run these in parallel with the reads; they take seconds.
   **Review**. Commits the document does not describe, or none where it claims
   a review is in progress, both mean the document is behind reality. Also
   catches work done outside a handoff session.
-- If **Review** names a proposal SHA, resolve the default branch using `git
-  symbolic-ref --short refs/remotes/origin/HEAD`, falling back to whatever this
-  repository calls its mainline, and check `git merge-base --is-ancestor <sha>
-  <mainline>`. A proposal already merged there while the document still claims
-  `in-review` means the review closed and the document did not hear about
-  it.
+- If **Review** names a proposal SHA, meaning the commit submitted for the
+  user's review, resolve the default branch using `git symbolic-ref --short
+  refs/remotes/origin/HEAD`, falling back to whatever this repository calls its
+  mainline, and check `git merge-base --is-ancestor <sha> <mainline>`. A
+  proposal already merged there while the document still claims `in-review`
+  means the review closed and the document is stale.
 - Confirm every path named in `Start here` still exists. A document naming a
   file, function or flag that has since been deleted is the characteristic
   stale-handoff failure.
