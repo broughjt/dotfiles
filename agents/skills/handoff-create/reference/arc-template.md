@@ -16,8 +16,6 @@
 being wrong>` (<observed duration>) → <observed result>; `<other command run>`
 → <result>. **Not run:** <commands skipped>.
 
-**Open for <user>:** <decisions reserved for the user, or `none`>
-
 ## Why this work exists
 
 <One or two paragraphs. What is inadequate today, and what changes when this
@@ -59,7 +57,11 @@ _None._
 
 <Decisions reserved for the user. An agent must not settle these alone. It may
 gather evidence and present options. Delete each one as it is answered, moving
-the answer into the relevant section above.>
+the answer into the relevant section above.
+
+Mark an entry `— blocks Next.` when the next action cannot proceed without
+it. `handoff-start` stops on that marker rather than settling the decision, so
+it is written by the agent that knows and read by one that does not.>
 
 _None._
 

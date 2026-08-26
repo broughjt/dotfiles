@@ -56,7 +56,10 @@ In the handoff document, **editing, never appending corrections**:
 - **Do not reopen**: add scope decisions settled this session and approaches
   tried and rejected, with the reason and the date.
 - **Open questions**: delete answered ones, moving the answer into the section
-  it belongs in. Add newly reserved decisions.
+  it belongs in. Add newly reserved decisions. Mark an entry `— blocks Next.`
+  when the action you just wrote into `Next` cannot proceed without it, and
+  clear the marker when it no longer applies. You are the only agent in a
+  position to judge that; the next one will take the marker at face value.
 - Anything the session proved wrong gets **corrected where it stands**.
   Superseded text is deleted, not annotated with a correction beside it.
 
@@ -81,7 +84,6 @@ needs; they know nothing. Rewrite every field, and keep the whole block **under
   `../handoff-create/reference/workflows/README.md`.
 - **Review**: see below.
 - **Verified state**: see below.
-- **Open for \<user\>**: or `none`.
 
 ### Writing `Review`
 

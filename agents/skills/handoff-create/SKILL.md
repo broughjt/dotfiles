@@ -95,8 +95,8 @@ The following are examples--they are not meant to be an agenda.
 - **What not to reopen**: what has already been decided, tried and rejected, or
   ruled out of scope. This is the highest-value section and users rarely
   volunteer it, so ask directly.
-- **Open for the user**: decisions the user reserves for themselves, which
-  agents must not settle alone.
+- **Open questions**: decisions the user needs to make and which agents must not
+  settle alone.
 
 Interview until you are 95% confident you are on the same page. Do not write the
 document while material questions are open.

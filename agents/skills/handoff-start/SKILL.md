@@ -98,7 +98,8 @@ Keep it under about fifteen lines:
   question of whether it has closed.
 - discrepancies found in step 3, including a failed verify
 - verification left unconfirmed, if the command timed out or was not run
-- open questions the document reserves for the user
+- open questions marked `blocks Next`, which hold the next action, then any
+  other open questions for the user
 
 Do not restate the document. The user is familiar with its contents. They need
 the change since last time and the direction for this session, not a summary.
@@ -107,10 +108,14 @@ the change since last time and the direction for this session, not a summary.
 
 Without `go`, stop after the brief. The user will direct you further.
 
-With `go`, begin the `Next` action under the stated workflow. Two things stop
+With `go`, begin the `Next` action under the stated workflow. Three things stop
 that:
 
 - **`in-review`.** Brief and stop. Say that starting the next step conflicts
   with the open review, which holds the work until it closes.
+- **An open question marked `blocks Next`.** Brief and stop. Present the
+  options and whatever evidence the document includes, but do not settle it. Ask
+  whether the decision has been made since the marker was written, the way step
+  3 asks about an open review; if it has, record the answer and carry on.
 - **A discrepancy from step 3**, including a failed verify. Raise it and ask for
   further direction from the user.
