@@ -23,7 +23,9 @@ Glob `.scratch/handoff-*.md`, excluding `*-log.md`.
 
 ## Step 2: Load context
 
-Read the document. Then read every path in its **Read first** list.
+Read the document. Then read every path in its **Read first** list, and the
+workflow file named by the **Workflow** field. The workflow governs how you work
+and what you must not do, so do not begin the `Next` action without it.
 
 Read the log file only if `Start here` points at it, or if something in the
 handoff document is unclear and reading the history would help resolve it. The

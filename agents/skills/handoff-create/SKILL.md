@@ -62,6 +62,8 @@ Places to check:
   documentation
 - existing `.scratch/handoff-*.md`, excluding `*-log.md`, plus any background
   doc in `.scratch/` and `.scratch/archive/`
+- existing `.scratch/workflow-*.md`; a `verbatim` copy can be shared with this
+  arc rather than duplicated
 - build and test configuration; the commands that verify the project
 - `git log` for the last 10–20 commits, and `git status`
 
@@ -94,10 +96,11 @@ document while material questions are open.
 
 ### Choosing a workflow
 
-Read `reference/workflows.md`. It holds patterns this user has worked with in
-the past, and it is a starting vocabulary, not a menu, and not a closed set.
-Use the context you gathered to propose the workflow that actually suits this
-arc, including one the user has not thought of.
+Read `reference/workflows/README.md`. Its table includes patterns the user has
+worked with before, but it is a starting vocabulary, not a menu and not a closed
+set. Make a shortlist by viewing the table, then open the candidates you are
+weighing. Use the context you gathered to propose the workflow that actually
+suits this arc, including workflows the user has not thought of.
 
 Propose a variation when you can name the property of this arc that the existing
 patterns handle badly. For example, an interface that has to be pinned before
@@ -105,19 +108,27 @@ anything else, a verification step too slow to run per-commit, or a component
 only the user can exercise. If you cannot name one, pick the closest existing
 pattern rather than inventing a new one.
 
-A bespoke workflow needs a name and a definition. Coin a short name for `Start
-here`'s `Workflow:` field and define it in a `## Workflow` section of the arc
-doc. Describe the workflow precisely enough that a fresh agent can follow it
-without asking.
+A bespoke workflow needs a name and a definition. Coin a short name, and
+describe the workflow precisely enough that a fresh agent can follow it without
+asking: what the agent does, in what order, what it does not do, and what counts
+as the task being finished.
 
 A workflow does not have to fit the whole arc. When the one you propose only
 fits the phase in front of you, say so.
 
 ## Step 4: Write
 
-Copy `reference/arc-template.md` and fill it in. Create the companion `-log.md`
-with this preamble, and a single entry below it recording the doc's creation and
-the decisions taken in the interview:
+Copy `reference/arc-template.md` and fill it in.
+
+Install the workflow at `.scratch/workflow-<name>.md`: copy the chosen pattern
+out of `reference/workflows/`, or write the bespoke definition there. Open the
+file with the provenance line `reference/workflows/README.md` specifies. `Start
+here`'s `Workflow:` field names the pattern and that path. **The copy is what
+governs the arc**, so an arc keeps the rules it started under even when the
+shared pattern later changes.
+
+Create the companion `-log.md` with this preamble, and a single entry below it
+recording the doc's creation and the decisions taken in the interview:
 
 ```markdown
 # <Arc title>: log

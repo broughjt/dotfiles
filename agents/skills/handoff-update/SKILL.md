@@ -70,11 +70,15 @@ needs; they know nothing. Rewrite every field, and keep the whole block **under
 - **Read first**: the specific files that action requires, each with a clause
   saying why. This is the field that saves the next session the most time and
   the one most often left stale.
-- **Workflow**: the pattern the next task runs under, plus any override for that
-  task. The shared patterns are in `../handoff-create/reference/workflows.md`; a
-  pattern coined for this arc is defined in the document's own `## Workflow`
-  section. If the workflow changed this session, update both this field and that
-  section so the document shows only the current pattern.
+- **Workflow**: the pattern governing `Next` and the path to its copy. That is
+  the task's override when it has one, otherwise the arc default. The arc runs
+  against `.scratch/workflow-<name>.md`, never against the shared pattern it was
+  copied from, so a pattern named here without a copy installed is a defect. If
+  the workflow changed this session, or the next task carries an override with
+  no copy yet, install it from `../handoff-create/reference/workflows/`, point
+  this field at it, and record the switch and its reason in the log. Amending a
+  copy means forking it under a new name; see
+  `../handoff-create/reference/workflows/README.md`.
 - **Review**: see below.
 - **Verified state**: see below.
 - **Open for \<user\>**: or `none`.
@@ -123,7 +127,9 @@ reopen*. The log entries behind it can then be left exactly where they are.
 **When the handoff document is getting long**: follow the handoff document's
 *Keeping this doc current* section, and tell the user what you moved.
 
-**When an arc completes**: move both files to `.scratch/archive/`. Promote
+**When an arc completes**: move both files to `.scratch/archive/`, together with
+every workflow copy that is bespoke to this arc, overrides included. A
+`verbatim` copy stays put, since another arc may be running against it. Promote
 anything durable that outlives the arc first. An archived document is history,
 and nothing should have to be grepped out of it.
 

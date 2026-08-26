@@ -8,8 +8,7 @@
 - `<path>`: <why this one, in a clause>
 - `<path>`: <why>
 
-**Workflow:** <pattern name, from workflows.md or coined for this arc and
-defined under `## Workflow` below>
+**Workflow:** <pattern name> — `.scratch/workflow-<name>.md`
 
 **Review:** <`none`, or: in-review, proposal \<sha\>>
 
@@ -32,18 +31,10 @@ shifts.>
 route: phases, ordering constraints, what must be settled before what. This is
 not a task-level plan; those live in `.scratch/plan-<task>.md`.>
 
-## Workflow
-
-<Only when the workflow is not a named pattern from workflows.md. Delete this
-section otherwise.
-
-Define the coined name used in `Start here` by indicating what the agent does,
-in what order, what it does not do, and what counts as the task being
-finished. Write such that a fresh agent can follow the workflow without asking.>
-
 ## Tasks
 
-- [ ] <task> (<workflow override, if it differs from the doc default>)
+- [ ] <task> (<override: <pattern name> `.scratch/workflow-<name>.md`, when it
+      differs from the doc default>)
 - [ ] <task>
 - [x] <finished task> (landed <YYYY-MM-DD>, commit if there is one)
 
