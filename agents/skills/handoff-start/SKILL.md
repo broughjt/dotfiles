@@ -33,7 +33,7 @@ intention is that you should *not* have to read it by default.
 
 Run these in parallel with the reads; they take seconds.
 
-- `git status --short`. the tree should normally be clean, since work
+- `git status --short`. The tree should normally be clean, since work
   awaiting review is committed rather than left uncommitted. Anything
   uncommitted is unexplained and worth raising.
 - `git log --oneline` since the **Verified state** date. Compare against
@@ -55,7 +55,7 @@ the document or the tree is wrong.
 
 ### Running the verify command
 
-Run it **synchronously, before briefing**. Do not put it in the background.  A
+Run it **synchronously, before briefing**. Do not put it in the background. A
 check the user has already moved past is worse than no check, because it
 surfaces later out of context and becomes a distraction.
 
@@ -67,10 +67,10 @@ Choose the timeout from the duration recorded beside the command:
 - **Duration recorded**: set the timeout to three times as long with a
   two-minute floor.
 - **No duration recorded**: two minutes.
-- **Duration over ~10 minutes**: do not run it, and do not background it.  Brief
+- **Duration over ~10 minutes**: do not run it, and do not background it. Brief
   with what it is and what it costs and then let the user opt in.
 
-**A timeout is not a failure:**:
+**A timeout is not a failure:**
 
 - **Timed out**: say the check did not finish and the document's claimed state
   is unverified, not contradicted.

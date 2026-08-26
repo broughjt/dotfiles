@@ -53,7 +53,7 @@ Never ask about what you can observe. Read until you can answer, without asking:
 - what command verifies it
 - which files a fresh agent needs to open to work on the arc
 - whether a sibling arc doc already sets a workflow pattern
-  
+
 What is still unanswered is interview material.
 
 Places to check:
@@ -67,7 +67,7 @@ Places to check:
 
 ## Step 3: Ask about what you cannot infer
 
-Interview the user about you cannot infer. Use the harness's structured question
+Interview the user about what you cannot infer. Use the harness's structured question
 tool when available, otherwise ask in chat. Lead with your recommendation as the
 first option, labeled `(Recommended)`.
 
