@@ -14,7 +14,7 @@
 
 **Verified state:** <YYYY-MM-DD>: `<cheapest command that would catch this doc
 being wrong>` (<observed duration>) → <observed result>; `<other command run>`
-→ <result>. **Not run this session:** <commands skipped>.
+→ <result>. **Not run:** <commands skipped>.
 
 **Open for <user>:** <decisions reserved for the user, or `none`>
 

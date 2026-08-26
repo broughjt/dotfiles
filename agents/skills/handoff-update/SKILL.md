@@ -101,22 +101,30 @@ field, so `none` does not mean the work went unreviewed.
 
 ### Writing `Verified state`
 
-Two jobs in one field: an instruction for the next session, then a report of
-this one.
+Two jobs in one field: an instruction for the next session, then a report from
+the last session that actually ran it, which is not always this one.
 
 Name commands **cheapest-catch-all first**. `handoff-start` reruns whichever
 command appears first, so that slot belongs to the check most likely to notice
 the document going stale for the least time spent, not to the most thorough one.
 
-Record the **observed duration** beside it: `` `stack build` (~90s warm): green
-``. The next session derives its timeout from that figure. Only record a
-duration you actually observed. If you did not time it, write nothing rather
-than guessing, and if `handoff-start` timed out this session, record that
-instead of a duration.
+Open the field with the **date the observations were made**. `handoff-start`
+runs `git log` since that date to find commits the document does not describe,
+so a date that does not match the observations beside it silently disables that
+check.
 
-End with what was **not** run: `**Not run this session:** stack test, nix flake
-check`. That negative is what stops the next agent trusting a green that only
-ever covered half the tree.
+Record the **observed duration** beside each command. The next session derives
+its timeout from that figure. Only record a duration you actually observed. If
+you did not time it, write nothing rather than guessing, and if `handoff-start`
+timed out this session, record that instead of a duration.
+
+End with what was **not** run. That negative is what stops the next agent
+trusting a green that only ever covered half the tree.
+
+```markdown
+**Verified state:** 2026-08-26: `stack build` (~90s warm) → green; `stack test`
+(4m) → 3 failures in Spec.Metric. **Not run:** nix flake check.
+```
 
 ## Step 4: Promote and prune
 

@@ -67,6 +67,13 @@ Places to check:
 - build and test configuration; the commands that verify the project
 - `git log` for the last 10–20 commits, and `git status`
 
+Then **run the cheapest command that verifies the project**, and time it. This
+confirms the command is real before the document commits a fresh agent to it,
+and it gives `Verified state` a date and a result to open with rather than a
+guess. If it fails, that is a fact about where the arc starts; record it and
+raise it in the interview. If it is too slow to be worth running at creation,
+say so in the field instead of inventing a result.
+
 ## Step 3: Ask about what you cannot infer
 
 Interview the user about what you cannot infer. Use the harness's structured question

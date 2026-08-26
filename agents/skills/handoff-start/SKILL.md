@@ -61,8 +61,9 @@ Run it **synchronously, before briefing**. Do not put it in the background. A
 check the user has already moved past is worse than no check, because it
 surfaces later out of context and becomes a distraction.
 
-The command is the **first one named in `Verified state`**. The rest of that
-field is a report of what the last session verified, not an instruction.
+The command is the **first command named in `Verified state`**, after the date
+that opens the field. The rest of that field is a report of what the last
+session verified, not an instruction.
 
 Choose the timeout from the duration recorded beside the command:
 
