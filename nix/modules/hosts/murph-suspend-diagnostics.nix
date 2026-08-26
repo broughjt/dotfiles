@@ -8,12 +8,15 @@
 # after every resume, so that a suspend which never returns can be diagnosed
 # afterwards.
 #
-# murph intermittently takes a fatal platform fault entering s2idle and lands
-# in S5 rather than resuming; the kernel logs nothing past "PM: suspend entry"
-# because the fault is below the level Linux can record. The only way to learn
-# anything about a fatal suspend is therefore to write down the state going
-# into it. A "pre" line with no matching "post" line identifies the fatal
-# suspend and carries its state.
+# murph intermittently takes an uncorrected Data Fabric error on the wake event
+# from s2idle, which sync-floods and resets the platform from below the OS. The
+# kernel logs nothing past "PM: suspend entry", so the only way to learn
+# anything about a fatal suspend is to write down the state going into it.
+#
+# A "pre" line with no matching "post" line means the machine did not come
+# back. It does not by itself mean this fault: a battery that runs down while
+# suspended leaves the same trace. Cross-check against the reset reason the
+# following boot prints, where 0x08000800 is this fault.
 #
 # See .scratch/handoff-murph-suspend.md for the investigation this supports.
 let
@@ -34,9 +37,7 @@ let
   snapshot = pkgs.writeShellScript "murph-suspend-snapshot" ''
     set -u
 
-    # sleep-actions.service supplies only coreutils, findutils, gnugrep,
-    # gnused and systemd, so do not depend on whatever else happens to be on
-    # the ambient PATH.
+    # Invoked by systemd-suspend.service, whose PATH is not ours to assume.
     export PATH=${
       lib.makeBinPath [
         pkgs.coreutils
@@ -44,7 +45,9 @@ let
       ]
     }
 
+    # systemd passes $1 = pre|post and $2 = the sleep action.
     phase="$1"
+    action="''${2:-unknown}"
     log=${logFile}
 
     # Missing or unreadable sysfs entries must never fail a suspend.
@@ -52,7 +55,7 @@ let
       if [ -r "$1" ]; then tr -d '\n' < "$1" 2>/dev/null || printf '?'; else printf '?'; fi
     }
 
-    line="$(date -Is) phase=$phase"
+    line="$(date -Is) phase=$phase action=$action"
     line="$line boot=$(field /proc/sys/kernel/random/boot_id)"
 
     # Suspend ordinal within this boot. The investigation's central finding is
@@ -103,13 +106,13 @@ in
     "f ${logFile} 0644 root root -"
   ];
 
-  # powerDownCommands runs in sleep-actions.service (Before=sleep.target);
-  # resumeCommands runs on the way back out.
-  powerManagement.powerDownCommands = ''
-    ${snapshot} pre
-  '';
-
-  powerManagement.resumeCommands = ''
-    ${snapshot} post
-  '';
+  # A systemd-sleep hook fires only for sleep, and for both phases.
+  # powerManagement.powerDownCommands is the wrong primitive here: nixpkgs
+  # interpolates it into post-boot.service's preStop as well as into
+  # sleep-actions.service, so every clean shutdown wrote a spurious "pre".
+  #
+  # NixOS builds systemd with SYSTEM_SLEEP_PATH=/etc/systemd/system-sleep, so
+  # this is the hook directory, not the /usr/lib path named by
+  # systemd-suspend.service(8).
+  environment.etc."systemd/system-sleep/murph-suspend-snapshot".source = snapshot;
 }
