@@ -40,11 +40,12 @@ not a task-level plan; those live in `.scratch/plan-<task>.md`.>
 
 ## Do not reopen
 
-<Settled scope decisions and rejected approaches. One line each, with the
-reason and the date. Fresh agents reliably try to "helpfully" restore deleted
-work and re-propose rejected designs. This section is what stops them.>
+<Settled scope decisions and rejected approaches, one line each as
+`- **<thing>**: <why it is closed> (<YYYY-MM-DD>)`. Fresh agents reliably try
+to "helpfully" restore deleted work and re-propose rejected designs. This
+section is what stops them.>
 
-- **<thing>**: <why it is closed> (<YYYY-MM-DD>)
+_None._
 
 ## Facts established
 
@@ -52,11 +53,15 @@ work and re-propose rejected designs. This section is what stops them.>
 fresh agent would otherwise re-derive. Group under subheadings once there are
 more than a handful. Each fact carries enough context to be acted on cold.>
 
+_None._
+
 ## Open questions
 
 <Decisions reserved for the user. An agent must not settle these alone. It may
 gather evidence and present options. Delete each one as it is answered, moving
 the answer into the relevant section above.>
+
+_None._
 
 ## Keeping this doc current
 
@@ -65,6 +70,9 @@ the answer into the relevant section above.>
 - **State lives here; history lives in the log.** Session narrative goes to
   `handoff-<slug>-log.md`, which is append-only. Findings that future work
   depends on get promoted up into *Facts established*.
+- **Sections are never deleted.** *Tasks*, *Do not reopen*, *Facts established*
+  and *Open questions* accumulate over the arc, so an empty one means "not yet",
+  not "not applicable". Mark it `_None._` rather than removing the heading.
 - **Refresh `Start here` at the end of every session**, especially `Next` and
   `Read first`. Keep the block under ~25 lines.
 - **`Read first` is the highest-value line in the document.** It is written by

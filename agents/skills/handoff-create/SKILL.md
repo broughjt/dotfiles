@@ -155,7 +155,6 @@ Rules for the prose:
   in flight belongs in `.scratch/plan-<task>.md`.
 - Never write a verification number you did not observe. If you did not run
   it, write what to run instead.
-- Fill every section or delete it. An empty heading reads as an oversight.
 - Write `Start here` last, once everything else is settled.
 
 ### Length
