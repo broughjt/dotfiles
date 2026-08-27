@@ -10,6 +10,7 @@
 let
   user = config.personal.userName;
   localDirectory = config.defaultDirectories.localDirectory;
+  agentInstructions = import ../../packages/agent-instructions.nix;
 
   # Claude Code's native CLAUDE_CONFIG_DIR relocates the normal ~/.claude
   # tree. Persist that whole tree.
@@ -23,10 +24,13 @@ let
   };
   claudeSkillsDir = "${claudeStateDir}/skills";
 
-  # Shared user-global agent instructions, also consumed by Codex and Pi.
-  # Claude Code reads CLAUDE.md rather than AGENTS.md, so it reaches the same
-  # store file under that name.
-  instructionsSource = ../../../agents/AGENTS.md;
+  # Shared user-global agent instructions, also consumed by Codex. Claude Code
+  # reads CLAUDE.md rather than AGENTS.md, so it reaches the same store file
+  # under that name.
+  instructionsSource = agentInstructions.assembleAgentInstructions {
+    inherit pkgs;
+    machine = ../../../agents/machines/murph.md;
+  };
   claudeInstructionsFile = "${claudeStateDir}/CLAUDE.md";
 
   agentToolPath = lib.makeBinPath [
