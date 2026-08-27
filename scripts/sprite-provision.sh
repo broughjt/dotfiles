@@ -35,8 +35,11 @@ main() {
   # Cleared rather than pushed over. The payload is a store path, so a file
   # dropped from one revision would otherwise linger in the sprite and go on
   # being installed by the next run.
+  info "pushing the payload to $REMOTE_DIRECTORY"
   sprite exec -s "$name" -- rm -rf "$REMOTE_DIRECTORY"
-  sprite file push -s "$name" --recursive --parents "$PAYLOAD" "$REMOTE_DIRECTORY"
+  # push lists every file it copied, which duplicates what the in-sprite half
+  # reports as it installs them.
+  sprite file push -s "$name" --recursive --parents "$PAYLOAD" "$REMOTE_DIRECTORY" > /dev/null
   sprite exec -s "$name" -- bash "$REMOTE_DIRECTORY/in-sprite.sh"
 }
 
