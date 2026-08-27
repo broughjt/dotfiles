@@ -127,11 +127,8 @@ check_upstream_instructions() {
   fi
   [ -e "$capture" ] || return 0
 
-  # machines/sprite.md is written against the vendored copy: it carries the
-  # platform's security warning, gateway rule and skill pointers in Jackson's
-  # own words, and deliberately drops the language-shim line. If the image's
-  # text has moved, that section was written against something that no longer
-  # exists, so stop rather than install it.
+  # If the image's text has moved, that section was written against something
+  # that no longer exists, so stop rather than install it.
   if ! diff -u "$vendored" "$capture" > "$WORKDIR/upstream.diff"; then
     cat "$WORKDIR/upstream.diff" >&2
     die "the base image's agent instructions have changed; re-read them against agents/machines/sprite.md, then re-vendor agents/machines/upstream/codex-agents.md"
