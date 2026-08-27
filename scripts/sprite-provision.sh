@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Provision a sprite with my preferred settings. This half runs on murph and
-# does nothing but ship the payload; scripts/sprite-provision-in-sprite.sh is
-# the half that runs inside the sprite.
+# Provision a sprite with my preferred settings.
 
 # Substituted with the payload store path by nix/packages/scripts.nix, which is
 # why this only runs as a flake app.
@@ -32,9 +30,8 @@ main() {
   local name="$1"
 
   info "provisioning sprite $name"
-  # Cleared rather than pushed over. The payload is a store path, so a file
-  # dropped from one revision would otherwise linger in the sprite and go on
-  # being installed by the next run.
+  # Cleared rather than just overwritten to avoid files which are removed by
+  # subsequent version sticking around.
   info "pushing the payload to $REMOTE_DIRECTORY"
   sprite exec -s "$name" -- rm -rf "$REMOTE_DIRECTORY"
   # push lists every file it copied, which duplicates what the in-sprite half
