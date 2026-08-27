@@ -294,6 +294,16 @@ in
         directory = "local/state/codex";
         mode = "0700";
       }
+      # sprite hardcodes ~/.sprites; sprite.nix points its private HOME here.
+      # sprites.json holds API endpoint/org/sprite metadata and is rewritten via
+      # temp-file + rename, so persist the directory rather than the file. The
+      # org API token is not in it: that goes to the GNOME keyring, persisted
+      # via local/share/keyrings. .sprites/keyring is only the on-disk fallback
+      # used when no Secret Service is running.
+      {
+        directory = "local/state/sprite/home/.sprites";
+        mode = "0700";
+      }
     ];
 
     files = [ ];

@@ -78,6 +78,7 @@ rec {
   agentSkills = import ./home/agent-skills.nix;
   claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
   codex = import ./home/codex.nix { inherit llmAgentsOverlay; };
+  sprite = import ./home/sprite.nix;
   firefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;
   ghostty = import ./home/ghostty.nix;
