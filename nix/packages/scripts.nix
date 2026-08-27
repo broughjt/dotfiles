@@ -82,7 +82,7 @@ let
         inherit pkgs;
         machine = ../../agents/machines/sprite.md;
       }
-    } "$out/files/CLAUDE.md"
+    } "$out/files/agent-instructions.md"
   '';
   spriteProvision = pkgs.writeShellApplication {
     name = "sprite-provision";

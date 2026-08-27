@@ -107,6 +107,7 @@ link_nix_binaries() {
 }
 
 write_agent_instructions() {
+  local source="$FILES_DIRECTORY/agent-instructions.md"
   local target="$HOME/.claude/CLAUDE.md"
 
   # Assembled by nix/packages/agent-instructions.nix from the same fragments
@@ -116,7 +117,36 @@ write_agent_instructions() {
   mkdir -p "$(dirname "$target")"
   # install rather than cp: pushed files keep the read-only mode they had in
   # the store, and cp would propagate it to the copy.
-  install -m 0644 "$FILES_DIRECTORY/CLAUDE.md" "$target"
+  install -m 0644 "$source" "$target"
+
+  write_codex_instructions "$source"
+}
+
+write_codex_instructions() {
+  local source="$1"
+  local target="$HOME/.codex/AGENTS.md"
+  local base="$HOME/.codex/AGENTS.base.md"
+
+  # Codex has no CODEX_HOME here, so it reads ~/.codex.
+  mkdir -p "$(dirname "$target")"
+
+  # The base image ships its own AGENTS.md, carrying the platform's security
+  # warning and API gateway instructions. Keep a copy the first time and
+  # regenerate from that copy afterwards, so ours is added rather than
+  # substituted and a re-run cannot append twice.
+  if [ ! -e "$base" ] && [ -e "$target" ]; then
+    info "preserving the base image's $target as $base"
+    cp "$target" "$base"
+  fi
+
+  info "writing $target"
+  {
+    cat "$source"
+    if [ -e "$base" ]; then
+      echo
+      cat "$base"
+    fi
+  } > "$target"
 }
 
 die() {
