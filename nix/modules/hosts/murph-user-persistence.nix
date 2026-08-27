@@ -107,12 +107,6 @@ in
       check_single_entry ${localDirectory}/hacks/gh/hosts hosts.yml
       check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
       check_single_entry ${localDirectory}/hacks/emacs/projects projects.eld
-      check_single_entry ${localDirectory}/hacks/pi/settings settings.json
-      check_single_entry ${localDirectory}/hacks/pi/trust trust.json
-      check_single_entry ${localDirectory}/hacks/pi/theme-sync theme-sync.json
-      check_single_entry ${localDirectory}/secrets/pi/auth auth.json
-      check_single_entry ${localDirectory}/secrets/pi/mcp mcp.json
-      check_single_entry ${localDirectory}/config/pi/agent-browser-native config.json
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg-agent.conf
     '';
@@ -124,64 +118,6 @@ in
       "scratch"
       "share"
 
-      {
-        directory = "local/hacks/pi/settings";
-        mode = "0700";
-      }
-      # Pi project trust decisions gate project-local .pi resources and are
-      # deliberate security/user-preference state, not disposable runtime data.
-      {
-        directory = "local/hacks/pi/trust";
-        mode = "0700";
-      }
-      # pi-theme-sync's /theme-sync config is mutable user preference state;
-      # the extension package itself stays store-backed under Pi packages.
-      {
-        directory = "local/hacks/pi/theme-sync";
-        mode = "0700";
-      }
-      # pi-subagents can create user agents/chains at runtime. Treat those as
-      # mutable user configuration, not throwaway Pi runtime files.
-      {
-        directory = "local/hacks/pi/subagents/agents";
-        mode = "0700";
-      }
-      {
-        directory = "local/hacks/pi/subagents/chains";
-        mode = "0700";
-      }
-      {
-        directory = "local/secrets/pi/auth";
-        mode = "0700";
-      }
-      {
-        directory = "local/secrets/pi/mcp";
-        mode = "0700";
-      }
-      {
-        directory = "local/secrets/pi/mcp-oauth";
-        mode = "0700";
-      }
-      {
-        directory = "local/state/pi/sessions";
-        mode = "0700";
-      }
-      {
-        directory = "local/state/pi/mcp";
-        mode = "0700";
-      }
-      # pi-agent-browser-native package config can include plaintext Exa/Brave
-      # API keys or browser profile hints. The Pi package itself is store-backed
-      # and disabled unless listed in Pi settings.
-      {
-        directory = "local/config/pi/agent-browser-native";
-        mode = "0700";
-      }
-      # pi-subagents run history and durable child-session metadata.
-      {
-        directory = "local/state/pi/subagents";
-        mode = "0700";
-      }
       {
         directory = "local/hacks/fish/fish_history";
         mode = "0700";

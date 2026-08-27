@@ -8,11 +8,6 @@
   agenix,
   nixos-raspberrypi,
   configureEmacsPackage,
-  piWebMinimalPackage,
-  piMcpAdapterPackage,
-  piAgentBrowserNativePackage,
-  piSubagentsPackage,
-  piThemeSyncPackage,
 }:
 
 rec {
@@ -62,16 +57,6 @@ rec {
   gh = import ./home/gh.nix;
   gpg = import ./home/gpg.nix;
   pass = import ./home/pass.nix;
-  piCodingAgent = import ./home/pi-coding-agent.nix {
-    inherit
-      piWebMinimalPackage
-      piMcpAdapterPackage
-      piAgentBrowserNativePackage
-      piSubagentsPackage
-      piThemeSyncPackage
-      ;
-    agenixHome = agenix.homeManagerModules.default;
-  };
   plaidSync = import ./home/plaid-sync.nix {
     agenixHome = agenix.homeManagerModules.default;
   };

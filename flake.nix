@@ -33,11 +33,6 @@
 
     impermanence.url = "github:nix-community/impermanence";
 
-    pi-coding-agent.url = "github:broughjt/pi-coding-agent";
-    # pi-coding-agent.url = "path:/home/jackson/repositories/pi-coding-agent";
-    pi-coding-agent.inputs.nixpkgs.follows = "nixpkgs";
-    pi-coding-agent.inputs.flake-utils.follows = "flake-utils";
-
     flake-utils.url = "github:numtide/flake-utils";
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
@@ -58,7 +53,6 @@
       emacs-overlay,
       disko,
       impermanence,
-      pi-coding-agent,
       flake-utils,
       llm-agents-nix,
       agenix,
@@ -66,7 +60,7 @@
     }:
     let
       nix-config = import ./nix/nix-config.nix;
-      emacsPackages = import ./nix/packages/emacs.nix { inherit pi-coding-agent; };
+      emacsPackages = import ./nix/packages/emacs.nix;
       llmAgentsOverlay = llm-agents-nix.overlays.shared-nixpkgs;
       # emacs-overlay still reads deprecated stdenv platform aliases. Keep the
       # compatibility values local to that overlay until upstream migrates.
@@ -93,12 +87,6 @@
         };
       makePkgs = makePkgsWithOverlays [ ];
 
-      piWebMinimalPackage = import ./nix/packages/pi-web-minimal.nix;
-      piMcpAdapterPackage = import ./nix/packages/pi-mcp-adapter.nix;
-      piAgentBrowserNativePackage = import ./nix/packages/pi-agent-browser-native.nix;
-      piSubagentsPackage = import ./nix/packages/pi-subagents.nix;
-      piThemeSyncPackage = import ./nix/packages/pi-theme-sync.nix;
-
       nixosModules = import ./nix/modules {
         inherit
           home-manager
@@ -109,11 +97,6 @@
           impermanence
           agenix
           nixos-raspberrypi
-          piWebMinimalPackage
-          piMcpAdapterPackage
-          piAgentBrowserNativePackage
-          piSubagentsPackage
-          piThemeSyncPackage
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };
@@ -199,9 +182,6 @@
             makeScriptApp scriptPackages.flashNixosInstaller "flash-nixos-installer"
               "Download and write a NixOS installer image";
           installMurph = makeScriptApp scriptPackages.installMurph "install-murph" "Install NixOS on Murph";
-          piPrintSystemPrompt =
-            makeScriptApp scriptPackages.piPrintSystemPrompt "pi-print-system-prompt"
-              "Print Pi's resolved system prompt";
           restoreMurphSecrets =
             makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets"
               "Restore Murph's persisted SSH and GPG secrets";
@@ -216,11 +196,6 @@
       // {
         packages = scriptPackages // {
           emacs-lean4-mode = emacsLean4ModePackage;
-          pi-web-minimal = piWebMinimalPackage pkgs;
-          pi-mcp-adapter = piMcpAdapterPackage pkgs;
-          pi-agent-browser-native = piAgentBrowserNativePackage pkgs;
-          pi-subagents = piSubagentsPackage pkgs;
-          pi-theme-sync = piThemeSyncPackage pkgs;
         };
         apps = scriptApps;
       }

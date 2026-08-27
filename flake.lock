@@ -426,29 +426,6 @@
         "type": "github"
       }
     },
-    "pi-coding-agent": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1778618643,
-        "narHash": "sha256-XLSUfZlhJLk98iooCb0glUV0jkbGTGahiaJ/uNbW4UU=",
-        "owner": "broughjt",
-        "repo": "pi-coding-agent",
-        "rev": "69327405ed8755ee81b8e309c66ed1eb67ea7b2b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "broughjt",
-        "repo": "pi-coding-agent",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "agenix": "agenix",
@@ -460,8 +437,7 @@
         "llm-agents-nix": "llm-agents-nix",
         "nix-darwin": "nix-darwin",
         "nixos-raspberrypi": "nixos-raspberrypi",
-        "nixpkgs": "nixpkgs_3",
-        "pi-coding-agent": "pi-coding-agent"
+        "nixpkgs": "nixpkgs_3"
       }
     },
     "systems": {

@@ -32,7 +32,6 @@ nixpkgs.lib.nixosSystem {
     gpg
     pass
     agentSkills
-    piCodingAgent
     plaidSync
     claudeCode
     codex

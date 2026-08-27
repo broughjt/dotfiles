@@ -9,14 +9,6 @@ let
   dotfilesRevision = self.rev or self.dirtyRev or "unknown";
   dotfilesNarHash = self.narHash or "unknown";
 
-  piPrintSystemPrompt = pkgs.writeShellApplication {
-    name = "pi-print-system-prompt";
-    runtimeInputs = [ pkgs.bun ];
-    text = ''
-      export PI_CODING_AGENT_ROOT="${pkgs.llm-agents.pi}/lib/node_modules/@earendil-works/pi-coding-agent"
-      exec bun ${../../scripts/pi-print-system-prompt.ts} "$@"
-    '';
-  };
   flashNixosInstaller = pkgs.writeShellApplication {
     name = "flash-nixos-installer";
     runtimeInputs = with pkgs; [
@@ -96,7 +88,6 @@ in
     backupMurphSecrets
     flashNixosInstaller
     installMurph
-    piPrintSystemPrompt
     restoreMurphSecrets
     spriteProvision
     ;

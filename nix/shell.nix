@@ -9,7 +9,6 @@
       ])
       ++ (with scriptPackages; [
         backupMurphSecrets
-        piPrintSystemPrompt
         restoreMurphSecrets
       ])
       ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux (

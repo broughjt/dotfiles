@@ -14,8 +14,8 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules.
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`, `kak/`: editor configs, generally consumed from the Nix store via wrappers rather than copied into mutable home paths.
-- `agents/skills/`: user-global Agent Skills shared by Claude Code, Codex, and Pi. `agent-skills.nix` exposes this immutable tree through `~/.agents/skills` for Codex and Pi, while `claude-code.nix` exposes it through `CLAUDE_CONFIG_DIR/skills`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
-- `agents/AGENTS.md`: user-global agent instructions shared by Claude Code, Codex, and Pi. `claude-code.nix` exposes it as `CLAUDE_CONFIG_DIR/CLAUDE.md` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`), `codex.nix` as `CODEX_HOME/AGENTS.md`, and `pi-coding-agent.nix` as the Pi agent directory's `AGENTS.md`. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
+- `agents/skills/`: user-global Agent Skills shared by Claude Code and Codex. `agent-skills.nix` exposes this immutable tree through `~/.agents/skills` for Codex, while `claude-code.nix` exposes it through `CLAUDE_CONFIG_DIR/skills`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
+- `agents/AGENTS.md`: user-global agent instructions shared by Claude Code and Codex. `claude-code.nix` exposes it as `CLAUDE_CONFIG_DIR/CLAUDE.md` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`) and `codex.nix` as `CODEX_HOME/AGENTS.md`. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
 - `scripts/`: implementation bodies for flake apps in `nix/packages/scripts.nix`.
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md`.
@@ -37,7 +37,7 @@ in
 }
 ```
 
-Some modules are curried when they need flake-provided overlays/packages, e.g. `import ./home/pi-coding-agent.nix { inherit ...; }`. Register those in `nix/modules/default.nix`.
+Some modules are curried when they need flake-provided overlays/packages, e.g. `import ./home/claude-code.nix { inherit llmAgentsOverlay; }`. Register those in `nix/modules/default.nix`.
 
 When adding a new dedicated module:
 
@@ -97,7 +97,7 @@ Do not casually persist whole home directories or broad app trees. Classify stat
 
 ### Store-backed / declarative
 
-Prefer Nix store paths for static configuration, generated config, package wrappers, desktop entries, Emacs/Kak/Ghostty config, Pi packages/skills, and policy-like settings.
+Prefer Nix store paths for static configuration, generated config, package wrappers, desktop entries, Emacs/Kak/Ghostty config, agent skills, and policy-like settings.
 
 Examples:
 
@@ -114,7 +114,6 @@ Persist only valuable state, secrets, trust decisions, or state that is hard/ann
 - credentials, SSH/GPG/keyrings, OAuth/auth files
 - direnv allow/deny decisions
 - shell history and known_hosts-like trust records
-- Pi sessions/settings/MCP state chosen as durable
 - Emacs backups/auto-saves and known-projects
 
 Persist user state in `environment.persistence."/persist".users.${user}.directories` in `murph-user-persistence.nix`. Use `mode = "0700"` for private profile/auth/state directories. If an app rewrites a file via temp-file + rename, persist the containing directory instead of bind-mounting just the file.
@@ -154,7 +153,7 @@ Special local subtrees:
 - `~/share`, `~/repositories`, `~/scratch`: user-facing data that is persisted on `murph`.
 
 The intentional top-level compatibility exception is `~/.agents/skills`, an
-ephemeral symlink to the Nix-managed `skills/` tree for Codex and Pi discovery.
+ephemeral symlink to the Nix-managed `skills/` tree for Codex's skill discovery.
 It contains no mutable or persisted state.
 
 ## App/package module patterns
@@ -174,7 +173,7 @@ Common patterns:
 
 ## Secrets
 
-Agenix decrypts encrypted secret files from `secrets/*.age`; shared Home Manager secret wiring lives in modules such as `nix/modules/home/pi-web-minimal-agenix-home.nix`. Never commit plaintext secrets.
+Agenix decrypts encrypted secret files from `secrets/*.age`; the Home Manager secret wiring lives in `nix/modules/home/plaid-sync.nix`. Never commit plaintext secrets.
 
 Persistent identity backup/restore scripts intentionally include only selected SSH and GPG state. If adding new irreplaceable secret state, update:
 

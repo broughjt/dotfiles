@@ -18,7 +18,7 @@ Before editing, inspect the relevant existing modules. At minimum, read:
   - desktop bundle: `nix/modules/home/desktop-apps.nix`
   - dedicated desktop app: `nix/modules/home/firefox.nix`, `nix/modules/home/vlc.nix`
   - CLI config: `nix/modules/home/gh.nix`
-  - complex app-specific state split: `nix/modules/home/pi-coding-agent.nix`, `nix/modules/home/claude-code.nix`, `nix/modules/home/emacs.nix`, `nix/modules/home/gpg.nix`
+  - complex app-specific state split: `nix/modules/home/claude-code.nix`, `nix/modules/home/emacs.nix`, `nix/modules/home/gpg.nix`
 - `nix/modules/default.nix` and the target host such as `nix/hosts/murph.nix` if adding a new dedicated module.
 
 ## Repository conventions

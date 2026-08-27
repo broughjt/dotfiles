@@ -1,8 +1,3 @@
-{ pi-coding-agent }:
-
-let
-  piCodingAgentInput = pi-coding-agent;
-in
 {
   configureEmacsPackage =
     pkgs:
@@ -16,8 +11,6 @@ in
             inherit pkgs;
             emacsPackages = final;
           };
-
-          pi-coding-agent = pi-coding-agent.lib.mkPackage pkgs final;
         }
       );
       treesitGrammars =
@@ -68,21 +61,13 @@ in
         epkgs.rust-mode
         epkgs.verilog-mode
 
-        # pi-coding-agent-config.el
-        #
-        # Qualified explicitly to bypass `with epkgs`: the function argument
-        # `pi-coding-agent` (the flake input) is in the enclosing lexical
-        # scope and shadows the `with`-introduced binding, so a bare
-        # `pi-coding-agent` here would resolve to the flake source dir
-        # rather than the trivialBuild derivation injected by overrideScope.
-        epkgs.pi-coding-agent
-
         # ui.el
         epkgs.ef-themes
         epkgs.modus-themes
         epkgs.standard-themes
 
-        # Treesitter grammars needed for pi-coding-agent
+        # Backs the ts-mode variants above: typescript, tsx, json, haskell,
+        # and (on Linux) typst.
         treesitGrammars
       ]
       ++ pkgs.lib.optionals enableTypst [
