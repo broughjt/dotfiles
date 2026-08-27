@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# The half of sprite-provision that runs inside the sprite. It is pushed there
-# by scripts/sprite-provision.sh along with the files/ tree it installs from.
-# Everything here resolves against the sprite's own PATH; no murph store path
-# exists on this machine.
-
 NIX_INSTALL_URL="https://nixos.org/nix/install"
 
 PAYLOAD_DIRECTORY=$(cd "$(dirname "$0")" && pwd)
