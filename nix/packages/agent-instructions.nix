@@ -4,8 +4,8 @@
   # to reach for Nix, which is only true because the machine section says the
   # machine has it.
   #
-  # Anything else that assembles these fragments -- a sprite, provisioned
-  # outside Nix -- has to keep that order.
+  # A sprite's copy is built by this same function, with machines/sprite.md as
+  # the machine section, and travels there in the sprite-provision payload.
   assembleAgentInstructions =
     { pkgs, machine }:
     pkgs.runCommand "AGENTS.md" { } ''
