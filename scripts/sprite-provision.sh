@@ -50,6 +50,8 @@ re-running after a change to this script applies just the difference.
 Steps:
   - install single-user Nix, with flakes enabled, no channels, and
     unfree packages allowed
+  - activate the standalone Home Manager configuration from this exact
+    dotfiles revision
   - write the agent instructions to ~/.claude/CLAUDE.md and ~/.codex/AGENTS.md,
     refusing to run if the base image's own instructions have drifted from the
     copy vendored in agents/machines/upstream/

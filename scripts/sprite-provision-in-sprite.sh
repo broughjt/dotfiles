@@ -18,6 +18,7 @@ main() {
   write_nix_conf
   write_nixpkgs_config
   link_nix_binaries
+  activate_home_manager
   check_upstream_instructions
   write_agent_instructions
   sync_skills
@@ -25,6 +26,23 @@ main() {
   write_fish_config
 
   info "done"
+}
+
+activate_home_manager() {
+  local flake="$FILES_DIRECTORY/dotfiles"
+  local activation_package
+  local user
+
+  # sprite exec sets HOME but not USER. Home Manager uses USER to locate its
+  # generation profile and verifies that it matches home.username.
+  user=$(id -un)
+
+  info "building the standalone Home Manager generation"
+  activation_package=$(nix build --no-link --print-out-paths \
+    "$flake#homeConfigurations.sprite.activationPackage")
+
+  info "activating the standalone Home Manager generation"
+  USER="$user" "$activation_package/activate"
 }
 
 install_nix() {

@@ -85,6 +85,10 @@ let
     } "$out/files/agent-instructions.md"
     cp ${../../agents/machines/upstream/codex-agents.md} "$out/files/upstream-codex-agents.md"
     cp -r ${../../agents/skills} "$out/files/skills"
+    # The sprite evaluates this exact source snapshot, so standalone Home
+    # Manager follows the current flake.lock without requiring a checkout or a
+    # pushed commit.
+    cp -r ${self} "$out/files/dotfiles"
   '';
   spriteProvision = pkgs.writeShellApplication {
     name = "sprite-provision";

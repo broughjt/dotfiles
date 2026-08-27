@@ -148,6 +148,11 @@
         darwinConfigurations
         ;
 
+      homeConfigurations.sprite = home-manager.lib.homeManagerConfiguration {
+        pkgs = makePkgs "x86_64-linux";
+        modules = [ nixosModules.spriteHome ];
+      };
+
       templates = import ./nix/templates.nix;
     }
     // flake-utils.lib.eachDefaultSystem (
