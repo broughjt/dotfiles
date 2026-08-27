@@ -46,7 +46,7 @@ run_in_sprite() {
   info "done"
 }
 
-# install_nix through verify_nix run inside the sprite.
+# install_nix through link_nix_binaries run inside the sprite.
 
 install_nix() {
   if [ -e "$HOME/.nix-profile/bin/nix" ]; then
