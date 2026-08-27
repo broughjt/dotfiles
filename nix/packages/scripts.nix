@@ -76,6 +76,20 @@ let
       exec python3 ${../../scripts/restore_murph_secrets.py} "$@"
     '';
   };
+  spriteProvision = pkgs.writeShellApplication {
+    name = "sprite-provision";
+    # coreutils covers the driver half, which runs here and needs only cat for
+    # usage. The rest of the script runs inside the sprite against its own
+    # fixed PATH, where these store paths do not exist, so curl, sudo and the
+    # others it calls there are Ubuntu's and cannot be supplied from here.
+    #
+    # sprite is deliberately absent: writeShellApplication prepends to PATH
+    # rather than replacing it, so leaving it out is what lets murph's wrapped
+    # sprite -- which carries the private HOME from home/sprite.nix -- be the
+    # one that runs.
+    runtimeInputs = [ pkgs.coreutils ];
+    text = builtins.readFile ../../scripts/sprite-provision.sh;
+  };
 in
 {
   inherit
@@ -84,5 +98,6 @@ in
     installMurph
     piPrintSystemPrompt
     restoreMurphSecrets
+    spriteProvision
     ;
 }

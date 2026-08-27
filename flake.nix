@@ -205,6 +205,9 @@
           restoreMurphSecrets =
             makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets"
               "Restore Murph's persisted SSH and GPG secrets";
+          spriteProvision =
+            makeScriptApp scriptPackages.spriteProvision "sprite-provision"
+              "Provision a sprite with my preferred configuration";
         };
       in
       (import ./nix/shell.nix { inherit pkgs scriptPackages; })
