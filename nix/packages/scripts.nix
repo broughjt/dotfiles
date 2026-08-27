@@ -2,12 +2,11 @@
   pkgs,
   self,
   disko,
+  home-manager,
   system,
 }:
 
 let
-  agentInstructions = import ./agent-instructions.nix;
-
   dotfilesRevision = self.rev or self.dirtyRev or "unknown";
   dotfilesNarHash = self.narHash or "unknown";
 
@@ -70,34 +69,10 @@ let
       exec python3 ${../../scripts/restore_murph_secrets.py} "$@"
     '';
   };
-  # Everything sprite-provision installs into a sprite, plus the script that
-  # installs it. Built here so the in-sprite half copies files rather than
-  # carrying their content in its own text, and so the sprite's agent
-  # instructions come out of the same assembler as murph's.
-  spriteProvisionPayload =
-    pkgs.runCommand "sprite-provision-payload" { nativeBuildInputs = [ pkgs.gnutar ]; }
-      ''
-        mkdir -p "$out/files"
-        cp ${../../scripts/sprite-provision-in-sprite.sh} "$out/in-sprite.sh"
-        cp ${
-          agentInstructions.assembleAgentInstructions {
-            inherit pkgs;
-            machine = ../../agents/machines/sprite.md;
-          }
-        } "$out/files/agent-instructions.md"
-        cp ${../../agents/machines/upstream/codex-agents.md} "$out/files/upstream-codex-agents.md"
-        cp -r ${../../agents/skills} "$out/files/skills"
-        # The sprite evaluates this exact source snapshot, so standalone Home
-        # Manager follows the current flake.lock without requiring a checkout or a
-        # pushed commit.
-        # Archive rather than copy the tree into the pushed payload: the Sprite
-        # CLI cannot recursively push directory symlinks such as .claude/skills.
-        tar -C ${self} -cf "$out/files/dotfiles.tar" .
-      '';
   spriteProvision = pkgs.writeShellApplication {
     name = "sprite-provision";
     # coreutils covers the driver, which is all that runs here. The in-sprite
-    # half travels in the payload as a plain file rather than a
+    # half travels as a plain file rather than a
     # writeShellApplication, so nothing prepends murph store paths to its PATH;
     # curl, sudo and the rest resolve against the sprite's own.
     #
@@ -106,9 +81,25 @@ let
     # sprite -- which carries the private HOME from home/sprite.nix -- be the
     # one that runs.
     runtimeInputs = [ pkgs.coreutils ];
-    text = builtins.replaceStrings [ "@PAYLOAD@" ] [ "${spriteProvisionPayload}" ] (
-      builtins.readFile ../../scripts/sprite-provision.sh
-    );
+    text =
+      builtins.replaceStrings
+        [ "@IN_SPRITE_SCRIPT@" ]
+        [ "${../../scripts/sprite-provision-in-sprite.sh}" ]
+        (builtins.readFile ../../scripts/sprite-provision.sh);
+  };
+  spriteHomeSwitch = pkgs.writeShellApplication {
+    name = "sprite-home-switch";
+    runtimeInputs = [
+      pkgs.coreutils
+      home-manager.packages.${system}.home-manager
+    ];
+    # ${self} is the exact source revision from which this app was evaluated.
+    # A remote `nix run` therefore switches to the same pushed revision that
+    # supplied the pinned Home Manager CLI, modules, and flake.lock.
+    text = ''
+      export USER="''${USER:-$(id -un)}"
+      exec home-manager switch --flake ${pkgs.lib.escapeShellArg "${self}#sprite"} "$@"
+    '';
   };
 in
 {
@@ -117,6 +108,7 @@ in
     flashNixosInstaller
     installMurph
     restoreMurphSecrets
+    spriteHomeSwitch
     spriteProvision
     ;
 }

@@ -1,30 +1,113 @@
-{ config, pkgs, ... }:
-
 {
-  # Sprites have neither systemd nor a need for Home Manager to create its
-  # default XDG keep files. Keep the first generation's ownership surface to
-  # the explicit probe below.
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+
+let
+  agentInstructions = import ../../packages/agent-instructions.nix;
+  claudeCodePackage = pkgs.callPackage ../../packages/claude-code.nix { };
+  spriteHomeManagerPackage = pkgs.writeShellScriptBin "home-manager" ''
+    export USER="''${USER:-$(${pkgs.coreutils}/bin/id -un)}"
+    exec ${config.programs.home-manager.package}/bin/home-manager "$@"
+  '';
+
+  instructionsSource = agentInstructions.assembleAgentInstructions {
+    inherit pkgs;
+    machine = ../../../agents/machines/sprite.md;
+  };
+  upstreamInstructions = ../../../agents/machines/upstream/codex-agents.md;
+
+  skillsSource = builtins.path {
+    name = "skills";
+    path = ../../../agents/skills;
+  };
+  skillNames = lib.attrNames (
+    lib.filterAttrs (_: type: type == "directory") (builtins.readDir skillsSource)
+  );
+  skillFiles = lib.listToAttrs (
+    lib.concatMap (
+      name:
+      map
+        (agent: {
+          name = ".${agent}/skills/${name}";
+          value.source = skillsSource + "/${name}";
+        })
+        [
+          "claude"
+          "codex"
+        ]
+    ) skillNames
+  );
+in
+{
+  # Sprites have no systemd user manager.
   systemd.user.enable = false;
-  xdg.enable = false;
+
+  personal = {
+    userName = "sprite";
+    fullName = "Jackson Brough";
+    email = "jacksontbrough@gmail.com";
+  };
 
   home = {
     username = "sprite";
     homeDirectory = "/home/sprite";
     stateVersion = "26.05";
+    packages = [ claudeCodePackage ];
+    sessionPath = [ "${config.home.profileDirectory}/bin" ];
 
-    # Prove that a standalone Home Manager generation can take ownership of a
-    # path reached by sprite exec's fixed PATH. Replace this probe with the
-    # declarative Claude Code wrapper once activation is verified end to end.
-    file = {
-      # Home Manager declares these empty marker files even with xdg.enable
-      # disabled. They are unnecessary on a sprite and would expand this
-      # probe's ownership beyond its one intended path.
-      "${config.xdg.cacheHome}/.keep".enable = false;
-      "${config.xdg.stateHome}/.keep".enable = false;
+    # sprite exec reads no shell startup files, but ~/.local/bin is already on
+    # its fixed PATH. Expose the two Nix-managed entry points needed there.
+    file = skillFiles // {
+      ".local/bin/claude".source = "${claudeCodePackage}/bin/claude";
+      ".local/bin/home-manager".source = "${spriteHomeManagerPackage}/bin/home-manager";
 
-      ".local/bin/hm-probe".source = pkgs.writeShellScript "hm-probe" ''
-        echo "Home Manager generation is active"
-      '';
+      ".claude/CLAUDE.md" = {
+        force = true;
+        source = instructionsSource;
+      };
+      ".codex/AGENTS.md" = {
+        force = true;
+        source = instructionsSource;
+      };
     };
   };
+
+  xdg.enable = true;
+  programs.home-manager.enable = true;
+
+  # Home Manager's Fish module enables man-db cache generation by default,
+  # which would create a top-level ~/.manpath symlink merely for completions.
+  programs.man.generateCaches = false;
+
+  # Fly owns the stock config.fish, but it contains only its prompt, colours,
+  # and opt-in language-manager environment. The Nix-first sprite profile
+  # deliberately replaces it with the shared Home Manager Fish module.
+  xdg.configFile."fish/config.fish".force = true;
+
+  # Verify the base image text before the forced Home Manager link replaces
+  # it. A managed symlink on subsequent generations has already passed this
+  # check on its first activation.
+  home.activation.checkSpriteInstructions = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    instructions="$HOME/.codex/AGENTS.md"
+    if [[ ! -L "$instructions" ]]; then
+      if [[ ! -f "$instructions" ]]; then
+        echo "error: expected the sprite base image's instructions at $instructions" >&2
+        exit 1
+      fi
+      if ! cmp -s ${lib.escapeShellArg upstreamInstructions} "$instructions"; then
+        diff -u ${lib.escapeShellArg upstreamInstructions} "$instructions" >&2 || true
+        echo "error: the sprite base image's instructions have changed; update the vendored copy first" >&2
+        exit 1
+      fi
+    fi
+  '';
+
+  # Fly's stock identity lives here. Git otherwise reads both this legacy
+  # global file and Home Manager's $XDG_CONFIG_HOME/git/config.
+  home.activation.removeLegacyGitConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run rm -f "$HOME/.gitconfig"
+  '';
 }

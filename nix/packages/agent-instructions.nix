@@ -4,8 +4,8 @@
   # to reach for Nix, which is only true because the machine section says the
   # machine has it.
   #
-  # A sprite's copy is built by this same function, with machines/sprite.md as
-  # the machine section, and travels there in the sprite-provision payload.
+  # A sprite's Home Manager generation calls this same function with
+  # machines/sprite.md as the machine section.
   assembleAgentInstructions =
     { pkgs, machine }:
     pkgs.runCommand "AGENTS.md" { } ''

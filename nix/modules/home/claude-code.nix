@@ -33,21 +33,7 @@ let
   };
   claudeInstructionsFile = "${claudeStateDir}/CLAUDE.md";
 
-  agentToolPath = lib.makeBinPath [
-    pkgs.python3
-    pkgs.sox
-  ];
-  claudeCodePackage = pkgs.symlinkJoin {
-    name = "claude-code-agent-tools";
-    paths = [ pkgs.llm-agents.claude-code ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      rm -f "$out/bin/claude"
-      makeWrapper ${pkgs.llm-agents.claude-code}/bin/claude "$out/bin/claude" \
-        --prefix PATH : ${lib.escapeShellArg agentToolPath} \
-        --add-flags --dangerously-skip-permissions
-    '';
-  };
+  claudeCodePackage = pkgs.callPackage ../../packages/claude-code.nix { };
 in
 {
   nixpkgs.overlays = [ llmAgentsOverlay ];

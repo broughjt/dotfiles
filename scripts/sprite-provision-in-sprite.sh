@@ -3,9 +3,6 @@ set -euo pipefail
 
 NIX_INSTALL_URL="https://nixos.org/nix/install"
 
-PAYLOAD_DIRECTORY=$(cd "$(dirname "$0")" && pwd)
-FILES_DIRECTORY="$PAYLOAD_DIRECTORY/files"
-
 main() {
   # Detect whether this is indeed a sprite. Every sprite has this directory;
   # nothing else does. Running on something which isn't a sprite would be bad.
@@ -18,34 +15,8 @@ main() {
   write_nix_conf
   write_nixpkgs_config
   link_nix_binaries
-  activate_home_manager
-  check_upstream_instructions
-  write_agent_instructions
-  sync_skills
-  write_git_config
-  write_fish_config
 
   info "done"
-}
-
-activate_home_manager() {
-  local flake="$WORKDIR/dotfiles"
-  local activation_package
-  local user
-
-  mkdir -p "$flake"
-  tar -xf "$FILES_DIRECTORY/dotfiles.tar" -C "$flake"
-
-  # sprite exec sets HOME but not USER. Home Manager uses USER to locate its
-  # generation profile and verifies that it matches home.username.
-  user=$(id -un)
-
-  info "building the standalone Home Manager generation"
-  activation_package=$(nix build --no-link --print-out-paths \
-    "$flake#homeConfigurations.sprite.activationPackage")
-
-  info "activating the standalone Home Manager generation"
-  USER="$user" "$activation_package/activate"
 }
 
 install_nix() {
@@ -129,100 +100,6 @@ link_nix_binaries() {
     [ -e "$target" ] || continue
     ln -sfn "$target" "$bin_dir/$(basename "$target")"
   done
-}
-
-check_upstream_instructions() {
-  local vendored="$FILES_DIRECTORY/upstream-codex-agents.md"
-  local capture="$HOME/.codex/AGENTS.base.md"
-
-  # The base image ships its own AGENTS.md. Keep the first one we see: after
-  # this run the live file is ours, so the capture is the only record of what
-  # the image had.
-  mkdir -p "$(dirname "$capture")"
-  if [ ! -e "$capture" ] && [ -e "$HOME/.codex/AGENTS.md" ]; then
-    if cmp -s "$HOME/.codex/AGENTS.md" "$FILES_DIRECTORY/agent-instructions.md"; then
-      die "$HOME/.codex/AGENTS.md is already ours and $capture is gone; restore it from a checkpoint, or provision a fresh sprite"
-    fi
-    info "recording the base image's instructions at $capture"
-    cp "$HOME/.codex/AGENTS.md" "$capture"
-  fi
-  [ -e "$capture" ] || return 0
-
-  # If the image's text has moved, that section was written against something
-  # that no longer exists, so stop rather than install it.
-  if ! diff -u "$vendored" "$capture" > "$WORKDIR/upstream.diff"; then
-    cat "$WORKDIR/upstream.diff" >&2
-    die "the base image's agent instructions have changed; re-read them against agents/machines/sprite.md, then re-vendor agents/machines/upstream/codex-agents.md"
-  fi
-}
-
-write_agent_instructions() {
-  local source="$FILES_DIRECTORY/agent-instructions.md"
-  local target
-
-  # Claude Code reads CLAUDE.md, Codex reads AGENTS.md, and both get the same
-  # file. Codex's copy replaces the base image's rather than merging with it,
-  # because machines/sprite.md already says what that file said.
-  for target in "$HOME/.claude/CLAUDE.md" "$HOME/.codex/AGENTS.md"; do
-    info "writing $target"
-    mkdir -p "$(dirname "$target")"
-    # install rather than cp: pushed files keep the read-only mode they had in
-    # the store, and cp would propagate it to the copy.
-    install -m 0644 "$source" "$target"
-  done
-}
-
-sync_skills() {
-  local target
-  local shared
-  local excludes=()
-
-  # The base image installs its own skills into both agent directories, backed
-  # by ~/.sprite-shared/skills. Deriving the exclude list from that directory
-  # rather than naming sprite and sprite-api-gateway means --delete below keeps
-  # its hands off whatever Fly ships, including anything they add later.
-  for shared in "$HOME"/.sprite-shared/skills/*/; do
-    [ -d "$shared" ] || continue
-    excludes+=("--exclude=/$(basename "$shared")")
-  done
-
-  for target in "$HOME/.claude/skills" "$HOME/.codex/skills"; do
-    info "syncing skills into $target"
-    mkdir -p "$target"
-    # --chmod because the pushed tree carries the store's read-only modes, and
-    # --delete needs writable directories to remove anything from them.
-    rsync --archive --delete --chmod=D755,F644 "${excludes[@]}" \
-      "$FILES_DIRECTORY/skills/" "$target/"
-  done
-}
-
-write_git_config() {
-  local config="$HOME/.gitconfig"
-
-  # The base image ships this file naming the committer Sprite
-  # <noreply@sprites.dev>, so it is replaced rather than merged. Written in
-  # full every run so it cannot drift.
-  info "writing $config"
-  cat > "$config" <<'EOF'
-[user]
-	name = Jackson Brough
-	email = jacksontbrough@gmail.com
-[init]
-	defaultBranch = main
-EOF
-}
-
-write_fish_config() {
-  local config="$HOME/.config/fish/conf.d/dotfiles.fish"
-
-  # A conf.d drop-in rather than config.fish, which the base image owns: it
-  # sets the prompt and colours and sources /etc/profile.d/languages_env, none
-  # of which this needs to touch.
-  info "writing $config"
-  mkdir -p "$(dirname "$config")"
-  cat > "$config" <<'EOF'
-set -g fish_key_bindings fish_vi_key_bindings
-EOF
 }
 
 die() {

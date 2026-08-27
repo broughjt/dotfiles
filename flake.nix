@@ -150,7 +150,13 @@
 
       homeConfigurations.sprite = home-manager.lib.homeManagerConfiguration {
         pkgs = makePkgs "x86_64-linux";
-        modules = [ nixosModules.spriteHome ];
+        modules = with nixosModules; [
+          personal
+          homeDirectories
+          homeGit
+          homeFish
+          spriteHome
+        ];
       };
 
       templates = import ./nix/templates.nix;
@@ -163,6 +169,7 @@
         scriptPackages = import ./nix/packages/scripts.nix {
           inherit
             disko
+            home-manager
             pkgs
             self
             system
@@ -186,7 +193,10 @@
               "Restore Murph's persisted SSH and GPG secrets";
           spriteProvision =
             makeScriptApp scriptPackages.spriteProvision "sprite-provision"
-              "Provision a sprite with my preferred configuration";
+              "Bootstrap Nix in a sprite";
+          spriteHomeSwitch =
+            makeScriptApp scriptPackages.spriteHomeSwitch "sprite-home-switch"
+              "Activate the pinned standalone Home Manager configuration in a sprite";
         };
       in
       (import ./nix/shell.nix { inherit pkgs scriptPackages; })
