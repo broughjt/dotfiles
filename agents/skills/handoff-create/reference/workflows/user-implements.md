@@ -6,3 +6,18 @@ Findings should be described to the user.
 
 When writing tests under this pattern, write them against the agreed
 interface, not against whatever the user has written so far.
+
+## Review
+
+One checkpoint, `findings`: the agent's review of the user's code, which the
+user then signs off.
+
+Write the findings to `.scratch/review-<slug>.md`, naming at the top the commit
+they were made against, and describe them to the user as well. Then set `Review:
+in-review, findings .scratch/review-<slug>.md`.
+
+**Writing the findings does not close the review; the user's sign-off does.**
+Until then `Next` says what resumes afterwards.
+
+Writing tests under this pattern opens no review. They are the interface the
+user implements against, not a proposal awaiting their verdict.

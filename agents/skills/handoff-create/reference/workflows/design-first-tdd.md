@@ -13,3 +13,18 @@ The full loop, for work where the output format or interface is the hard part:
    identified. Written and left **red** before implementation exists.
 4. **Implement**: a fresh agent reads the handoff doc and the plan doc, then
    makes the tests green. The plan doc is archived once the task lands.
+
+## Review
+
+Three checkpoints, one per stage:
+
+| After | Field |
+|---|---|
+| the plan document | `in-review, plan .scratch/plan-<task>.md` |
+| the tests, committed red | `in-review, tests <sha>` |
+| the implementation | `in-review, implementation <sha>` |
+
+Each stage waits on the user before the next begins. This is the whole point of
+the pattern: the design is settled before tests pin it, and the tests are
+settled before implementation. `Next` names the stage that resumes once the open
+review closes.

@@ -19,3 +19,7 @@ throwaway branch, and a recommendation. The arc doc points at that file from
 The spike ends when the investigation yields answers. Building on it is a
 separate task under a different workflow, so the design decisions get made
 deliberately instead of inherited from throwaway code.
+
+## Review
+
+None. `Review` stays `none` for the whole spike.

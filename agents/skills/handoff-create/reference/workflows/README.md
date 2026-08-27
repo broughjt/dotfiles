@@ -24,6 +24,10 @@ included. An override is installed exactly like a default, and the task should
 include the workflow pattern name and a path to the file which describes it,
 just like the `Start here` `Workflow:` field.
 
+Each pattern also defines its own review checkpoints in its `## Review` section,
+including what gets reviewed, when `Review` moves to `in-review`, and what the
+field points at.
+
 An arc runs against a **copy** of the pattern, at `.scratch/workflow-<name>.md`,
 and `Start here`'s `Workflow:` field names both the pattern and that path. The
 copy is what governs the arc; this directory is only where copies come from. An

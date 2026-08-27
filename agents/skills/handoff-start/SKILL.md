@@ -27,6 +27,8 @@ Read the document. Then read every path in its **Read first** list, and the
 workflow file named by the **Workflow** field. The workflow governs how you work
 and what you must not do, so do not begin the `Next` action without it.
 
+When **Review** names a path rather than a SHA, read that document too.
+
 Read the log file only if `Start here` points at it, or if something in the
 handoff document is unclear and reading the history would help resolve it. The
 intention is that you should *not* have to read it by default.
@@ -42,12 +44,14 @@ Run these in parallel with the reads; they take seconds.
   **Review**. Commits the document does not describe, or none where it claims
   a review is in progress, both mean the document is behind reality. Also
   catches work done outside a handoff session.
-- If **Review** names a proposal SHA, meaning the commit submitted for the
-  user's review, resolve the default branch using `git symbolic-ref --short
+- If **Review**'s referent is a commit SHA, meaning the commit submitted for
+  the user's review, resolve the default branch using `git symbolic-ref --short
   refs/remotes/origin/HEAD`, falling back to whatever this repository calls its
   mainline, and check `git merge-base --is-ancestor <sha> <mainline>`. A
-  proposal already merged there while the document still claims `in-review`
-  means the review closed and the document is stale.
+  commit already merged there while the document still claims `in-review`
+  means the review closed and the document is stale. When the referent is a path
+  rather than a SHA, there is no merge-base to check. Confirm the file exists
+  instead.
 - Confirm every path named in `Start here` still exists. A document naming a
   file, function or flag that has since been deleted is the characteristic
   stale-handoff failure.
@@ -84,7 +88,7 @@ Choose the timeout from the duration recorded beside the command:
 
 1. **Do not propose new work.** The `Next` field is parked until the review
    closes. It says what resumes afterwards, not what to do now.
-2. Say that a review is open against the proposal.
+2. Say that a review is open, mentioning the checkpoint included in the field.
 3. **Ask whether the review has closed.** If the answer is yes, repair the field
    to `none` and carry on with `Next`.
 
@@ -94,8 +98,8 @@ Keep it under about fifteen lines:
 
 - where the work stands, in a sentence or two
 - the next action, and the workflow governing it. Under `in-review`, replace
-  that with the fact that a review is open against the proposal and the
-  question of whether it has closed.
+  that with the fact that a review is open at the checkpoint included in the
+  field, and the question of whether it has closed.
 - discrepancies found in step 3, including a failed verify
 - verification left unconfirmed, if the command timed out or was not run
 - open questions marked `blocks Next`, which hold the next action, then any

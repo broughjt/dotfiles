@@ -90,16 +90,19 @@ needs; they know nothing. Rewrite every field, and keep the whole block **under
 This field says whether a review is open. Two states:
 
 - `none`: no open review. `Next` proposes work.
-- `in-review`, with the proposal SHA: a review is open against that commit.
-  `Next` says what resumes once it closes, not what to do now.
+- `in-review, <checkpoint> <referent>`: a review is open. The referent is a
+  commit SHA, or a path when the thing under review is not a commit. `Next` says
+  what resumes once it closes, not what to do now. The arc's
+  `.scratch/workflow-<name>.md` file will say which checkpoints to include. Do
+  not invent a checkpoint the workflow does not define, and do not carry one
+  over from a workflow the arc has switched away from.
 
-**State and SHA, nothing else.** Do not include what the review has found or how
-much of it is left.
+**State, checkpoint and referent, nothing else.** Do not include what the review
+has found or how much of it is left.
 
-Move the field to `in-review` after committing the proposal and writing its
-brief. Move the field to `none` if the user indicates to you that review is
-finished. A review that opens and closes inside one session never needs the
-field, so `none` does not mean the work went unreviewed.
+Move the field to `none` if the user indicates to you that review is finished. A
+review that opens and closes inside one session never needs the field, so `none`
+does not mean the work went unreviewed.
 
 ### Writing `Verified state`
 
@@ -138,8 +141,9 @@ reopen*. The log entries behind it can then be left exactly where they are.
 *Keeping this doc current* section, and tell the user what you moved.
 
 **When an arc completes**: move both files to `.scratch/archive/`, together with
-every workflow copy that is bespoke to this arc, overrides included. A
-`verbatim` copy stays put, since another arc may be running against it. Promote
+every workflow copy that is bespoke to this arc, overrides included, and any
+`.scratch/review-<slug>.md` the arc produced. A `verbatim` workflow copy stays
+put, since another arc may be running against it. Promote
 anything durable that outlives the arc first. An archived document is history,
 and nothing should have to be grepped out of it.
 
