@@ -29,9 +29,12 @@ main() {
 }
 
 activate_home_manager() {
-  local flake="$FILES_DIRECTORY/dotfiles"
+  local flake="$WORKDIR/dotfiles"
   local activation_package
   local user
+
+  mkdir -p "$flake"
+  tar -xf "$FILES_DIRECTORY/dotfiles.tar" -C "$flake"
 
   # sprite exec sets HOME but not USER. Home Manager uses USER to locate its
   # generation profile and verifies that it matches home.username.

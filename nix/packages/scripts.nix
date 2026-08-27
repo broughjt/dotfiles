@@ -74,22 +74,26 @@ let
   # installs it. Built here so the in-sprite half copies files rather than
   # carrying their content in its own text, and so the sprite's agent
   # instructions come out of the same assembler as murph's.
-  spriteProvisionPayload = pkgs.runCommand "sprite-provision-payload" { } ''
-    mkdir -p "$out/files"
-    cp ${../../scripts/sprite-provision-in-sprite.sh} "$out/in-sprite.sh"
-    cp ${
-      agentInstructions.assembleAgentInstructions {
-        inherit pkgs;
-        machine = ../../agents/machines/sprite.md;
-      }
-    } "$out/files/agent-instructions.md"
-    cp ${../../agents/machines/upstream/codex-agents.md} "$out/files/upstream-codex-agents.md"
-    cp -r ${../../agents/skills} "$out/files/skills"
-    # The sprite evaluates this exact source snapshot, so standalone Home
-    # Manager follows the current flake.lock without requiring a checkout or a
-    # pushed commit.
-    cp -r ${self} "$out/files/dotfiles"
-  '';
+  spriteProvisionPayload =
+    pkgs.runCommand "sprite-provision-payload" { nativeBuildInputs = [ pkgs.gnutar ]; }
+      ''
+        mkdir -p "$out/files"
+        cp ${../../scripts/sprite-provision-in-sprite.sh} "$out/in-sprite.sh"
+        cp ${
+          agentInstructions.assembleAgentInstructions {
+            inherit pkgs;
+            machine = ../../agents/machines/sprite.md;
+          }
+        } "$out/files/agent-instructions.md"
+        cp ${../../agents/machines/upstream/codex-agents.md} "$out/files/upstream-codex-agents.md"
+        cp -r ${../../agents/skills} "$out/files/skills"
+        # The sprite evaluates this exact source snapshot, so standalone Home
+        # Manager follows the current flake.lock without requiring a checkout or a
+        # pushed commit.
+        # Archive rather than copy the tree into the pushed payload: the Sprite
+        # CLI cannot recursively push directory symlinks such as .claude/skills.
+        tar -C ${self} -cf "$out/files/dotfiles.tar" .
+      '';
   spriteProvision = pkgs.writeShellApplication {
     name = "sprite-provision";
     # coreutils covers the driver, which is all that runs here. The in-sprite
