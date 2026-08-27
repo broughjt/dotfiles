@@ -7,7 +7,6 @@
 {
   personal = {
     userName = "jtbroug";
-    fullName = "Jackson Brough";
     email = "jtbroug@sandia.gov";
   };
 

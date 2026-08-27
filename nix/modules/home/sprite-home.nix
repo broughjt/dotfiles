@@ -45,11 +45,7 @@ in
   # Sprites have no systemd user manager.
   systemd.user.enable = false;
 
-  personal = {
-    userName = "sprite";
-    fullName = "Jackson Brough";
-    email = "jacksontbrough@gmail.com";
-  };
+  personal.userName = "sprite";
 
   home = {
     username = "sprite";
