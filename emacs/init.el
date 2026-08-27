@@ -147,7 +147,6 @@
         language-javascript
         language-verilog
         language-markdown
-        language-lean
         weibian))
 
 ;; typst-ts-mode is intentionally omitted from the Darwin package set because

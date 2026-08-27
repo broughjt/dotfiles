@@ -155,12 +155,6 @@
       let
         pkgs = makePkgs system;
         emacsPackage = emacsPackages.configureEmacsPackage pkgs;
-        emacsLean4ModePackage = import ./nix/packages/emacs-lean4-mode.nix {
-          inherit pkgs;
-          emacsPackages = pkgs.emacsPackagesFor (
-            if pkgs.stdenv.hostPlatform.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk
-          );
-        };
         scriptPackages = import ./nix/packages/scripts.nix {
           inherit
             disko
@@ -194,9 +188,7 @@
       // (import ./nix/checks.nix { inherit pkgs emacsPackage; })
       // (import ./nix/formatter.nix { inherit pkgs; })
       // {
-        packages = scriptPackages // {
-          emacs-lean4-mode = emacsLean4ModePackage;
-        };
+        packages = scriptPackages;
         apps = scriptApps;
       }
     );

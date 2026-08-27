@@ -5,14 +5,7 @@
       enableTypst = !pkgs.stdenv.hostPlatform.isDarwin;
       emacsBasePackage =
         if pkgs.stdenv.hostPlatform.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk;
-      emacsPackages = (pkgs.emacsPackagesFor emacsBasePackage).overrideScope (
-        final: prev: {
-          lean4-mode = import ./emacs-lean4-mode.nix {
-            inherit pkgs;
-            emacsPackages = final;
-          };
-        }
-      );
+      emacsPackages = pkgs.emacsPackagesFor emacsBasePackage;
       treesitGrammars =
         if enableTypst then
           emacsPackages.treesit-grammars.with-all-grammars
@@ -54,7 +47,6 @@
         epkgs.grip-mode
         epkgs.haskell-mode
         epkgs.haskell-ts-mode
-        epkgs.lean4-mode
         epkgs.markdown-mode
         epkgs.nix-mode
         epkgs.racket-mode
