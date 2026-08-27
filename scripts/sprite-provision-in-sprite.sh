@@ -64,10 +64,15 @@ write_nix_conf() {
   #
   # accept-flake-config lets the dotfiles flake offer its own extra caches
   # instead of duplicating the substituter list from nix/nix-config.nix here.
+  #
+  # Single-user Nix cannot establish its full Linux build sandbox in a sprite.
+  # Leaving sandbox-fallback enabled would silently run builds unsandboxed
+  # anyway; state the actual boundary rather than pretending otherwise.
   cat > "$conf" <<'EOF'
 experimental-features = nix-command flakes
 accept-flake-config = true
 nix-path = nixpkgs=flake:nixpkgs
+sandbox = false
 EOF
 }
 

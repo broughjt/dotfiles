@@ -82,6 +82,13 @@ in
   # which would create a top-level ~/.manpath symlink merely for completions.
   programs.man.generateCaches = false;
 
+  # The automatic generators execute Fish once per installed package. In an
+  # unsandboxed single-user Nix build, Fish creates its XDG tree at Nix's
+  # synthetic HOME=/homeless-shelter on the sprite's real root filesystem;
+  # the next stdenv build then refuses that impurity. Package-provided Fish
+  # completions remain available without these man-page-derived completions.
+  programs.fish.generateCompletions = false;
+
   # Fly owns the stock config.fish, but it contains only its prompt, colours,
   # and opt-in language-manager environment. The Nix-first sprite profile
   # deliberately replaces it with the shared Home Manager Fish module.
