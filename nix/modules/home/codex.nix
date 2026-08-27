@@ -36,24 +36,11 @@ let
     CODEX_SQLITE_HOME = codexSqliteDir;
   };
 
-  agentToolPath = lib.makeBinPath [
-    pkgs.nodejs
-    pkgs.python3
-  ];
-  codexPackage = pkgs.writeShellScriptBin "codex" ''
-    set -euo pipefail
-
-    export CODEX_HOME=${lib.escapeShellArg codexHomeDir}
-    export CODEX_SQLITE_HOME=${lib.escapeShellArg codexSqliteDir}
-    export PATH=${lib.escapeShellArg agentToolPath}:''${PATH:-}
-
-    exec ${pkgs.llm-agents.codex}/bin/codex \
-      --config ${lib.escapeShellArg "log_dir=${builtins.toJSON codexLogDir}"} \
-      --config ${lib.escapeShellArg "sqlite_home=${builtins.toJSON codexSqliteDir}"} \
-      --config ${lib.escapeShellArg "features.apps=false"} \
-      --dangerously-bypass-approvals-and-sandbox \
-      "$@"
-  '';
+  codexPackage = pkgs.callPackage ../../packages/codex.nix {
+    codexHome = codexHomeDir;
+    sqliteHome = codexSqliteDir;
+    logDirectory = codexLogDir;
+  };
 in
 {
   nixpkgs.overlays = [ llmAgentsOverlay ];
