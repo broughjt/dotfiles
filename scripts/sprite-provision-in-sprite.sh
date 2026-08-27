@@ -116,9 +116,6 @@ check_upstream_instructions() {
   # the image had.
   mkdir -p "$(dirname "$capture")"
   if [ ! -e "$capture" ] && [ -e "$HOME/.codex/AGENTS.md" ]; then
-    # Once we have written AGENTS.md the capture is the only copy of what the
-    # image shipped, so capturing our own output would wedge every later run
-    # behind a diff against ourselves.
     if cmp -s "$HOME/.codex/AGENTS.md" "$FILES_DIRECTORY/agent-instructions.md"; then
       die "$HOME/.codex/AGENTS.md is already ours and $capture is gone; restore it from a checkpoint, or provision a fresh sprite"
     fi
