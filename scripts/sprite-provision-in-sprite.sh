@@ -18,6 +18,7 @@ main() {
   write_nix_conf
   write_nixpkgs_config
   link_nix_binaries
+  check_upstream_instructions
   write_agent_instructions
 
   info "done"
@@ -106,47 +107,45 @@ link_nix_binaries() {
   done
 }
 
-write_agent_instructions() {
-  local source="$FILES_DIRECTORY/agent-instructions.md"
-  local target="$HOME/.claude/CLAUDE.md"
+check_upstream_instructions() {
+  local vendored="$FILES_DIRECTORY/upstream-codex-agents.md"
+  local capture="$HOME/.codex/AGENTS.base.md"
 
-  # Assembled by nix/packages/agent-instructions.nix from the same fragments
-  # murph's copy is built from, with machines/sprite.md as the machine section.
-  # Claude Code reads CLAUDE.md rather than AGENTS.md.
-  info "writing $target"
-  mkdir -p "$(dirname "$target")"
-  # install rather than cp: pushed files keep the read-only mode they had in
-  # the store, and cp would propagate it to the copy.
-  install -m 0644 "$source" "$target"
+  # The base image ships its own AGENTS.md. Keep the first one we see: after
+  # this run the live file is ours, so the capture is the only record of what
+  # the image had.
+  mkdir -p "$(dirname "$capture")"
+  if [ ! -e "$capture" ] && [ -e "$HOME/.codex/AGENTS.md" ]; then
+    info "recording the base image's instructions at $capture"
+    cp "$HOME/.codex/AGENTS.md" "$capture"
+  fi
+  [ -e "$capture" ] || return 0
 
-  write_codex_instructions "$source"
+  # machines/sprite.md is written against the vendored copy: it carries the
+  # platform's security warning, gateway rule and skill pointers in Jackson's
+  # own words, and deliberately drops the language-shim line. If the image's
+  # text has moved, that section was written against something that no longer
+  # exists, so stop rather than install it.
+  if ! diff -u "$vendored" "$capture" > "$WORKDIR/upstream.diff"; then
+    cat "$WORKDIR/upstream.diff" >&2
+    die "the base image's agent instructions have changed; re-read them against agents/machines/sprite.md, then re-vendor agents/machines/upstream/codex-agents.md"
+  fi
 }
 
-write_codex_instructions() {
-  local source="$1"
-  local target="$HOME/.codex/AGENTS.md"
-  local base="$HOME/.codex/AGENTS.base.md"
+write_agent_instructions() {
+  local source="$FILES_DIRECTORY/agent-instructions.md"
+  local target
 
-  # Codex has no CODEX_HOME here, so it reads ~/.codex.
-  mkdir -p "$(dirname "$target")"
-
-  # The base image ships its own AGENTS.md, carrying the platform's security
-  # warning and API gateway instructions. Keep a copy the first time and
-  # regenerate from that copy afterwards, so ours is added rather than
-  # substituted and a re-run cannot append twice.
-  if [ ! -e "$base" ] && [ -e "$target" ]; then
-    info "preserving the base image's $target as $base"
-    cp "$target" "$base"
-  fi
-
-  info "writing $target"
-  {
-    cat "$source"
-    if [ -e "$base" ]; then
-      echo
-      cat "$base"
-    fi
-  } > "$target"
+  # Claude Code reads CLAUDE.md, Codex reads AGENTS.md, and both get the same
+  # file. Codex's copy replaces the base image's rather than merging with it,
+  # because machines/sprite.md already says what that file said.
+  for target in "$HOME/.claude/CLAUDE.md" "$HOME/.codex/AGENTS.md"; do
+    info "writing $target"
+    mkdir -p "$(dirname "$target")"
+    # install rather than cp: pushed files keep the read-only mode they had in
+    # the store, and cp would propagate it to the copy.
+    install -m 0644 "$source" "$target"
+  done
 }
 
 die() {

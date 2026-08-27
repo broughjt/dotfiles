@@ -83,6 +83,7 @@ let
         machine = ../../agents/machines/sprite.md;
       }
     } "$out/files/agent-instructions.md"
+    cp ${../../agents/machines/upstream/codex-agents.md} "$out/files/upstream-codex-agents.md"
   '';
   spriteProvision = pkgs.writeShellApplication {
     name = "sprite-provision";

@@ -50,8 +50,9 @@ re-running after a change to this script applies just the difference.
 Steps:
   - install single-user Nix, with flakes enabled, no channels, and
     unfree packages allowed
-  - write the agent instructions to ~/.claude/CLAUDE.md, and merge them
-    into the base image's ~/.codex/AGENTS.md for Codex
+  - write the agent instructions to ~/.claude/CLAUDE.md and ~/.codex/AGENTS.md,
+    refusing to run if the base image's own instructions have drifted from the
+    copy vendored in agents/machines/upstream/
 
 Arguments:
   SPRITE  name of the sprite, as shown by 'sprite list'
