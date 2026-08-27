@@ -12,7 +12,9 @@ The full loop, for work where the output format or interface is the hard part:
    scenario/integration tests for the paths the design conversation
    identified. Written and left **red** before implementation exists.
 4. **Implement**: a fresh agent reads the handoff doc and the plan doc, then
-   makes the tests green. The plan doc is archived once the task lands.
+   makes the tests green. While the task is in flight the arc doc names the plan
+   in `Read first`. The plan doc moves to `.scratch/archive/` when the task
+   lands.
 
 ## Review
 

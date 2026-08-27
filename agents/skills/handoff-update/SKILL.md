@@ -137,15 +137,18 @@ trusting a green that only ever covered half the tree.
 findings reached *Facts established* and its rejected approaches reached *Do not
 reopen*. The log entries behind it can then be left exactly where they are.
 
+Move any `.scratch/` artifact the task owned, its plan doc for instance, to
+`.scratch/archive/`, **and drop it from `Read first`**.
+
 **When the handoff document is getting long**: follow the handoff document's
 *Keeping this doc current* section, and tell the user what you moved.
 
 **When an arc completes**: move both files to `.scratch/archive/`, together with
 every workflow copy that is bespoke to this arc, overrides included, and any
-`.scratch/review-<slug>.md` the arc produced. A `verbatim` workflow copy stays
-put, since another arc may be running against it. Promote
-anything durable that outlives the arc first. An archived document is history,
-and nothing should have to be grepped out of it.
+`.scratch/review-<slug>.md` or `.scratch/spike-<slug>.md` the arc produced. A
+`verbatim` workflow copy stays put, since another arc may be running against it.
+Promote anything durable that outlives the arc first. An archived document is
+history, and nothing should have to be grepped out of it.
 
 ## Step 5: Report
 
