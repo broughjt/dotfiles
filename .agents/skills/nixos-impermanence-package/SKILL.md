@@ -122,7 +122,7 @@ If an app mixes durable profile data and cache data in one directory, consider p
    - Add the app/package/wrapper to `home-manager.users.${user}.home.packages` in the relevant module.
    - If adding overlays, follow existing overlay patterns and do not duplicate overlays unnecessarily.
    - If adding a custom derivation under `nix/packages/`, expose it as a buildable flake package when practical.
-   - For every manually pinned upstream package (for example `fetchFromGitHub` with a fixed tag/rev), make an explicit update-automation decision: add/update `.github/ci/update-package.py` plus `.github/workflows/update-packages.yml`, or document why CI updates are intentionally not appropriate.
+   - Manually pinned upstream packages (for example `fetchFromGitHub` with a fixed tag/rev) are bumped by hand. There is no update automation, so a pin drifts silently until someone looks.
 
 ## Implementation patterns to copy
 
@@ -202,7 +202,7 @@ Add a matching persistence entry:
 Before final response:
 
 - Run `nix fmt` on touched Nix files.
-- If you added/changed a manually pinned upstream package, verify the update-automation decision. When CI-updated, run `nix run nixpkgs#actionlint -- .github/workflows/update-packages.yml` and, when practical, `nix shell nixpkgs#python3 nixpkgs#nodejs nixpkgs#git -c .github/ci/update-package.py <package>`.
+- If you added/changed a manually pinned upstream package, build it and record the pinned version in the change description; nothing bumps it for you.
 - Build the affected host:
   ```bash
   nix build --no-link .#nixosConfigurations.murph.config.system.build.toplevel
