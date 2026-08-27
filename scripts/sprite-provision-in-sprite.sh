@@ -199,14 +199,8 @@ write_fish_config() {
   # of which this needs to touch.
   info "writing $config"
   mkdir -p "$(dirname "$config")"
-  # eza is not installed here, so the alias waits for it rather than shadowing
-  # ls with a command that does not exist.
   cat > "$config" <<'EOF'
 set -g fish_key_bindings fish_vi_key_bindings
-
-if type -q eza
-    alias ls "eza --group-directories-first"
-end
 EOF
 }
 
