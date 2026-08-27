@@ -10,6 +10,7 @@
       ++ (with scriptPackages; [
         backupMurphSecrets
         restoreMurphSecrets
+        spriteProvision
       ])
       ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux (
         with scriptPackages;
