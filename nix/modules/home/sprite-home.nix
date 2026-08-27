@@ -61,7 +61,10 @@ in
     # sprite exec reads no shell startup files, but ~/.local/bin is already on
     # its fixed PATH. Expose the two Nix-managed entry points needed there.
     file = skillFiles // {
-      ".local/bin/claude".source = "${claudeCodePackage}/bin/claude";
+      ".local/bin/claude" = {
+        force = true;
+        source = "${claudeCodePackage}/bin/claude";
+      };
       ".local/bin/home-manager".source = "${spriteHomeManagerPackage}/bin/home-manager";
 
       ".claude/CLAUDE.md" = {
