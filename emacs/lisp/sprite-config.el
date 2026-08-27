@@ -27,10 +27,7 @@ the format."
      (shell-command-to-string (concat sprite-program " list")) "\n" t))))
 
 (use-package tramp
-  ;; Deferred: Tramp costs ~150ms to load, and its autoloaded handler already
-  ;; recognizes /sprite:... as remote, so it pulls itself in on first use and
-  ;; this :config runs before the method is needed.
-  :defer t
+  :demand t
   :config
   (add-to-list 'tramp-methods
                `(,sprite-tramp-method
