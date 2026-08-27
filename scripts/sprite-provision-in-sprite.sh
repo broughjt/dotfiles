@@ -20,6 +20,9 @@ main() {
   link_nix_binaries
   check_upstream_instructions
   write_agent_instructions
+  sync_skills
+  write_git_config
+  write_fish_config
 
   info "done"
 }
@@ -146,6 +149,65 @@ write_agent_instructions() {
     # the store, and cp would propagate it to the copy.
     install -m 0644 "$source" "$target"
   done
+}
+
+sync_skills() {
+  local target
+  local shared
+  local excludes=()
+
+  # The base image installs its own skills into both agent directories, backed
+  # by ~/.sprite-shared/skills. Deriving the exclude list from that directory
+  # rather than naming sprite and sprite-api-gateway means --delete below keeps
+  # its hands off whatever Fly ships, including anything they add later.
+  for shared in "$HOME"/.sprite-shared/skills/*/; do
+    [ -d "$shared" ] || continue
+    excludes+=("--exclude=/$(basename "$shared")")
+  done
+
+  for target in "$HOME/.claude/skills" "$HOME/.codex/skills"; do
+    info "syncing skills into $target"
+    mkdir -p "$target"
+    # --chmod because the pushed tree carries the store's read-only modes, and
+    # --delete needs writable directories to remove anything from them.
+    rsync --archive --delete --chmod=D755,F644 "${excludes[@]}" \
+      "$FILES_DIRECTORY/skills/" "$target/"
+  done
+}
+
+write_git_config() {
+  local config="$HOME/.gitconfig"
+
+  # The base image ships this file naming the committer Sprite
+  # <noreply@sprites.dev>, so it is replaced rather than merged. Written in
+  # full every run so it cannot drift.
+  info "writing $config"
+  cat > "$config" <<'EOF'
+[user]
+	name = Jackson Brough
+	email = jacksontbrough@gmail.com
+[init]
+	defaultBranch = main
+EOF
+}
+
+write_fish_config() {
+  local config="$HOME/.config/fish/conf.d/dotfiles.fish"
+
+  # A conf.d drop-in rather than config.fish, which the base image owns: it
+  # sets the prompt and colours and sources /etc/profile.d/languages_env, none
+  # of which this needs to touch.
+  info "writing $config"
+  mkdir -p "$(dirname "$config")"
+  # eza is not installed here, so the alias waits for it rather than shadowing
+  # ls with a command that does not exist.
+  cat > "$config" <<'EOF'
+set -g fish_key_bindings fish_vi_key_bindings
+
+if type -q eza
+    alias ls "eza --group-directories-first"
+end
+EOF
 }
 
 die() {

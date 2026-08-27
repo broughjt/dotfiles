@@ -53,6 +53,9 @@ Steps:
   - write the agent instructions to ~/.claude/CLAUDE.md and ~/.codex/AGENTS.md,
     refusing to run if the base image's own instructions have drifted from the
     copy vendored in agents/machines/upstream/
+  - sync agents/skills into both agent skill directories, leaving the base
+    image's own skills alone
+  - write ~/.gitconfig and a fish conf.d drop-in
 
 Arguments:
   SPRITE  name of the sprite, as shown by 'sprite list'
