@@ -54,7 +54,6 @@ rec {
   firefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;
   ghostty = import ./home/ghostty.nix;
-  kakoune = import ./home/kakoune.nix;
   vlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;
   utahWireless = import ./utah-wireless.nix;
