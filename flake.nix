@@ -7,12 +7,10 @@
     extra-substituters = [
       "https://cache.numtide.com"
       "https://nix-community.cachix.org"
-      "https://nixos-raspberrypi.cachix.org"
     ];
     extra-trusted-public-keys = [
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
     ];
   };
 
@@ -40,8 +38,6 @@
 
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
   };
 
   outputs =
@@ -56,7 +52,6 @@
       flake-utils,
       llm-agents-nix,
       agenix,
-      nixos-raspberrypi,
     }:
     let
       nix-config = import ./nix/nix-config.nix;
@@ -96,7 +91,6 @@
           disko
           impermanence
           agenix
-          nixos-raspberrypi
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };
@@ -117,14 +111,6 @@
             self
             nixpkgs
             home-manager
-            nixosModules
-            ;
-        };
-        tars = import ./nix/hosts/tars.nix {
-          inherit
-            inputs
-            nixpkgs
-            nixos-raspberrypi
             nixosModules
             ;
         };

@@ -6,7 +6,6 @@
   disko,
   impermanence,
   agenix,
-  nixos-raspberrypi,
   configureEmacsPackage,
 }:
 
@@ -14,19 +13,6 @@ rec {
   personal = import ./personal.nix;
   nixSettings = import ./nix-settings.nix { inherit nix-config; };
 
-  tarsHardware = import ./hosts/tars-hardware.nix { inherit nixos-raspberrypi; };
-  tarsAccess = import ./hosts/tars-access.nix;
-  tarsBase = import ./hosts/tars-base.nix {
-    inherit
-      tarsHardware
-      nixSettings
-      linuxBase
-      home-manager
-      personal
-      homeLinux
-      tarsAccess
-      ;
-  };
   murphHardware = import ./hosts/murph-hardware.nix;
   murphBase = import ./hosts/murph-base.nix;
   murphDisko = import ./hosts/murph-disko.nix;

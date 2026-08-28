@@ -9,7 +9,6 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `nix/hosts/`: host composition:
   - `murph.nix`: full personal laptop/desktop profile.
   - `murph-install.nix`: bootstrap install profile.
-  - `tars.nix`: Raspberry Pi host using `nixos-raspberrypi`.
 - `nix/modules/home/`: Home Manager and user-facing app modules.
 - `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules.
 - `nix/packages/`: custom derivations and script app packaging.
