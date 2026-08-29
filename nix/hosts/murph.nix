@@ -15,6 +15,7 @@ nixpkgs.lib.nixosSystem {
     murphSuspendDiagnostics
     nixSettings
     linuxBase
+    llmAgents
     tailscale
     utahWireless
     docker
@@ -29,12 +30,20 @@ nixpkgs.lib.nixosSystem {
     pass
     agentSkills
     plaidSync
-    claudeCode
     codex
     firefox
     mimeApps
     ghostty
     vlc
     emacs
+    (
+      { config, ... }:
+      {
+        home-manager.users.${config.personal.userName} = {
+          imports = [ homeClaudeCode ];
+          agentInstructions.machineFile = ../../agents/machines/murph.md;
+        };
+      }
+    )
   ];
 }

@@ -1,5 +1,3 @@
-{ llmAgentsOverlay }:
-
 {
   config,
   lib,
@@ -8,13 +6,16 @@
 }:
 
 let
-  user = config.personal.userName;
+  homeDirectory = config.defaultDirectories.homeDirectory;
   localDirectory = config.defaultDirectories.localDirectory;
-  agentInstructions = import ../../packages/agent-instructions.nix;
 
-  # Claude Code's native CLAUDE_CONFIG_DIR relocates the normal ~/.claude
-  # tree. Persist that whole tree.
-  claudeStateDir = "${localDirectory}/state/claude-code";
+  # Claude Code's native CLAUDE_CONFIG_DIR relocates the normal ~/.claude tree.
+  # Everything under it is either a store symlink managed here or mutable state
+  # the host persists on its own terms.
+  claudeStateDirectory = "${localDirectory}/state/claude-code";
+
+  # home.file keys are paths relative to the home directory.
+  relativeToHome = path: lib.removePrefix "${homeDirectory}/" path;
 
   # Shared user-global skills are immutable and entirely Nix-managed. Claude
   # Code follows this directory symlink into the store.
@@ -22,41 +23,34 @@ let
     name = "skills";
     path = ../../../agents/skills;
   };
-  claudeSkillsDir = "${claudeStateDir}/skills";
-
-  # Shared user-global agent instructions, also consumed by Codex. Claude Code
-  # reads CLAUDE.md rather than AGENTS.md, so it reaches the same store file
-  # under that name.
-  instructionsSource = agentInstructions.assembleAgentInstructions {
-    inherit pkgs;
-    machine = ../../../agents/machines/murph.md;
-  };
-  claudeInstructionsFile = "${claudeStateDir}/CLAUDE.md";
 
   claudeCodePackage = pkgs.callPackage ../../packages/claude-code.nix { };
 in
 {
-  nixpkgs.overlays = [ llmAgentsOverlay ];
+  imports = [ ./agent-instructions.nix ];
 
-  system.activationScripts.prepareClaudeCodeState = {
-    deps = [ "persist-files" ];
-    text = ''
-      install -d -m 0700 -o ${user} -g users ${lib.escapeShellArg claudeStateDir}
-      rm -rf ${lib.escapeShellArg claudeSkillsDir}
-      ln -sfnT ${lib.escapeShellArg skillsSource} ${lib.escapeShellArg claudeSkillsDir}
-      rm -f ${lib.escapeShellArg claudeInstructionsFile}
-      ln -sfnT ${lib.escapeShellArg instructionsSource} ${lib.escapeShellArg claudeInstructionsFile}
-    '';
+  home.packages = [ claudeCodePackage ];
+  home.sessionVariables.CLAUDE_CONFIG_DIR = claudeStateDirectory;
+
+  # Credentials and project transcripts live here, so the directory has to be
+  # private before anything is linked into it. A host with impermanence has
+  # already created it by this point; this keeps the mode right on hosts that
+  # create it here for the first time.
+  home.activation.claudeCodeStateDirectory = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    run install -d -m 0700 ${lib.escapeShellArg claudeStateDirectory}
+  '';
+
+  # Both targets are store paths by definition, so anything found sitting at
+  # one is a stale link from an older generation rather than state worth
+  # keeping. Claude Code reads CLAUDE.md rather than AGENTS.md, so the shared
+  # agent instructions reach it under that name.
+  home.file.${relativeToHome "${claudeStateDirectory}/skills"} = {
+    source = skillsSource;
+    force = true;
   };
 
-  systemd.tmpfiles.rules = [
-    "d ${claudeStateDir} 0700 ${user} users -"
-    "L+ ${claudeSkillsDir} - - - - ${skillsSource}"
-    "L+ ${claudeInstructionsFile} - - - - ${instructionsSource}"
-  ];
-
-  home-manager.users.${user} = {
-    home.packages = [ claudeCodePackage ];
-    home.sessionVariables.CLAUDE_CONFIG_DIR = claudeStateDir;
+  home.file.${relativeToHome "${claudeStateDirectory}/CLAUDE.md"} = {
+    source = config.agentInstructions.file;
+    force = true;
   };
 }

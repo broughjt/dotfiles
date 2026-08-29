@@ -22,6 +22,11 @@ rec {
   impermanenceModule = impermanence.nixosModules.impermanence;
 
   linuxBase = import ./linux-base.nix;
+  # Overlays are a host concern. With home-manager.useGlobalPkgs the Home
+  # Manager modules share the system package set and cannot add their own.
+  llmAgents = {
+    nixpkgs.overlays = [ llmAgentsOverlay ];
+  };
   docker = import ./docker.nix;
 
   homeDirectories = import ./home/directories.nix;
@@ -47,7 +52,7 @@ rec {
     agenixHome = agenix.homeManagerModules.default;
   };
   agentSkills = import ./home/agent-skills.nix;
-  claudeCode = import ./home/claude-code.nix { inherit llmAgentsOverlay; };
+  homeClaudeCode = import ./home/claude-code.nix;
   codex = import ./home/codex.nix { inherit llmAgentsOverlay; };
   firefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;

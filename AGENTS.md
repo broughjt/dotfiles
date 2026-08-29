@@ -14,7 +14,7 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`: editor config, generally consumed from the Nix store via a wrapper rather than copied into mutable home paths.
 - `agents/skills/`: user-global Agent Skills shared by Claude Code and Codex. `agent-skills.nix` exposes this immutable tree through `~/.agents/skills` for Codex, while `claude-code.nix` exposes it through `CLAUDE_CONFIG_DIR/skills`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
-- `agents/instructions/` and `agents/machines/`: user-global agent instructions, split so the same portable text serves every machine. `preamble.md` and `conventions.md` are the portable halves; `machines/<host>.md` is the `## This machine` section between them. `nix/packages/agent-instructions.nix` concatenates the three in that order. `claude-code.nix` exposes the result as `CLAUDE_CONFIG_DIR/CLAUDE.md` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`) and `codex.nix` as `CODEX_HOME/AGENTS.md`; each wires it twice, at an activation `ln -sfnT` and a tmpfiles `L+` rule. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
+- `agents/instructions/` and `agents/machines/`: user-global agent instructions, split so the same portable text serves every machine. `preamble.md` and `conventions.md` are the portable halves; `machines/<host>.md` is the `## This machine` section between them. `nix/packages/agent-instructions.nix` concatenates the three in that order. The host names its own section through the `agentInstructions.machineFile` option declared in `nix/modules/home/agent-instructions.nix`. `claude-code.nix` exposes the assembled result as `CLAUDE_CONFIG_DIR/CLAUDE.md` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`) through a plain `home.file` symlink; `codex.nix` exposes it as `CODEX_HOME/AGENTS.md` and still wires it twice, at an activation `ln -sfnT` and a tmpfiles `L+` rule. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
 - `scripts/`: implementation bodies for flake apps in `nix/packages/scripts.nix`.
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md`.
@@ -37,7 +37,14 @@ in
 }
 ```
 
-Some modules are curried when they need flake-provided overlays/packages, e.g. `import ./home/claude-code.nix { inherit llmAgentsOverlay; }`. Register those in `nix/modules/default.nix`.
+Some modules are curried when they need flake-provided overlays/packages, e.g. `import ./home/emacs.nix { inherit emacsOverlays emacsHome; }`. Register those in `nix/modules/default.nix`.
+
+Files under `nix/modules/home/` are a mix of two module classes, and the distinction matters more than the directory name suggests:
+
+- **NixOS modules** that reach into `home-manager.users.${user}` from outside. They live at the system level because they need `systemd.tmpfiles.rules` or `system.activationScripts`. Only a NixOS host can import them.
+- **Home Manager modules** proper, such as `git.nix`, `fish.nix`, `directories.nix`, `emacs-home.nix` and `claude-code.nix`. A host imports these into `home-manager.users.<user>.imports`, and they work unchanged on NixOS, nix-darwin, and hosts without impermanence.
+
+Prefer the second class. Reach for the first only when something genuinely has to happen at system activation or boot, before the user's Home Manager generation is applied. Registry entries for Home Manager modules are named `home*` (`homeGit`, `homeClaudeCode`).
 
 When adding a new dedicated module:
 
