@@ -10,7 +10,7 @@ let
   # uNID password's NT hash. `domain-suffix-match` additionally requires the
   # server certificate to name radius.utah.edu, so a certificate issued by this
   # CA for some other host cannot stand in for the RADIUS server.
-  utahRootCertificate = "${./utah-root-ca.pem}";
+  utahRootCertificate = "${../../certificates/utah-root-ca.pem}";
 
   utahEnterpriseAuth = {
     eap = "peap;";

@@ -19,6 +19,7 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md`.
 - `secrets/`: encrypted Vaultix/age secrets only. Do not add plaintext secrets.
+- `certificates/`: public CA certificates read from the store, such as the University of Utah RADIUS root pinned by `nix/modules/utah-wireless.nix`. Keeps `nix/` holding only Nix.
 
 ## Host and module composition idioms
 
