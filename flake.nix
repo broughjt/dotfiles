@@ -134,17 +134,6 @@
         darwinConfigurations
         ;
 
-      homeConfigurations.sprite = home-manager.lib.homeManagerConfiguration {
-        pkgs = makePkgs "x86_64-linux";
-        modules = with nixosModules; [
-          personal
-          homeDirectories
-          homeGit
-          homeFish
-          spriteHome
-        ];
-      };
-
       templates = import ./nix/templates.nix;
     }
     // flake-utils.lib.eachDefaultSystem (
@@ -155,7 +144,6 @@
         scriptPackages = import ./nix/packages/scripts.nix {
           inherit
             disko
-            home-manager
             pkgs
             self
             system
@@ -177,12 +165,6 @@
           restoreMurphSecrets =
             makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets"
               "Restore Murph's persisted SSH and GPG secrets";
-          spriteProvision =
-            makeScriptApp scriptPackages.spriteProvision "sprite-provision"
-              "Bootstrap Nix in a sprite";
-          spriteHomeSwitch =
-            makeScriptApp scriptPackages.spriteHomeSwitch "sprite-home-switch"
-              "Activate the pinned standalone Home Manager configuration in a sprite";
         };
       in
       (import ./nix/shell.nix { inherit pkgs scriptPackages; })

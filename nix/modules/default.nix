@@ -36,7 +36,6 @@ rec {
       ;
   };
   homeDarwin = import ./home/darwin.nix;
-  spriteHome = import ./home/sprite-home.nix;
   desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
   browserTools = import ./home/browser-tools.nix { inherit llmAgentsOverlay; };
   gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf desktopApps; };

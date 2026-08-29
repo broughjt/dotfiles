@@ -2,7 +2,6 @@
   pkgs,
   self,
   disko,
-  home-manager,
   system,
 }:
 
@@ -69,38 +68,6 @@ let
       exec python3 ${../../scripts/restore_murph_secrets.py} "$@"
     '';
   };
-  spriteProvision = pkgs.writeShellApplication {
-    name = "sprite-provision";
-    # coreutils covers the driver, which is all that runs here. The in-sprite
-    # half travels as a plain file rather than a
-    # writeShellApplication, so nothing prepends murph store paths to its PATH;
-    # curl, sudo and the rest resolve against the sprite's own.
-    #
-    # sprite is deliberately absent: writeShellApplication prepends to PATH
-    # rather than replacing it, so leaving it out is what lets murph's wrapped
-    # sprite -- which carries the private HOME from home/sprite.nix -- be the
-    # one that runs.
-    runtimeInputs = [ pkgs.coreutils ];
-    text =
-      builtins.replaceStrings
-        [ "@IN_SPRITE_SCRIPT@" ]
-        [ "${../../scripts/sprite-provision-in-sprite.sh}" ]
-        (builtins.readFile ../../scripts/sprite-provision.sh);
-  };
-  spriteHomeSwitch = pkgs.writeShellApplication {
-    name = "sprite-home-switch";
-    runtimeInputs = [
-      pkgs.coreutils
-      home-manager.packages.${system}.home-manager
-    ];
-    # ${self} is the exact source revision from which this app was evaluated.
-    # A remote `nix run` therefore switches to the same pushed revision that
-    # supplied the pinned Home Manager CLI, modules, and flake.lock.
-    text = ''
-      export USER="''${USER:-$(id -un)}"
-      exec home-manager switch --flake ${pkgs.lib.escapeShellArg "${self}#sprite"} "$@"
-    '';
-  };
 in
 {
   inherit
@@ -108,7 +75,5 @@ in
     flashNixosInstaller
     installMurph
     restoreMurphSecrets
-    spriteHomeSwitch
-    spriteProvision
     ;
 }

@@ -3,9 +3,6 @@
   # section. The machine section goes between them: "Getting tools" tells agents
   # to reach for Nix, which is only true because the machine section says the
   # machine has it.
-  #
-  # A sprite's Home Manager generation calls this same function with
-  # machines/sprite.md as the machine section.
   assembleAgentInstructions =
     { pkgs, machine }:
     pkgs.runCommand "AGENTS.md" { } ''
