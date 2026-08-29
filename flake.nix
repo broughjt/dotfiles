@@ -98,8 +98,6 @@
       nixosConfigurations = {
         murph = import ./nix/hosts/murph.nix {
           inherit
-            inputs
-            self
             nixpkgs
             home-manager
             nixosModules
@@ -107,8 +105,6 @@
         };
         murph-install = import ./nix/hosts/murph-install.nix {
           inherit
-            inputs
-            self
             nixpkgs
             home-manager
             nixosModules
