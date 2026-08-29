@@ -11,7 +11,6 @@ let
   user = config.personal.userName;
   uid = toString config.users.users.${user}.uid;
   localDirectory = config.defaultDirectories.localDirectory;
-  agentInstructions = import ../../packages/agent-instructions.nix;
 
   # Codex's CODEX_HOME replaces the default ~/.codex tree. Keep durable user
   # state here, but redirect noisy generated stores below into ~/local/cache.
@@ -24,11 +23,13 @@ let
   codexSystemSkillsDir = "${codexCacheDir}/system-skills";
   codexStandalonePackagesDir = "${codexCacheDir}/standalone-packages";
 
-  # Shared user-global agent instructions, also consumed by Claude Code.
-  instructionsSource = agentInstructions.assembleAgentInstructions {
-    inherit pkgs;
-    machine = ../../../agents/machines/murph.md;
-  };
+  # Shared user-global agent instructions, also consumed by Claude Code. The
+  # option is declared by ./agent-instructions.nix, imported into the Home
+  # Manager user below; the host sets the machine section. Codex symlinks a
+  # file rather than rendering one, so the shared text is written to the store.
+  instructionsSource =
+    pkgs.writeText "AGENTS.md"
+      config.home-manager.users.${user}.agentInstructions.text;
   codexInstructionsFile = "${codexHomeDir}/AGENTS.md";
 
   codexEnvironment = {
@@ -110,6 +111,8 @@ in
   ];
 
   home-manager.users.${user} = {
+    imports = [ ./agent-instructions.nix ];
+
     home.packages = [ codexPackage ];
     home.sessionVariables = codexEnvironment;
   };
