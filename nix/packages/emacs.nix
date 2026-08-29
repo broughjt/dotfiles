@@ -25,7 +25,6 @@
         epkgs.inheritenv
 
         # completion.el
-        epkgs.affe
         epkgs.cape
         epkgs.consult
         epkgs.corfu
