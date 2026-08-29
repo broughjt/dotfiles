@@ -35,7 +35,6 @@ nixpkgs.lib.nixosSystem {
     plaidSync
     claudeCode
     codex
-    sprite
     firefox
     mimeApps
     ghostty
