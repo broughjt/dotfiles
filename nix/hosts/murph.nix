@@ -20,6 +20,7 @@ nixpkgs.lib.nixosSystem {
     docker
     home-manager.nixosModules.home-manager
     personal
+    homeDirectories
     homeLinux
     gnomeDesktop
     browserTools

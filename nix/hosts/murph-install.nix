@@ -16,6 +16,7 @@ nixpkgs.lib.nixosSystem {
     linuxBase
     home-manager.nixosModules.home-manager
     personal
+    homeDirectories
     homeLinux
   ];
 }

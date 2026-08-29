@@ -13,8 +13,6 @@
 }:
 
 {
-  imports = [ homeDirectories ];
-
   config =
     let
       user = config.personal.userName;
@@ -124,14 +122,11 @@
           homeGit
         ];
 
+        # The Home Manager user is a separate module evaluation, so these
+        # shared option schemas are imported again above and their values
+        # copied across from the system configuration.
         personal = config.personal;
-        defaultDirectories = {
-          homeDirectory = config.defaultDirectories.homeDirectory;
-          repositoriesDirectory = config.defaultDirectories.repositoriesDirectory;
-          localDirectory = config.defaultDirectories.localDirectory;
-          scratchDirectory = config.defaultDirectories.scratchDirectory;
-          shareDirectory = config.defaultDirectories.shareDirectory;
-        };
+        defaultDirectories = config.defaultDirectories;
 
         home.stateVersion = "25.05";
         programs.home-manager.enable = true;
