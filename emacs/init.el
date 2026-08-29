@@ -134,6 +134,7 @@
       '(ui
         editing
         completion
+        git-config
         project-config
         tramp-config
         language-eglot

@@ -39,6 +39,8 @@
         # editing.el
         epkgs.evil
         epkgs.evil-collection
+
+        # git-config.el
         epkgs.magit
 
         # language-*.el
