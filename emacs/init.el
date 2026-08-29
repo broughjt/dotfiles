@@ -135,6 +135,7 @@
         editing
         completion
         project-config
+        tramp-config
         language-eglot
         language-tex
         language-racket
