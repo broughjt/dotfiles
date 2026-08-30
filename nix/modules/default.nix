@@ -54,7 +54,7 @@ rec {
   homeCodex = import ./home/codex.nix;
   firefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;
-  ghostty = import ./home/ghostty.nix;
+  homeGhostty = import ./home/ghostty.nix;
   vlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;
   utahWireless = import ./utah-wireless.nix;

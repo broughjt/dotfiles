@@ -29,7 +29,6 @@ nixpkgs.lib.nixosSystem {
     plaidSync
     firefox
     mimeApps
-    ghostty
     vlc
     emacs
     (
@@ -40,6 +39,7 @@ nixpkgs.lib.nixosSystem {
             homeClaudeCode
             homeCodex
             homeGh
+            homeGhostty
           ];
           agentInstructions.machineFile = ../../agents/machines/murph.md;
 
