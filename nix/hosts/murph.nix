@@ -25,12 +25,13 @@ nixpkgs.lib.nixosSystem {
     homeLinux
     gnomeDesktop
     plaidSync
-    emacs
+    emacsPackageSet
     (
       { config, ... }:
       {
         home-manager.users.${config.personal.userName} = {
           imports = [
+            homeEmacs
             homeClaudeCode
             homeCodex
             homeGh

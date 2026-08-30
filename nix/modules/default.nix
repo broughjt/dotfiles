@@ -27,6 +27,9 @@ rec {
   llmAgents = {
     nixpkgs.overlays = [ llmAgentsOverlay ];
   };
+  emacsPackageSet = {
+    nixpkgs.overlays = emacsOverlays;
+  };
   docker = import ./docker.nix;
 
   homeDirectories = import ./home/directories.nix;
@@ -63,13 +66,7 @@ rec {
   homeGpgImpermanence = import ./home/impermanence/gpg.nix;
   homeMurphImpermanence = import ./home/impermanence/murph.nix;
   homeVlc = import ./home/vlc.nix;
+  homeEmacs = import ./home/emacs.nix { inherit configureEmacsPackage; };
   tailscale = import ./tailscale.nix;
   utahWireless = import ./utah-wireless.nix;
-  emacsHome = import ./home/emacs-home.nix { inherit configureEmacsPackage; };
-  emacs = import ./home/emacs.nix {
-    inherit
-      emacsOverlays
-      emacsHome
-      ;
-  };
 }

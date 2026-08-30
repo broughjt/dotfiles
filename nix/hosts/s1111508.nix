@@ -49,7 +49,7 @@ nix-darwin.lib.darwinSystem {
             homeDirectories
             homeFish
             homeGit
-            emacsHome
+            homeEmacs
             homeDarwin
           ];
         };

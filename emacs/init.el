@@ -37,22 +37,18 @@
 
 ;;; Nix-managed state configuration
 
-(when (eq system-type 'darwin)
-  ;; murph creates these through systemd tmpfiles so missing directories remain
-  ;; visible as Linux configuration bugs. On macOS, Home Manager may not have
-  ;; created anything before a GUI launch, so create the normal state/cache
-  ;; directories lazily.
-  (dolist (directory (list jackson/emacs-state-directory
-                           (expand-file-name "backups/" jackson/emacs-state-directory)
-                           (expand-file-name "auto-saves/" jackson/emacs-state-directory)
-                           (expand-file-name "auto-save-list/" jackson/emacs-state-directory)
-                           (expand-file-name "transient/" jackson/emacs-state-directory)
-                           jackson/emacs-cache-directory
-                           (expand-file-name "eln-cache/" jackson/emacs-cache-directory)
-                           (expand-file-name "lsp/" jackson/emacs-cache-directory)
-                           jackson/emacs-hacks-directory
-                           (expand-file-name "projects/" jackson/emacs-hacks-directory)))
-    (make-directory directory t)))
+(dolist (directory (list jackson/emacs-state-directory
+                         (expand-file-name "backups/" jackson/emacs-state-directory)
+                         (expand-file-name "auto-saves/" jackson/emacs-state-directory)
+                         (expand-file-name "auto-save-list/" jackson/emacs-state-directory)
+                         (expand-file-name "transient/" jackson/emacs-state-directory)
+                         jackson/emacs-cache-directory
+                         (expand-file-name "eln-cache/" jackson/emacs-cache-directory)
+                         (expand-file-name "lsp/" jackson/emacs-cache-directory)
+                         jackson/emacs-hacks-directory
+                         (expand-file-name "projects/" jackson/emacs-hacks-directory)))
+  (make-directory directory t)
+  (set-file-modes directory #o700))
 
 ;; Backups: Rename target on first save of a buffer in a session, kept after
 ;; subsequent saves. Persisted across reboots so unintended overwrites in files
