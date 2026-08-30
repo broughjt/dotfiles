@@ -34,6 +34,7 @@ nixpkgs.lib.nixosSystem {
           imports = [
             homeClaudeCode
             homeCodex
+            homeDesktopApps
             homeFirefox
             homeGh
             homeGhostty

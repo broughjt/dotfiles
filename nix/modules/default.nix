@@ -42,8 +42,8 @@ rec {
       ;
   };
   homeDarwin = import ./home/darwin.nix;
-  desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
-  gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf desktopApps; };
+  homeDesktopApps = import ./home/desktop-apps.nix;
+  gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf; };
   dconf = import ./dconf.nix;
   homeGpg = import ./home/gpg.nix;
   homePass = import ./home/pass.nix;

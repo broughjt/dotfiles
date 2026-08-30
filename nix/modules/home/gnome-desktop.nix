@@ -1,7 +1,4 @@
-{
-  dconf,
-  desktopApps,
-}:
+{ dconf }:
 
 {
   config,
@@ -13,7 +10,6 @@
 {
   imports = [
     dconf
-    desktopApps
   ];
 
   config = {

@@ -1,48 +1,41 @@
-{ llmAgentsOverlay }:
-
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
-  nixpkgs.overlays = [ llmAgentsOverlay ];
+  home.packages = with pkgs; [
+    bubblewrap
+    discord
+    evince
+    hunspell
+    hunspellDicts.en_US
+    inter
+    julia-mono
+    nerd-fonts.symbols-only
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-cjk-serif
+    noto-fonts-color-emoji
+    slack
+    source-serif
+    spotify
+    telegram-desktop
+    wl-clipboard
+  ];
+  home.sessionVariables.NIXOS_OZONE_WL = "1";
 
-  home-manager.users.${config.personal.userName} = {
-    home.packages = with pkgs; [
-      bubblewrap
-      discord
-      evince
-      hunspell
-      hunspellDicts.en_US
-      inter
-      julia-mono
-      nerd-fonts.symbols-only
-      noto-fonts
-      noto-fonts-cjk-sans
-      noto-fonts-cjk-serif
-      noto-fonts-color-emoji
-      slack
-      source-serif
-      spotify
-      telegram-desktop
-      wl-clipboard
+  fonts.fontconfig = {
+    enable = true;
+    defaultFonts.monospace = [
+      "JuliaMono"
+      "Noto Sans Mono"
     ];
-    home.sessionVariables.NIXOS_OZONE_WL = "1";
-
-    fonts.fontconfig = {
-      enable = true;
-      defaultFonts.monospace = [
-        "JuliaMono"
-        "Noto Sans Mono"
-      ];
-      defaultFonts.sansSerif = [
-        "Inter"
-        "Noto Sans"
-      ];
-      defaultFonts.serif = [
-        "Source Serif 4"
-        "Noto Serif"
-      ];
-      defaultFonts.emoji = [ "Noto Color Emoji" ];
-    };
-
+    defaultFonts.sansSerif = [
+      "Inter"
+      "Noto Sans"
+    ];
+    defaultFonts.serif = [
+      "Source Serif 4"
+      "Noto Serif"
+    ];
+    defaultFonts.emoji = [ "Noto Color Emoji" ];
   };
 }
