@@ -44,7 +44,7 @@ rec {
   homeDarwin = import ./home/darwin.nix;
   desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
   gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf desktopApps; };
-  dconf = import ./home/dconf.nix;
+  dconf = import ./dconf.nix;
   homeGpg = import ./home/gpg.nix;
   homePass = import ./home/pass.nix;
   plaidSync = import ./home/plaid-sync.nix {
