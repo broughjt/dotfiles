@@ -10,7 +10,6 @@
   imports = [ homeFirefox ];
 
   home.packages = with pkgs; [
-    bubblewrap
     discord
     dconf-editor
     evince
