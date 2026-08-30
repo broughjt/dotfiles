@@ -72,8 +72,6 @@ Leave rebuildable/noisy state ephemeral, normally under `~/local/cache`, an ephe
 - first-run prompts or local UI state the user does not care about
 - updater downloads for apps managed by Nix
 
-If an app mixes durable profile data and cache data in one directory, consider pointing the whole profile at a persisted location and symlinking cache subdirectories back to `~/local/cache/<app>`, as in `nix/modules/home/browser-tools.nix`.
-
 ## Investigation workflow
 
 1. **Find the package and entry points**

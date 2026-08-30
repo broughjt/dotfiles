@@ -194,26 +194,6 @@ in
         directory = "local/config/spotify";
         mode = "0700";
       }
-      # Chromium's profile includes cookies, logins, local storage, extensions,
-      # history, and preferences. Browser cache subtrees are redirected to
-      # ephemeral ~/local/cache/chromium by browser-tools.nix.
-      {
-        directory = "local/state/chromium/profile";
-        mode = "0700";
-      }
-      # Chromium/NSS certificate database: local trust decisions and client cert
-      # material are durable security state rather than cache.
-      {
-        directory = "local/share/pki/nssdb";
-        mode = "0700";
-      }
-      # agent-browser named sessions may contain cookies/localStorage exported
-      # from login flows. Its launched-browser scratch data is kept under
-      # ephemeral ~/local/cache/agent-browser by the wrapper.
-      {
-        directory = "local/state/agent-browser/home/.agent-browser";
-        mode = "0700";
-      }
       # Claude Code's CLAUDE_CONFIG_DIR points here. This is the ~/.claude
       # equivalent and includes settings, ~/.claude.json-equivalent auth/app
       # state, credentials, plugins, prompt history, and project transcripts.

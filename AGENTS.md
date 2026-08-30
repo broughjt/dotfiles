@@ -133,8 +133,6 @@ Persist user state in `environment.persistence."/persist".users.${user}.director
 
 Leave caches, logs, crash reports, sockets, lock files, generated code caches, first-run UI trivia, and other rebuildable state ephemeral. Use `~/local/cache`, unpersisted `~/local/state`, or an app-specific runtime directory.
 
-If an app mixes durable profile data with bulky cache subdirectories, prefer an explicit profile location plus symlinks from cache-like subtrees back to `~/local/cache/<app>`, as in `nix/modules/home/browser-tools.nix`.
-
 ## Home directory and XDG layout
 
 `nix/modules/home/directories.nix` defines defaults:
