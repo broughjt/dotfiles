@@ -24,7 +24,6 @@ nixpkgs.lib.nixosSystem {
     homeDirectories
     homeLinux
     gnomeDesktop
-    gpg
     plaidSync
     firefox
     mimeApps
@@ -39,6 +38,7 @@ nixpkgs.lib.nixosSystem {
             homeCodex
             homeGh
             homeGhostty
+            homeGpg
             homePass
           ];
           agentInstructions.machineFile = ../../agents/machines/murph.md;
@@ -46,6 +46,8 @@ nixpkgs.lib.nixosSystem {
           programs.claude-code.configDir = "${config.defaultDirectories.localDirectory}/state/claude-code";
 
           codex.configDirectory = "${config.defaultDirectories.localDirectory}/state/codex";
+
+          gpg.stateDirectory = "${config.defaultDirectories.localDirectory}/state/gnupg";
         };
       }
     )

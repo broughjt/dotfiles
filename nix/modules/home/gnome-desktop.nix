@@ -53,6 +53,7 @@
       home.packages = with pkgs; [
         dconf-editor
         nautilus
+        pinentry-gnome3
       ];
 
       # File chooser / Nautilus sidebar bookmarks. Keep these declarative so

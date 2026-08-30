@@ -162,6 +162,8 @@
           nix-direnv.enable = true;
         };
 
+        services.ssh-agent.enable = true;
+
         # Home Manager's fish module enables man-db cache generation by default
         # so fish can complete `man` topics via `apropos`. That creates a
         # top-level ~/.manpath symlink. Keep man pages available on murph, but
