@@ -9,15 +9,8 @@ let
 in
 {
   systemd.tmpfiles.rules = [
-    # Fish rewrites history via temporary files and rename, so persist a real
-    # directory and point the normal history path at it with a symlink instead
-    # of bind-mounting fish_history itself.
-    "d ${localDirectory}/share/fish 0700 ${user} users -"
+    # Shared parent for the narrowly persisted mutable files below.
     "d ${localDirectory}/hacks 0755 ${user} users -"
-    "d ${localDirectory}/hacks/fish 0700 ${user} users -"
-    "d ${localDirectory}/hacks/fish/fish_history 0700 ${user} users -"
-    "f ${localDirectory}/hacks/fish/fish_history/fish_history 0600 ${user} users -"
-    "L+ ${localDirectory}/share/fish/fish_history - - - - ${localDirectory}/hacks/fish/fish_history/fish_history"
 
     # Keep SSH client state out of ~/.ssh. The private key is the only secret
     # persisted here; known_hosts is intentionally mutable but narrowly scoped.

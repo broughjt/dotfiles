@@ -1,12 +1,11 @@
 { ... }:
 
 {
-  # Fish rewrites history via temporary files and rename, so the persisted
-  # entry is the containing directory rather than fish_history itself. The
-  # symlink pointing fish at it still lives in murph-user-state.nix.
+  # Fish's data directory holds the history file alongside regenerable
+  # completion caches.
   home.persistence.main.directories = [
     {
-      directory = "local/hacks/fish/fish_history";
+      directory = "local/share/fish";
       mode = "0700";
     }
   ];
