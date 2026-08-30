@@ -8,14 +8,17 @@
 let
   codexEnvironment = {
     CODEX_HOME = config.codex.configDirectory;
-    CODEX_SQLITE_HOME = config.codex.sqliteDirectory;
   };
 
   codexPackage = pkgs.callPackage ../../packages/codex.nix {
     codexHome = config.codex.configDirectory;
-    sqliteHome = config.codex.sqliteDirectory;
-    logDirectory = config.codex.logDirectory;
   };
+
+  skillsSource = builtins.path {
+    name = "skills";
+    path = ../../../agents/skills;
+  };
+  skillNames = builtins.attrNames (builtins.readDir skillsSource);
 in
 {
   imports = [ ./agent-instructions.nix ];
@@ -31,27 +34,6 @@ in
         matching the upstream CLI.
       '';
     };
-
-    sqliteDirectory = lib.mkOption {
-      type = lib.types.str;
-      default = "${config.codex.configDirectory}/sqlite";
-      defaultText = lib.literalExpression ''"''${config.codex.configDirectory}/sqlite"'';
-      description = ''
-        Directory for Codex's SQLite state, exported as `CODEX_SQLITE_HOME` and
-        passed as `sqlite_home`. Codex defaults that to `CODEX_HOME` itself;
-        this keeps the database in a subdirectory instead.
-      '';
-    };
-
-    logDirectory = lib.mkOption {
-      type = lib.types.str;
-      default = "${config.codex.configDirectory}/log";
-      defaultText = lib.literalExpression ''"''${config.codex.configDirectory}/log"'';
-      description = ''
-        Directory for Codex's logs, passed as `log_dir`. This matches Codex's
-        own default; passing the value at all is what enables the TUI text log.
-      '';
-    };
   };
 
   config = {
@@ -63,18 +45,17 @@ in
     # have to reach environment.d.
     systemd.user.sessionVariables = lib.mkIf pkgs.stdenv.hostPlatform.isLinux codexEnvironment;
 
-    # Credentials, history and sessions live here, so these have to be private
-    # before anything is written into them.
+    # Credentials, history and sessions live here, so this has to be private
+    # before anything is written into it.
     home.activation.codexDirectories = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-      run install -d -m 0700 ${
-        lib.escapeShellArgs [
-          config.codex.configDirectory
-          config.codex.sqliteDirectory
-          config.codex.logDirectory
-        ]
-      }
+      run install -d -m 0700 ${lib.escapeShellArg config.codex.configDirectory}
     '';
 
-    home.file."${config.codex.configDirectory}/AGENTS.md".text = config.agentInstructions.text;
+    home.file = lib.mkMerge (
+      [ { "${config.codex.configDirectory}/AGENTS.md".text = config.agentInstructions.text; } ]
+      ++ map (name: {
+        "${config.codex.configDirectory}/skills/${name}".source = "${skillsSource}/${name}";
+      }) skillNames
+    );
   };
 }

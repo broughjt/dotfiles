@@ -51,7 +51,6 @@ rec {
   plaidSync = import ./home/plaid-sync.nix {
     agenixHome = agenix.homeManagerModules.default;
   };
-  agentSkills = import ./home/agent-skills.nix;
   homeClaudeCode = import ./home/claude-code.nix;
   homeCodex = import ./home/codex.nix;
   firefox = import ./home/firefox.nix;

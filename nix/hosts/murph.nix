@@ -28,7 +28,6 @@ nixpkgs.lib.nixosSystem {
     gh
     gpg
     pass
-    agentSkills
     plaidSync
     firefox
     mimeApps

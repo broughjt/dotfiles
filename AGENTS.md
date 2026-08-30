@@ -13,8 +13,8 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules.
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`: editor config, generally consumed from the Nix store via a wrapper rather than copied into mutable home paths.
-- `agents/skills/`: user-global Agent Skills shared by Claude Code and Codex. `agent-skills.nix` exposes this immutable tree through `~/.agents/skills` for Codex, while `claude-code.nix` passes it to `programs.claude-code.skills`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
-- `agents/instructions/` and `agents/machines/`: user-global agent instructions, split so the same portable text serves every machine. `preamble.md` and `conventions.md` are the portable halves; `machines/<host>.md` is the `## This machine` section between them. `nix/modules/home/agent-instructions.nix` declares the `agentInstructions` options and concatenates the three in that order; the host names its own section through `agentInstructions.machineFile`, which has no default so a host that gives agents instructions has to describe itself. `claude-code.nix` passes the assembled text to Home Manager's `programs.claude-code.context`, which writes it as `CLAUDE.md` inside `configDir` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`); `codex.nix` passes the same text to its own `codex` options, which write it as `AGENTS.md` inside `codex.configDirectory`. Codex also reads user-global skills from `~/.agents/skills`, which is why `agent-skills.nix` exists alongside it. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
+- `agents/skills/`: user-global Agent Skills shared by Claude Code and Codex. `claude-code.nix` passes the tree to `programs.claude-code.skills`; `codex.nix` links each skill individually into `CODEX_HOME/skills`, leaving Codex's own bundled cache at `skills/.system` alone. Codex reads three user-scope skill roots: `CODEX_HOME/skills` (marked deprecated upstream but still read), `~/.agents/skills`, and `skills/.system`. We deliberately use the deprecated one so no `~/.agents` directory has to exist. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
+- `agents/instructions/` and `agents/machines/`: user-global agent instructions, split so the same portable text serves every machine. `preamble.md` and `conventions.md` are the portable halves; `machines/<host>.md` is the `## This machine` section between them. `nix/modules/home/agent-instructions.nix` declares the `agentInstructions` options and concatenates the three in that order; the host names its own section through `agentInstructions.machineFile`, which has no default so a host that gives agents instructions has to describe itself. `claude-code.nix` passes the assembled text to Home Manager's `programs.claude-code.context`, which writes it as `CLAUDE.md` inside `configDir` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`); `codex.nix` passes the same text to its own `codex` options, which write it as `AGENTS.md` inside `codex.configDirectory`. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
 - `scripts/`: implementation bodies for flake apps in `nix/packages/scripts.nix`.
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md`.
@@ -163,9 +163,9 @@ Special local subtrees:
 - `~/local/state`: app state; individual subtrees may or may not be persisted.
 - `~/share`, `~/repositories`, `~/scratch`: user-facing data that is persisted on `murph`.
 
-The intentional top-level compatibility exception is `~/.agents/skills`, an
-ephemeral symlink to the Nix-managed `skills/` tree for Codex's skill discovery.
-It contains no mutable or persisted state.
+There are no top-level compatibility exceptions in `$HOME`. Codex's skills are
+linked into `CODEX_HOME/skills` rather than `~/.agents/skills` specifically to
+keep it that way.
 
 ## App/package module patterns
 
