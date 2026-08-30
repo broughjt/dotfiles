@@ -13,6 +13,7 @@ nixpkgs.lib.nixosSystem {
     murphDisko
     murphImpermanence
     murphSuspendDiagnostics
+    murphCodex
     nixSettings
     linuxBase
     llmAgents
@@ -30,7 +31,6 @@ nixpkgs.lib.nixosSystem {
     pass
     agentSkills
     plaidSync
-    codex
     firefox
     mimeApps
     ghostty
@@ -40,12 +40,16 @@ nixpkgs.lib.nixosSystem {
       { config, ... }:
       {
         home-manager.users.${config.personal.userName} = {
-          imports = [ homeClaudeCode ];
+          imports = [
+            homeClaudeCode
+            homeCodex
+          ];
           agentInstructions.machineFile = ../../agents/machines/murph.md;
 
-          # Claude Code defaults to ~/.claude. Redirect it into the XDG-ish
-          # layout so murph-user-persistence.nix can persist one directory.
           programs.claude-code.configDir = "${config.defaultDirectories.localDirectory}/state/claude-code";
+
+          codex.configDirectory = "${config.defaultDirectories.localDirectory}/state/codex";
+          codex.logDirectory = "${config.defaultDirectories.localDirectory}/cache/codex/log";
         };
       }
     )

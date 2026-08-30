@@ -17,6 +17,7 @@ rec {
   murphBase = import ./hosts/murph-base.nix;
   murphDisko = import ./hosts/murph-disko.nix;
   murphImpermanence = import ./hosts/murph-impermanence.nix;
+  murphCodex = import ./hosts/murph-codex.nix;
   murphSuspendDiagnostics = import ./hosts/murph-suspend-diagnostics.nix;
   diskoModule = disko.nixosModules.disko;
   impermanenceModule = impermanence.nixosModules.impermanence;
@@ -53,7 +54,7 @@ rec {
   };
   agentSkills = import ./home/agent-skills.nix;
   homeClaudeCode = import ./home/claude-code.nix;
-  codex = import ./home/codex.nix { inherit llmAgentsOverlay; };
+  homeCodex = import ./home/codex.nix;
   firefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;
   ghostty = import ./home/ghostty.nix;
