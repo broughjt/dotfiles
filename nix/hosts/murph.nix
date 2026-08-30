@@ -24,7 +24,6 @@ nixpkgs.lib.nixosSystem {
     homeDirectories
     homeLinux
     gnomeDesktop
-    gh
     gpg
     pass
     plaidSync
@@ -40,6 +39,7 @@ nixpkgs.lib.nixosSystem {
           imports = [
             homeClaudeCode
             homeCodex
+            homeGh
           ];
           agentInstructions.machineFile = ../../agents/machines/murph.md;
 

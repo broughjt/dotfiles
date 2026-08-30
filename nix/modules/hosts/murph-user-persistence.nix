@@ -26,9 +26,6 @@ in
     "d ${localDirectory}/hacks/ssh 0700 ${user} users -"
     "d ${localDirectory}/hacks/ssh/known_hosts 0700 ${user} users -"
     "f ${localDirectory}/hacks/ssh/known_hosts/known_hosts 0600 ${user} users -"
-    "d ${localDirectory}/hacks/gh 0700 ${user} users -"
-    "d ${localDirectory}/hacks/gh/hosts 0700 ${user} users -"
-    "f ${localDirectory}/hacks/gh/hosts/hosts.yml 0600 ${user} users -"
     "d ${localDirectory}/hacks/tmux 0700 ${user} users -"
     "d ${localDirectory}/hacks/tmux/resurrect 0700 ${user} users -"
     "d ${localDirectory}/hacks/tmux/resurrect/resurrect 0700 ${user} users -"
@@ -104,7 +101,6 @@ in
 
       check_single_entry ${localDirectory}/hacks/fish/fish_history fish_history
       check_single_entry ${localDirectory}/hacks/ssh/known_hosts known_hosts
-      check_single_entry ${localDirectory}/hacks/gh/hosts hosts.yml
       check_single_entry ${localDirectory}/hacks/tmux/resurrect resurrect
       check_single_entry ${localDirectory}/hacks/emacs/projects projects.eld
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
@@ -124,10 +120,6 @@ in
       }
       {
         directory = "local/hacks/ssh/known_hosts";
-        mode = "0700";
-      }
-      {
-        directory = "local/hacks/gh/hosts";
         mode = "0700";
       }
       {
@@ -176,6 +168,12 @@ in
       }
       {
         directory = "local/config/mozilla/firefox";
+        mode = "0700";
+      }
+      # config.yml is a Home Manager store symlink; hosts.yml is gh's mutable
+      # account metadata. Persist their shared directory so both can coexist.
+      {
+        directory = "local/config/gh";
         mode = "0700";
       }
       {

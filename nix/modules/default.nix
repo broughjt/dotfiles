@@ -31,6 +31,7 @@ rec {
 
   homeDirectories = import ./home/directories.nix;
   homeFish = import ./home/fish.nix;
+  homeGh = import ./home/gh.nix;
   homeGit = import ./home/git.nix;
   homeLinux = import ./home/linux.nix {
     inherit
@@ -44,7 +45,6 @@ rec {
   desktopApps = import ./home/desktop-apps.nix { inherit llmAgentsOverlay; };
   gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf desktopApps; };
   dconf = import ./home/dconf.nix;
-  gh = import ./home/gh.nix;
   gpg = import ./home/gpg.nix;
   pass = import ./home/pass.nix;
   plaidSync = import ./home/plaid-sync.nix {
