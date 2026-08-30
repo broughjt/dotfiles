@@ -55,7 +55,7 @@ rec {
   homeFirefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;
   homeGhostty = import ./home/ghostty.nix;
-  vlc = import ./home/vlc.nix;
+  homeVlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;
   utahWireless = import ./utah-wireless.nix;
   emacsHome = import ./home/emacs-home.nix { inherit configureEmacsPackage; };

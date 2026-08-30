@@ -26,7 +26,6 @@ nixpkgs.lib.nixosSystem {
     gnomeDesktop
     plaidSync
     mimeApps
-    vlc
     emacs
     (
       { config, ... }:
@@ -40,6 +39,7 @@ nixpkgs.lib.nixosSystem {
             homeGhostty
             homeGpg
             homePass
+            homeVlc
           ];
           agentInstructions.machineFile = ../../agents/machines/murph.md;
 

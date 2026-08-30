@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   # Keep VLC useful as a desktop app without making recent-file history or the
@@ -30,7 +30,7 @@ let
   };
 in
 {
-  home-manager.users.${config.personal.userName}.home.packages = [
+  home.packages = [
     vlcPackage
   ];
 }
