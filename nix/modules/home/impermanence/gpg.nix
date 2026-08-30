@@ -1,5 +1,8 @@
 { config, ... }:
 
+let
+  localDirectory = config.defaultDirectories.localDirectory;
+in
 {
   home.persistence.main.directories = [
     {
@@ -12,5 +15,6 @@
     }
   ];
 
-  gpg.stateDirectory = "${config.defaultDirectories.localDirectory}/state/gnupg";
+  gpg.stateDirectory = "${localDirectory}/state/gnupg";
+  gpg.secretsDirectory = "${localDirectory}/secrets/gnupg";
 }

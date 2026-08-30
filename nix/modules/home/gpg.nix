@@ -8,6 +8,13 @@
 let
   gpgHomedir = "${config.xdg.dataHome}/gnupg";
   gpgStateDirectory = config.gpg.stateDirectory;
+  gpgSecretsDirectory = config.gpg.secretsDirectory;
+  # The homedir subdirectories holding key material, as opposed to the keybox
+  # and trust database covered by stateDirectory.
+  gpgSecretSubdirectories = [
+    "private-keys-v1.d"
+    "openpgp-revocs.d"
+  ];
   # GnuPG rewrites the keybox and trustdb via temporary files and rename, so a
   # host that relocates them must supply one shared state directory rather than
   # separate paths that might be mounted individually.
@@ -60,6 +67,17 @@ in
     '';
   };
 
+  options.gpg.secretsDirectory = lib.mkOption {
+    type = lib.types.nullOr lib.types.path;
+    default = null;
+    description = ''
+      Directory holding GnuPG's private keys and revocation certificates. When
+      null, GnuPG keeps both inside {option}`programs.gpg.homedir`. Setting
+      this option symlinks them out of the homedir, so a host can keep the
+      homedir ephemeral while the key material lives somewhere durable.
+    '';
+  };
+
   config = lib.mkMerge [
     {
       programs.gpg = {
@@ -83,6 +101,28 @@ in
       # GnuPG-managed state.
       home.file."${gpgHomedir}/gpg.conf".enable = false;
       home.file."${gpgHomedir}/gpg-agent.conf".enable = false;
+    })
+
+    (lib.mkIf (gpgSecretsDirectory != null) {
+      home.file = lib.listToAttrs (
+        map (
+          name:
+          lib.nameValuePair "${gpgHomedir}/${name}" {
+            source = config.lib.file.mkOutOfStoreSymlink "${gpgSecretsDirectory}/${name}";
+          }
+        ) gpgSecretSubdirectories
+      );
+
+      # GnuPG creates these itself, but not through a dangling symlink: mkdir
+      # returns EEXIST and gpg-agent reports the failure rather than recovering.
+      # Mirrors upstream's createGpgHomedir so the targets exist before linking.
+      home.activation.createGpgSecretDirectories =
+        lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ]
+          (
+            lib.concatMapStringsSep "\n" (
+              name: "run mkdir -m700 -p $VERBOSE_ARG ${lib.escapeShellArg "${gpgSecretsDirectory}/${name}"}"
+            ) gpgSecretSubdirectories
+          );
     })
   ];
 }
