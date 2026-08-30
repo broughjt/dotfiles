@@ -15,9 +15,5 @@
         "x-scheme-handler/slack" = "slack.desktop";
       };
     };
-
-    # Take ownership of the existing hand-written file. Its only previous
-    # setting, the Slack URL handler, is preserved above.
-    configFile."mimeapps.list".force = true;
   };
 }
