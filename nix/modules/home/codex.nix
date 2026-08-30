@@ -6,10 +6,6 @@
 }:
 
 let
-  codexEnvironment = {
-    CODEX_HOME = config.codex.configDirectory;
-  };
-
   codexPackage = pkgs.callPackage ../../packages/codex.nix {
     codexHome = config.codex.configDirectory;
   };
@@ -30,20 +26,14 @@ in
       defaultText = lib.literalExpression ''"''${config.defaultDirectories.homeDirectory}/.codex"'';
       description = ''
         Directory Codex keeps configuration, credentials, history, sessions and
-        user skills in, exported as `CODEX_HOME`. Defaults to {file}`~/.codex`,
-        matching the upstream CLI.
+        user skills in, exported as `CODEX_HOME` by the wrapper. Defaults to
+        {file}`~/.codex`, matching the upstream CLI.
       '';
     };
   };
 
   config = {
     home.packages = [ codexPackage ];
-    home.sessionVariables = codexEnvironment;
-
-    # Terminals launched from a graphical session inherit the systemd user
-    # manager's environment rather than a login shell's, so the same values
-    # have to reach environment.d.
-    systemd.user.sessionVariables = lib.mkIf pkgs.stdenv.hostPlatform.isLinux codexEnvironment;
 
     # Credentials, history and sessions live here, so this has to be private
     # before anything is written into it.
