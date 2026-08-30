@@ -25,7 +25,6 @@ nixpkgs.lib.nixosSystem {
     homeLinux
     gnomeDesktop
     plaidSync
-    firefox
     mimeApps
     vlc
     emacs
@@ -36,6 +35,7 @@ nixpkgs.lib.nixosSystem {
           imports = [
             homeClaudeCode
             homeCodex
+            homeFirefox
             homeGh
             homeGhostty
             homeGpg
@@ -48,6 +48,8 @@ nixpkgs.lib.nixosSystem {
           codex.configDirectory = "${config.defaultDirectories.localDirectory}/state/codex";
 
           gpg.stateDirectory = "${config.defaultDirectories.localDirectory}/state/gnupg";
+
+          programs.firefox.configPath = "local/config/mozilla/firefox";
         };
       }
     )

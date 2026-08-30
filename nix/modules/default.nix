@@ -52,7 +52,7 @@ rec {
   };
   homeClaudeCode = import ./home/claude-code.nix;
   homeCodex = import ./home/codex.nix;
-  firefox = import ./home/firefox.nix;
+  homeFirefox = import ./home/firefox.nix;
   mimeApps = import ./home/mime-apps.nix;
   homeGhostty = import ./home/ghostty.nix;
   vlc = import ./home/vlc.nix;
