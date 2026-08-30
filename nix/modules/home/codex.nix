@@ -38,7 +38,8 @@ in
       defaultText = lib.literalExpression ''"''${config.codex.configDirectory}/sqlite"'';
       description = ''
         Directory for Codex's SQLite state, exported as `CODEX_SQLITE_HOME` and
-        passed as `sqlite_home`.
+        passed as `sqlite_home`. Codex defaults that to `CODEX_HOME` itself;
+        this keeps the database in a subdirectory instead.
       '';
     };
 
@@ -47,7 +48,8 @@ in
       default = "${config.codex.configDirectory}/log";
       defaultText = lib.literalExpression ''"''${config.codex.configDirectory}/log"'';
       description = ''
-        Directory for Codex's logs, passed as `log_dir`.
+        Directory for Codex's logs, passed as `log_dir`. This matches Codex's
+        own default; passing the value at all is what enables the TUI text log.
       '';
     };
   };
