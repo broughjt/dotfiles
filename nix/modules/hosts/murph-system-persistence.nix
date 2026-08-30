@@ -35,10 +35,7 @@
   # persistent backing store. Selected state remains available via the bind
   # mounts declared in environment.persistence below.
   system.activationScripts.persistRootPrivate = {
-    deps = [
-      "persist-files"
-      "warnUnexpectedHackState"
-    ];
+    deps = [ "persist-files" ];
     text = ''
       ${pkgs.util-linux}/bin/findmnt --mountpoint /persist >/dev/null
       chown root:root /persist
