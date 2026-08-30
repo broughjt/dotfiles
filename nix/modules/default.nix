@@ -42,8 +42,8 @@ rec {
       ;
   };
   homeDarwin = import ./home/darwin.nix;
-  homeDesktopApps = import ./home/desktop-apps.nix;
-  gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf; };
+  homeGnomeDesktop = import ./home/gnome-desktop.nix { inherit homeFirefox; };
+  gnomeDesktop = import ./gnome-desktop.nix { inherit dconf; };
   dconf = import ./dconf.nix;
   homeGpg = import ./home/gpg.nix;
   homePass = import ./home/pass.nix;
@@ -53,7 +53,6 @@ rec {
   homeClaudeCode = import ./home/claude-code.nix;
   homeCodex = import ./home/codex.nix;
   homeFirefox = import ./home/firefox.nix;
-  homeMimeApps = import ./home/mime-apps.nix;
   homeGhostty = import ./home/ghostty.nix;
   homeVlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;

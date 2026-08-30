@@ -133,19 +133,6 @@
           configHome = xdgEnvironment.XDG_CONFIG_HOME;
           dataHome = xdgEnvironment.XDG_DATA_HOME;
           stateHome = xdgEnvironment.XDG_STATE_HOME;
-          userDirs = {
-            enable = true;
-            setSessionVariables = false;
-            desktop = config.defaultDirectories.scratchDirectory;
-            documents = "${config.defaultDirectories.shareDirectory}/documents";
-            download = config.defaultDirectories.scratchDirectory;
-            music = "${config.defaultDirectories.shareDirectory}/music";
-            pictures = "${config.defaultDirectories.shareDirectory}/pictures";
-            projects = config.defaultDirectories.repositoriesDirectory;
-            publicShare = config.defaultDirectories.shareDirectory;
-            templates = "${config.defaultDirectories.shareDirectory}/templates";
-            videos = "${config.defaultDirectories.shareDirectory}/videos";
-          };
         };
 
         home.packages = with pkgs; [
