@@ -25,7 +25,6 @@ nixpkgs.lib.nixosSystem {
     homeLinux
     gnomeDesktop
     gpg
-    pass
     plaidSync
     firefox
     mimeApps
@@ -40,6 +39,7 @@ nixpkgs.lib.nixosSystem {
             homeCodex
             homeGh
             homeGhostty
+            homePass
           ];
           agentInstructions.machineFile = ../../agents/machines/murph.md;
 

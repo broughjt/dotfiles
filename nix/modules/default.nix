@@ -46,7 +46,7 @@ rec {
   gnomeDesktop = import ./home/gnome-desktop.nix { inherit dconf desktopApps; };
   dconf = import ./home/dconf.nix;
   gpg = import ./home/gpg.nix;
-  pass = import ./home/pass.nix;
+  homePass = import ./home/pass.nix;
   plaidSync = import ./home/plaid-sync.nix {
     agenixHome = agenix.homeManagerModules.default;
   };
