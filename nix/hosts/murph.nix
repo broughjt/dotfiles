@@ -39,16 +39,9 @@ nixpkgs.lib.nixosSystem {
             homeGpg
             homePass
             homeVlc
+            homeMurphImpermanence
           ];
           agentInstructions.machineFile = ../../agents/machines/murph.md;
-
-          programs.claude-code.configDir = "${config.defaultDirectories.localDirectory}/state/claude-code";
-
-          codex.configDirectory = "${config.defaultDirectories.localDirectory}/state/codex";
-
-          gpg.stateDirectory = "${config.defaultDirectories.localDirectory}/state/gnupg";
-
-          programs.firefox.configPath = "local/config/mozilla/firefox";
         };
       }
     )

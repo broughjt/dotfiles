@@ -43,6 +43,7 @@ rec {
   };
   homeDarwin = import ./home/darwin.nix;
   homeGnomeDesktop = import ./home/gnome-desktop.nix { inherit homeFirefox; };
+  homeGnomeDesktopImpermanence = import ./home/impermanence/gnome-desktop.nix;
   gnomeDesktop = import ./gnome-desktop.nix { inherit dconf; };
   dconf = import ./dconf.nix;
   homeGpg = import ./home/gpg.nix;
@@ -51,9 +52,16 @@ rec {
     agenixHome = agenix.homeManagerModules.default;
   };
   homeClaudeCode = import ./home/claude-code.nix;
+  homeClaudeCodeImpermanence = import ./home/impermanence/claude-code.nix;
   homeCodex = import ./home/codex.nix;
+  homeCodexImpermanence = import ./home/impermanence/codex.nix;
+  homeEmacsImpermanence = import ./home/impermanence/emacs.nix;
   homeFirefox = import ./home/firefox.nix;
+  homeFirefoxImpermanence = import ./home/impermanence/firefox.nix;
+  homeGhImpermanence = import ./home/impermanence/gh.nix;
   homeGhostty = import ./home/ghostty.nix;
+  homeGpgImpermanence = import ./home/impermanence/gpg.nix;
+  homeMurphImpermanence = import ./home/impermanence/murph.nix;
   homeVlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;
   utahWireless = import ./utah-wireless.nix;

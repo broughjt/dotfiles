@@ -36,12 +36,11 @@ in
     "d ${localDirectory}/share/direnv/allow 0700 ${user} users -"
     "d ${localDirectory}/share/direnv/deny 0700 ${user} users -"
 
-    # Emacs known-projects list. Backups and auto-saves are persisted at
-    # their XDG state paths via environment.persistence below; other Emacs
-    # state (eln-cache, auto-save-list, transient, custom, bookmarks) is
-    # intentionally ephemeral under ~/local/{cache,state}/emacs. Racket REPL
-    # history and the editable scratch REPL file are persisted narrowly under
-    # hacks/emacs/racket-mode.
+    # Emacs known-projects list. Backups and auto-saves are persisted by its
+    # Home Manager impermanence mixin; other Emacs state (eln-cache,
+    # auto-save-list, transient, custom, bookmarks) is intentionally ephemeral
+    # under ~/local/{cache,state}/emacs. Racket REPL history and the editable
+    # scratch REPL file are persisted narrowly under hacks/emacs/racket-mode.
     "d ${localDirectory}/hacks/emacs 0700 ${user} users -"
     "d ${localDirectory}/hacks/emacs/projects 0700 ${user} users -"
     "f ${localDirectory}/hacks/emacs/projects/projects.eld 0600 ${user} users - nil"
@@ -106,110 +105,5 @@ in
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg.conf
       check_store_backed_gnupg_config ${localDirectory}/share/gnupg/gpg-agent.conf
     '';
-  };
-
-  environment.persistence."/persist".users.${user} = {
-    directories = [
-      "repositories"
-      "scratch"
-      "share"
-
-      {
-        directory = "local/hacks/fish/fish_history";
-        mode = "0700";
-      }
-      {
-        directory = "local/hacks/ssh/known_hosts";
-        mode = "0700";
-      }
-      {
-        directory = "local/hacks/tmux/resurrect";
-        mode = "0700";
-      }
-      {
-        directory = "local/hacks/emacs/projects";
-        mode = "0700";
-      }
-      {
-        directory = "local/hacks/emacs/racket-mode";
-        mode = "0700";
-      }
-      {
-        directory = "local/state/emacs/backups";
-        mode = "0700";
-      }
-      {
-        directory = "local/state/emacs/auto-saves";
-        mode = "0700";
-      }
-      {
-        directory = "local/secrets/ssh";
-        mode = "0700";
-      }
-      {
-        directory = "local/share/direnv/allow";
-        mode = "0700";
-      }
-      {
-        directory = "local/share/direnv/deny";
-        mode = "0700";
-      }
-      {
-        directory = "local/secrets/gnupg";
-        mode = "0700";
-      }
-      {
-        directory = "local/state/gnupg";
-        mode = "0700";
-      }
-      {
-        directory = "local/share/keyrings";
-        mode = "0700";
-      }
-      {
-        directory = "local/config/mozilla/firefox";
-        mode = "0700";
-      }
-      # config.yml is a Home Manager store symlink; hosts.yml is gh's mutable
-      # account metadata. Persist their shared directory so both can coexist.
-      {
-        directory = "local/config/gh";
-        mode = "0700";
-      }
-      {
-        directory = "local/config/discord";
-        mode = "0700";
-      }
-      {
-        directory = "local/config/Slack";
-        mode = "0700";
-      }
-      {
-        directory = "local/share/TelegramDesktop";
-        mode = "0700";
-      }
-      {
-        directory = "local/config/spotify";
-        mode = "0700";
-      }
-      # Claude Code's CLAUDE_CONFIG_DIR points here. This is the ~/.claude
-      # equivalent and includes settings, ~/.claude.json-equivalent auth/app
-      # state, credentials, plugins, prompt history, and project transcripts.
-      {
-        directory = "local/state/claude-code";
-        mode = "0700";
-      }
-      # Codex's CODEX_HOME points here. This is the ~/.codex equivalent and
-      # includes config.toml/profile config, auth.json or keyring fallback
-      # material, MCP OAuth fallback credentials, history, sessions,
-      # archived_sessions, user skills/plugins, and SQLite state. codex.nix
-      # symlinks logs/caches/tmp/system-skill cache to ephemeral ~/local/cache.
-      {
-        directory = "local/state/codex";
-        mode = "0700";
-      }
-    ];
-
-    files = [ ];
   };
 }
