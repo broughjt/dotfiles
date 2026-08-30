@@ -13,7 +13,6 @@ nixpkgs.lib.nixosSystem {
     murphDisko
     murphImpermanence
     murphSuspendDiagnostics
-    murphCodex
     nixSettings
     linuxBase
     llmAgents
@@ -49,7 +48,6 @@ nixpkgs.lib.nixosSystem {
           programs.claude-code.configDir = "${config.defaultDirectories.localDirectory}/state/claude-code";
 
           codex.configDirectory = "${config.defaultDirectories.localDirectory}/state/codex";
-          codex.logDirectory = "${config.defaultDirectories.localDirectory}/cache/codex/log";
         };
       }
     )

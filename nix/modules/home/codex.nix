@@ -28,13 +28,7 @@ in
       description = ''
         Directory Codex keeps configuration, credentials, history, sessions and
         user skills in, exported as `CODEX_HOME`. Defaults to {file}`~/.codex`,
-        matching the upstream CLI. A host with its own layout points this
-        somewhere else and persists it on its own terms.
-
-        Note that {file}`config.toml` inside this directory is mutable state:
-        Codex records per-project trust decisions there, so it is deliberately
-        not rendered from the store. Declarative settings go through the
-        wrapper's `--config` flags instead.
+        matching the upstream CLI.
       '';
     };
 
@@ -44,8 +38,7 @@ in
       defaultText = lib.literalExpression ''"''${config.codex.configDirectory}/sqlite"'';
       description = ''
         Directory for Codex's SQLite state, exported as `CODEX_SQLITE_HOME` and
-        passed as `sqlite_home`. Durable state, so it defaults inside
-        `configDirectory`.
+        passed as `sqlite_home`.
       '';
     };
 
@@ -54,10 +47,7 @@ in
       default = "${config.codex.configDirectory}/log";
       defaultText = lib.literalExpression ''"''${config.codex.configDirectory}/log"'';
       description = ''
-        Directory for Codex's logs, passed as `log_dir`. Codex takes this as a
-        configuration value, so a host that wants logs kept out of
-        `configDirectory` can point it at a cache directory directly rather
-        than symlinking one in.
+        Directory for Codex's logs, passed as `log_dir`.
       '';
     };
   };
@@ -83,8 +73,6 @@ in
       }
     '';
 
-    # Codex reads AGENTS.md rather than CLAUDE.md, so the shared instructions
-    # reach it under that name.
     home.file."${config.codex.configDirectory}/AGENTS.md".text = config.agentInstructions.text;
   };
 }

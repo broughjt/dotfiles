@@ -17,7 +17,6 @@ rec {
   murphBase = import ./hosts/murph-base.nix;
   murphDisko = import ./hosts/murph-disko.nix;
   murphImpermanence = import ./hosts/murph-impermanence.nix;
-  murphCodex = import ./hosts/murph-codex.nix;
   murphSuspendDiagnostics = import ./hosts/murph-suspend-diagnostics.nix;
   diskoModule = disko.nixosModules.disko;
   impermanenceModule = impermanence.nixosModules.impermanence;

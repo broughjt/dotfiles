@@ -10,11 +10,11 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
   - `murph.nix`: full personal laptop/desktop profile.
   - `murph-install.nix`: bootstrap install profile.
 - `nix/modules/home/`: Home Manager and user-facing app modules.
-- `nix/modules/hosts/`: host-specific hardware, disk, ZFS, persistence, and app-redirect modules (`murph-codex.nix` holds the redirects Codex offers no configuration knob for).
+- `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules.
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`: editor config, generally consumed from the Nix store via a wrapper rather than copied into mutable home paths.
 - `agents/skills/`: user-global Agent Skills shared by Claude Code and Codex. `agent-skills.nix` exposes this immutable tree through `~/.agents/skills` for Codex, while `claude-code.nix` passes it to `programs.claude-code.skills`. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
-- `agents/instructions/` and `agents/machines/`: user-global agent instructions, split so the same portable text serves every machine. `preamble.md` and `conventions.md` are the portable halves; `machines/<host>.md` is the `## This machine` section between them. `nix/modules/home/agent-instructions.nix` declares the `agentInstructions` options and concatenates the three in that order; the host names its own section through `agentInstructions.machineFile`, which has no default so a host that gives agents instructions has to describe itself. `claude-code.nix` passes the assembled text to Home Manager's `programs.claude-code.context`, which writes it as `CLAUDE.md` inside `configDir` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`); `codex.nix` passes the same text to its own `codex` options, which write it as `AGENTS.md` inside `codex.configDirectory`. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
+- `agents/instructions/` and `agents/machines/`: user-global agent instructions, split so the same portable text serves every machine. `preamble.md` and `conventions.md` are the portable halves; `machines/<host>.md` is the `## This machine` section between them. `nix/modules/home/agent-instructions.nix` declares the `agentInstructions` options and concatenates the three in that order; the host names its own section through `agentInstructions.machineFile`, which has no default so a host that gives agents instructions has to describe itself. `claude-code.nix` passes the assembled text to Home Manager's `programs.claude-code.context`, which writes it as `CLAUDE.md` inside `configDir` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`); `codex.nix` passes the same text to its own `codex` options, which write it as `AGENTS.md` inside `codex.configDirectory`. Codex also reads user-global skills from `~/.agents/skills`, which is why `agent-skills.nix` exists alongside it. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
 - `scripts/`: implementation bodies for flake apps in `nix/packages/scripts.nix`.
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md`.
@@ -104,7 +104,7 @@ nix path-info -r "$out" | rg 'tmpfiles.d|nixos-tmpfiles'
 - System persistence: `nix/modules/hosts/murph-system-persistence.nix`.
 - User persistence: `nix/modules/hosts/murph-user-persistence.nix`.
 
-Do not casually persist whole home directories or broad app trees. Classify state deliberately:
+Do not casually persist whole home directories or broad app trees. Classify state deliberately, but measure before building machinery to split a tree: `CODEX_HOME` is persisted whole, caches included, because the four subdirectories Codex offers no configuration knob for came to 3.3 MB, two of them were empty, and the redirects missed the 89 MB `.tmp` plugin staging directory entirely. Narrow persistence that misses the bulk is worse than none, because it reads as though the classification was done.
 
 ### Store-backed / declarative
 
