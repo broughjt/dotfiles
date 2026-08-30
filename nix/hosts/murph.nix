@@ -25,7 +25,6 @@ nixpkgs.lib.nixosSystem {
     homeLinux
     gnomeDesktop
     plaidSync
-    mimeApps
     emacs
     (
       { config, ... }:
@@ -39,6 +38,7 @@ nixpkgs.lib.nixosSystem {
             homeGh
             homeGhostty
             homeGpg
+            homeMimeApps
             homePass
             homeVlc
           ];

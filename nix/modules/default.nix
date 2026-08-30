@@ -53,7 +53,7 @@ rec {
   homeClaudeCode = import ./home/claude-code.nix;
   homeCodex = import ./home/codex.nix;
   homeFirefox = import ./home/firefox.nix;
-  mimeApps = import ./home/mime-apps.nix;
+  homeMimeApps = import ./home/mime-apps.nix;
   homeGhostty = import ./home/ghostty.nix;
   homeVlc = import ./home/vlc.nix;
   tailscale = import ./tailscale.nix;
