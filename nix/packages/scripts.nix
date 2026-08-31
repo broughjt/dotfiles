@@ -2,6 +2,7 @@
   pkgs,
   self,
   disko,
+  nixos-anywhere,
   system,
 }:
 
@@ -40,6 +41,28 @@ let
       builtins.readFile ../../scripts/install-murph.sh
     );
   };
+  installCase = pkgs.writeShellApplication {
+    name = "install-case";
+    runtimeInputs = [
+      nixos-anywhere.packages.${system}.default
+    ]
+    ++ (with pkgs; [
+      coreutils
+      hcloud
+      openssh
+      # No gnupg here on purpose. GnuPG configuration is the user's, and
+      # nix/modules/home/gpg.nix wraps gpg with --homedir, --keyring and
+      # --trustdb-name flags pointing at relocated paths. A bare gnupg ahead of
+      # that wrapper on PATH reads an empty keyring and fails with "No secret
+      # key". pass only appends its own gnupg as a fallback, so leaving it out
+      # lets the user's wrapped gpg win.
+      pass
+      python3
+    ]);
+    text = builtins.replaceStrings [ "@DOTFILES_FLAKE@" ] [ "${self}" ] (
+      builtins.readFile ../../scripts/install-case.sh
+    );
+  };
   backupMurphSecrets = pkgs.writeShellApplication {
     name = "backup-murph-secrets";
     runtimeInputs = with pkgs; [
@@ -73,6 +96,7 @@ in
   inherit
     backupMurphSecrets
     flashNixosInstaller
+    installCase
     installMurph
     restoreMurphSecrets
     ;

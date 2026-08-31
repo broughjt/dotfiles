@@ -31,6 +31,10 @@
 
     impermanence.url = "github:nix-community/impermanence";
 
+    nixos-anywhere.url = "github:nix-community/nixos-anywhere";
+    nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-anywhere.inputs.disko.follows = "disko";
+
     flake-utils.url = "github:numtide/flake-utils";
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
@@ -46,6 +50,7 @@
       emacs-overlay,
       disko,
       impermanence,
+      nixos-anywhere,
       flake-utils,
       llm-agents-nix,
     }:
@@ -139,6 +144,7 @@
         scriptPackages = import ./nix/packages/scripts.nix {
           inherit
             disko
+            nixos-anywhere
             pkgs
             self
             system
@@ -156,6 +162,9 @@
           flashNixosInstaller =
             makeScriptApp scriptPackages.flashNixosInstaller "flash-nixos-installer"
               "Download and write a NixOS installer image";
+          installCase =
+            makeScriptApp scriptPackages.installCase "install-case"
+              "Provision a Hetzner Cloud VM and install NixOS on it";
           installMurph = makeScriptApp scriptPackages.installMurph "install-murph" "Install NixOS on Murph";
           restoreMurphSecrets =
             makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets"
