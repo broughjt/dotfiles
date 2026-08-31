@@ -13,11 +13,7 @@
 
   users.users.${config.personal.userName} = {
     uid = 1000;
-    extraGroups = [
-      "networkmanager"
-      "video"
-      "input"
-    ];
+    extraGroups = [ "networkmanager" ];
   };
 
   programs.ssh.extraConfig = lib.mkBefore ''
