@@ -16,6 +16,7 @@ nixpkgs.lib.nixosSystem {
     nixSettings
     linuxBase
     localDirectory
+    ssh
     llmAgents
     tailscale
     utahWireless

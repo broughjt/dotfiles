@@ -22,6 +22,7 @@ rec {
 
   linuxBase = import ./linux-base.nix;
   localDirectory = import ./local-directory.nix;
+  ssh = import ./ssh.nix;
   # Overlays are a host concern. With home-manager.useGlobalPkgs the Home
   # Manager modules share the system package set and cannot add their own.
   llmAgents = {

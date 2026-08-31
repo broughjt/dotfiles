@@ -15,6 +15,7 @@ nixpkgs.lib.nixosSystem {
     nixSettings
     linuxBase
     localDirectory
+    ssh
     home-manager.nixosModules.home-manager
     personal
     homeDirectories
