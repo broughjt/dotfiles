@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   ...
 }:
@@ -9,6 +10,15 @@
   networking.hostName = "murph";
   networking.networkmanager.enable = true;
   networking.useDHCP = lib.mkDefault true;
+
+  users.users.${config.personal.userName} = {
+    uid = 1000;
+    extraGroups = [
+      "networkmanager"
+      "video"
+      "input"
+    ];
+  };
 
   programs.ssh.extraConfig = lib.mkBefore ''
     Host jtbroug-localhost-2222

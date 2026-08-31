@@ -1,9 +1,14 @@
 {
+  config,
   pkgs,
   ...
 }:
 
 {
+  users.users.root.hashedPasswordFile = "/persist/etc/passwords/root";
+  users.users.${config.personal.userName}.hashedPasswordFile =
+    "/persist/etc/passwords/${config.personal.userName}";
+
   systemd.tmpfiles.rules = [
     "d /persist/etc/ssh 0755 root root -"
     "d /persist/etc/passwords 0700 root root -"

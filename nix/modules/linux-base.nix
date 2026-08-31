@@ -87,19 +87,10 @@ in
 
   users.mutableUsers = false;
 
-  users.users.root.hashedPasswordFile = "/persist/etc/passwords/root";
-
   users.users.${user} = {
     isNormalUser = true;
-    uid = 1000;
     description = config.personal.fullName;
-    hashedPasswordFile = "/persist/etc/passwords/${config.personal.userName}";
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "video"
-      "input"
-    ];
+    extraGroups = [ "wheel" ];
     shell = pkgs.fish;
     openssh.authorizedKeys.keys = [ config.personal.sshPublicKey ];
   };
