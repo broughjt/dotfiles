@@ -8,16 +8,10 @@
 
 {
   config,
-  lib,
   pkgs,
   ...
 }:
 
-let
-  toHomeRelativePath = import ../../lib/to-home-relative-path.nix { inherit config lib; };
-  localDirectory = config.defaultDirectories.localDirectory;
-  sshPublicKeyPath = toHomeRelativePath "${localDirectory}/secrets/ssh/id_ed25519.pub";
-in
 {
   imports = [
     personal
@@ -32,14 +26,7 @@ in
     programs.home-manager.enable = true;
     home.homeDirectory = config.defaultDirectories.homeDirectory;
 
-    xdg = {
-      enable = true;
-      binHome = "${localDirectory}/bin";
-      cacheHome = "${localDirectory}/cache";
-      configHome = "${localDirectory}/config";
-      dataHome = "${localDirectory}/share";
-      stateHome = "${localDirectory}/state";
-    };
+    xdg.enable = true;
 
     home.packages = with pkgs; [
       fd
@@ -61,10 +48,5 @@ in
     # ~/.manpath symlink. Keep man pages available, but skip the per-user man-db
     # cache to avoid the home dotfile.
     programs.man.generateCaches = false;
-
-    home.file.${sshPublicKeyPath} = {
-      force = true;
-      text = config.personal.sshPublicKey + "\n";
-    };
   };
 }

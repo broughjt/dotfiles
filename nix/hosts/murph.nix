@@ -33,6 +33,7 @@ nixpkgs.lib.nixosSystem {
           users.${config.personal.userName} = {
             imports = [
               homeLinux
+              homeLocalDirectory
               homeEmacs
               homeClaudeCode
               homeCodex

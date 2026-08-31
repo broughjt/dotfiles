@@ -24,7 +24,10 @@ nixpkgs.lib.nixosSystem {
           useGlobalPkgs = true;
           useUserPackages = true;
           users.${config.personal.userName} = {
-            imports = [ homeLinux ];
+            imports = [
+              homeLinux
+              homeLocalDirectory
+            ];
 
             # Home Manager evaluates the user in a separate module graph, so
             # copy the shared option values from the NixOS configuration.

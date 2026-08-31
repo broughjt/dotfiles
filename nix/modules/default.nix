@@ -60,6 +60,7 @@ rec {
   homeFirefoxImpermanence = import ./home/impermanence/firefox.nix;
   homeGhImpermanence = import ./home/impermanence/gh.nix;
   homeGhostty = import ./home/ghostty.nix;
+  homeLocalDirectory = import ./home/local-directory.nix;
   homeGpgImpermanence = import ./home/impermanence/gpg.nix;
   homeMurphImpermanence = import ./home/impermanence/murph.nix;
   homeTmux = import ./home/tmux.nix;
