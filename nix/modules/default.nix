@@ -14,6 +14,11 @@
   murphDisko = import ./hosts/murph/disko.nix;
   murphImpermanence = import ./hosts/murph/impermanence.nix;
   murphSuspendDiagnostics = import ./hosts/murph/suspend-diagnostics.nix;
+
+  caseHardware = import ./hosts/case/hardware.nix;
+  caseBase = import ./hosts/case/base.nix;
+  caseDisko = import ./hosts/case/disko.nix;
+  caseAccess = import ./hosts/case/access.nix;
   diskoModule = disko.nixosModules.disko;
   impermanenceModule = impermanence.nixosModules.impermanence;
 

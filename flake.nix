@@ -95,6 +95,13 @@
             nixosModules
             ;
         };
+        case = import ./nix/hosts/case.nix {
+          inherit
+            nixpkgs
+            home-manager
+            nixosModules
+            ;
+        };
         murph-install = import ./nix/hosts/murph-install.nix {
           inherit
             nixpkgs
