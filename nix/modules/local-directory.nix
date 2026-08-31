@@ -16,9 +16,6 @@ let
     XDG_DATA_HOME = "${localDirectory}/share";
     XDG_STATE_HOME = "${localDirectory}/state";
   };
-  pamXdgEnvironment = xdgEnvironment // {
-    GNUPGHOME = "${xdgEnvironment.XDG_DATA_HOME}/gnupg";
-  };
   pamXdgEnvironmentFile = "/etc/pam/${user}-xdg-environment";
   pamValue =
     value:
@@ -28,7 +25,7 @@ let
       value;
   pamXdgEnvironmentText =
     lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (name: value: ''${name} DEFAULT="${pamValue value}"'') pamXdgEnvironment
+      lib.mapAttrsToList (name: value: ''${name} DEFAULT="${pamValue value}"'') xdgEnvironment
     )
     + "\n";
   makePamXdgEnvironmentRules = gnomeKeyringRule: {
@@ -53,9 +50,6 @@ let
       };
     };
   };
-  userEnvironment = xdgEnvironment // {
-    GNUPGHOME = "${localDirectory}/share/gnupg";
-  };
 in
 {
   # The NixOS half of the ~/local layout. home/local-directory.nix states the
@@ -70,10 +64,10 @@ in
 
   systemd.services."user@${toString uid}" = {
     overrideStrategy = "asDropin";
-    environment = userEnvironment;
+    environment = xdgEnvironment;
   };
 
-  systemd.services."home-manager-${user}".environment = userEnvironment;
+  systemd.services."home-manager-${user}".environment = xdgEnvironment;
 
   # These are read by pam_env before the graphical session and some
   # PAM-started helpers exist. In particular, pam_gnome_keyring starts an early
