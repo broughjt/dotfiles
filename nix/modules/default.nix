@@ -5,7 +5,6 @@
   emacsOverlays,
   disko,
   impermanence,
-  agenix,
   configureEmacsPackage,
 }:
 
@@ -51,9 +50,6 @@ rec {
   dconf = import ./dconf.nix;
   homeGpg = import ./home/gpg.nix;
   homePass = import ./home/pass.nix;
-  plaidSync = import ./home/plaid-sync.nix {
-    agenixHome = agenix.homeManagerModules.default;
-  };
   homeClaudeCode = import ./home/claude-code.nix;
   homeClaudeCodeImpermanence = import ./home/impermanence/claude-code.nix;
   homeCodex = import ./home/codex.nix;

@@ -24,7 +24,6 @@ nixpkgs.lib.nixosSystem {
     homeDirectories
     homeLinux
     gnomeDesktop
-    plaidSync
     emacsPackageSet
     (
       { config, ... }:

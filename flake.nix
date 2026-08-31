@@ -35,9 +35,6 @@
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
     llm-agents-nix.inputs.nixpkgs.follows = "nixpkgs";
-
-    agenix.url = "github:ryantm/agenix";
-    agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -51,7 +48,6 @@
       impermanence,
       flake-utils,
       llm-agents-nix,
-      agenix,
     }:
     let
       nix-config = import ./nix/nix-config.nix;
@@ -90,7 +86,6 @@
           emacsOverlays
           disko
           impermanence
-          agenix
           ;
         inherit (emacsPackages) configureEmacsPackage;
       };
