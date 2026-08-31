@@ -16,6 +16,10 @@
     extraGroups = [ "networkmanager" ];
   };
 
+  # murph's root is ephemeral, so host keys go to the persisted hacks tree; the
+  # trailing directory is there because impermanence mounts directories.
+  ssh.knownHostsFile = "${config.defaultDirectories.localDirectory}/hacks/ssh/known_hosts/known_hosts";
+
   programs.ssh.extraConfig = lib.mkBefore ''
     Host jtbroug-localhost-2222
       HostName localhost

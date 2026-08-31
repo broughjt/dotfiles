@@ -86,6 +86,10 @@ in
     config.security.pam.services.login.rules.session.gnome_keyring
   );
 
+  # The outbound key lives in the layout's secrets tree, beside the public half
+  # home/local-directory.nix materialises.
+  ssh.identityFile = "${localDirectory}/secrets/ssh/id_ed25519";
+
   systemd.tmpfiles.rules = [
     "d ${localDirectory} 0755 ${user} users -"
     "d ${localDirectory}/bin 0755 ${user} users -"
