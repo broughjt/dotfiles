@@ -13,6 +13,9 @@
     discord
     dconf-editor
     evince
+    # Renders Markdown locally and opens it in a browser, so it belongs with
+    # the graphical session rather than in the portable Linux profile.
+    go-grip
     hunspell
     hunspellDicts.en_US
     inter

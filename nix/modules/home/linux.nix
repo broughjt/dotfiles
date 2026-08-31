@@ -43,7 +43,6 @@ in
 
     home.packages = with pkgs; [
       fd
-      go-grip
       jq
       killall
       lldb
