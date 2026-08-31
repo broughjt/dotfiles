@@ -62,11 +62,6 @@ in
     # cache to avoid the home dotfile.
     programs.man.generateCaches = false;
 
-    programs.git = {
-      signing.key = "1BA5F1335AB45105";
-      signing.signByDefault = config.programs.gpg.enable;
-    };
-
     home.file.${sshPublicKeyPath} = {
       force = true;
       text = config.personal.sshPublicKey + "\n";
