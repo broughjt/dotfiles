@@ -52,6 +52,10 @@
 
   services.gpg-agent.pinentry.package = pkgs.pinentry-gnome3;
 
+  # tmux-yank needs a clipboard tool, but we need to set it here because TMUX
+  # might be used in headless environments.
+  programs.tmux.copyCommand = "${pkgs.wl-clipboard}/bin/wl-copy";
+
   xdg = {
     mimeApps = {
       enable = true;

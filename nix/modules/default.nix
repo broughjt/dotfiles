@@ -40,6 +40,7 @@ rec {
       homeDirectories
       homeFish
       homeGit
+      homeTmux
       personal
       ;
   };
@@ -61,6 +62,7 @@ rec {
   homeGhostty = import ./home/ghostty.nix;
   homeGpgImpermanence = import ./home/impermanence/gpg.nix;
   homeMurphImpermanence = import ./home/impermanence/murph.nix;
+  homeTmux = import ./home/tmux.nix;
   homeVlc = import ./home/vlc.nix;
   homeEmacs = import ./home/emacs.nix { inherit configureEmacsPackage; };
   tailscale = import ./tailscale.nix;
