@@ -33,6 +33,7 @@
   homeDirectories = import ./home/directories.nix;
   homeFish = import ./home/fish.nix;
   homeGh = import ./home/gh.nix;
+  homeHcloud = import ./home/hcloud.nix;
   homeGit = import ./home/git.nix;
   homeLinux = import ./home/linux.nix;
   homeDarwin = import ./home/darwin.nix;

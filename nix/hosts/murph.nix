@@ -40,6 +40,7 @@ nixpkgs.lib.nixosSystem {
               homeClaudeCode
               homeCodex
               homeGh
+              homeHcloud
               homeGhostty
               homeGnomeDesktop
               homeGpg

@@ -13,6 +13,7 @@ in
     ./gpg.nix
     ./firefox.nix
     ./gh.nix
+    ./hcloud.nix
     ./gnome-desktop.nix
     ./claude-code.nix
     ./codex.nix
