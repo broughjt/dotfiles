@@ -24,13 +24,8 @@ in
       };
     }
     # Separate from nixSettings above so an upstream trusted-users would be
-    # appended to rather than silently replaced.
-    {
-      settings.trusted-users = [
-        "root"
-        user
-      ];
-    }
+    # appended to rather than silently replaced. NixOS contributes root.
+    { settings.trusted-users = [ user ]; }
   ];
   nixpkgs.config = nix-config.nixpkgsConfig;
 
