@@ -8,11 +8,6 @@ let
   user = config.personal.userName;
 in
 {
-  nix.settings.trusted-users = [
-    "root"
-    user
-  ];
-
   environment.systemPackages = with pkgs; [
     curl
     git
@@ -42,11 +37,4 @@ in
   security.sudo.extraConfig = ''
     Defaults:${user} lecture=never
   '';
-
-  nix.optimise.automatic = true;
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
-  };
 }

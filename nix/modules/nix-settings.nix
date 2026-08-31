@@ -7,13 +7,31 @@
 }:
 
 let
+  user = config.personal.userName;
   homeDirectory = config.defaultDirectories.homeDirectory;
 in
 {
-  nix = {
-    channel.enable = false;
-    settings = nix-config.nixSettings;
-  };
+  nix = lib.mkMerge [
+    {
+      channel.enable = false;
+      settings = nix-config.nixSettings;
+
+      optimise.automatic = true;
+      gc = {
+        automatic = true;
+        dates = "weekly";
+        options = "--delete-older-than 30d";
+      };
+    }
+    # Separate from nixSettings above so an upstream trusted-users would be
+    # appended to rather than silently replaced.
+    {
+      settings.trusted-users = [
+        "root"
+        user
+      ];
+    }
+  ];
   nixpkgs.config = nix-config.nixpkgsConfig;
 
   # With channels disabled and use-xdg-base-directories enabled, these legacy
