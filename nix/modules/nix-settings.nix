@@ -1,5 +1,3 @@
-{ nix-config }:
-
 {
   config,
   lib,
@@ -7,6 +5,7 @@
 }:
 
 let
+  nix-config = import ../nix-config.nix;
   user = config.personal.userName;
   homeDirectory = config.defaultDirectories.homeDirectory;
 in

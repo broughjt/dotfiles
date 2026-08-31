@@ -80,14 +80,11 @@
 
       nixosModules = import ./nix/modules {
         inherit
-          home-manager
-          nix-config
           llmAgentsOverlay
           emacsOverlays
           disko
           impermanence
           ;
-        inherit (emacsPackages) configureEmacsPackage;
       };
 
       nixosConfigurations = {

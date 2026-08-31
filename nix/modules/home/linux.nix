@@ -1,12 +1,4 @@
 {
-  homeDirectories,
-  homeFish,
-  homeGit,
-  homeTmux,
-  personal,
-}:
-
-{
   config,
   pkgs,
   ...
@@ -14,11 +6,11 @@
 
 {
   imports = [
-    personal
-    homeDirectories
-    homeFish
-    homeGit
-    homeTmux
+    ../personal.nix
+    ./directories.nix
+    ./fish.nix
+    ./git.nix
+    ./tmux.nix
   ];
 
   config = {

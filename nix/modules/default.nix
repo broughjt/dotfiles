@@ -1,16 +1,13 @@
 {
-  home-manager,
-  nix-config,
   llmAgentsOverlay,
   emacsOverlays,
   disko,
   impermanence,
-  configureEmacsPackage,
 }:
 
-rec {
+{
   personal = import ./personal.nix;
-  nixSettings = import ./nix-settings.nix { inherit nix-config; };
+  nixSettings = import ./nix-settings.nix;
 
   murphHardware = import ./hosts/murph/hardware.nix;
   murphBase = import ./hosts/murph/base.nix;
@@ -37,19 +34,11 @@ rec {
   homeFish = import ./home/fish.nix;
   homeGh = import ./home/gh.nix;
   homeGit = import ./home/git.nix;
-  homeLinux = import ./home/linux.nix {
-    inherit
-      homeDirectories
-      homeFish
-      homeGit
-      homeTmux
-      personal
-      ;
-  };
+  homeLinux = import ./home/linux.nix;
   homeDarwin = import ./home/darwin.nix;
-  homeGnomeDesktop = import ./home/gnome-desktop.nix { inherit homeFirefox; };
+  homeGnomeDesktop = import ./home/gnome-desktop.nix;
   homeGnomeDesktopImpermanence = import ./home/impermanence/gnome-desktop.nix;
-  gnomeDesktop = import ./gnome-desktop.nix { inherit dconf; };
+  gnomeDesktop = import ./gnome-desktop.nix;
   dconf = import ./dconf.nix;
   homeGpg = import ./home/gpg.nix;
   homePass = import ./home/pass.nix;
@@ -67,7 +56,7 @@ rec {
   homeMurphImpermanence = import ./home/impermanence/murph.nix;
   homeTmux = import ./home/tmux.nix;
   homeVlc = import ./home/vlc.nix;
-  homeEmacs = import ./home/emacs.nix { inherit configureEmacsPackage; };
+  homeEmacs = import ./home/emacs.nix;
   tailscale = import ./tailscale.nix;
   utahWireless = import ./utah-wireless.nix;
 }

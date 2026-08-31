@@ -1,5 +1,3 @@
-{ configureEmacsPackage }:
-
 {
   config,
   lib,
@@ -8,6 +6,7 @@
 }:
 
 let
+  inherit (import ../../packages/emacs.nix) configureEmacsPackage;
   emacsInitDirectory = ../../../emacs;
   emacsIspellCompleteWordDict = pkgs.runCommand "emacs-ispell-complete-word-dict" { } ''
     ${pkgs.coreutils}/bin/cat \

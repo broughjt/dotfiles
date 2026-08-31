@@ -1,5 +1,3 @@
-{ homeFirefox }:
-
 {
   config,
   pkgs,
@@ -7,7 +5,7 @@
 }:
 
 {
-  imports = [ homeFirefox ];
+  imports = [ ./firefox.nix ];
 
   home.packages = with pkgs; [
     discord

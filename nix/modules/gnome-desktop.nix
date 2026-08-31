@@ -1,9 +1,7 @@
-{ dconf }:
-
 { pkgs, ... }:
 
 {
-  imports = [ dconf ];
+  imports = [ ./dconf.nix ];
 
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
