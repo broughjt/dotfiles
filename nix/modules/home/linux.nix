@@ -7,198 +7,96 @@
 
 {
   config,
-  lib,
   pkgs,
   ...
 }:
 
+let
+  localDirectory = config.defaultDirectories.localDirectory;
+in
 {
-  config =
-    let
-      user = config.personal.userName;
-      homeDirectory = config.defaultDirectories.homeDirectory;
-      localDirectory = config.defaultDirectories.localDirectory;
-      xdgEnvironment = {
-        XDG_BIN_HOME = "${localDirectory}/bin";
-        XDG_CACHE_HOME = "${localDirectory}/cache";
-        XDG_CONFIG_HOME = "${localDirectory}/config";
-        XDG_DATA_HOME = "${localDirectory}/share";
-        XDG_STATE_HOME = "${localDirectory}/state";
-      };
-      pamXdgEnvironment = xdgEnvironment // {
-        GNUPGHOME = "${xdgEnvironment.XDG_DATA_HOME}/gnupg";
-      };
-      pamXdgEnvironmentFile = "/etc/pam/${user}-xdg-environment";
-      pamValue =
-        value:
-        if lib.hasPrefix homeDirectory value then
-          "@{HOME}" + lib.removePrefix homeDirectory value
-        else
-          value;
-      pamXdgEnvironmentText =
-        lib.concatStringsSep "\n" (
-          lib.mapAttrsToList (name: value: ''${name} DEFAULT="${pamValue value}"'') pamXdgEnvironment
-        )
-        + "\n";
-      makePamXdgEnvironmentRules = gnomeKeyringRule: {
-        skip_xdg_environment_for_other_users = {
-          order = gnomeKeyringRule.order - 11;
-          control = "[success=1 default=ignore]";
-          modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-          args = [
-            "quiet"
-            "user"
-            "!="
-            user
-          ];
-        };
-        xdg_environment = {
-          order = gnomeKeyringRule.order - 10;
-          control = "required";
-          modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
-          settings = {
-            conffile = pamXdgEnvironmentFile;
-            readenv = 0;
-          };
-        };
-      };
-      userEnvironment = xdgEnvironment // {
-        GNUPGHOME = "${localDirectory}/share/gnupg";
-      };
-    in
-    {
-      systemd.services."user@1000" = {
-        overrideStrategy = "asDropin";
-        environment = userEnvironment;
-      };
+  imports = [
+    personal
+    homeDirectories
+    homeFish
+    homeGit
+  ];
 
-      systemd.services."home-manager-${user}".environment = userEnvironment;
+  home.stateVersion = "25.05";
+  programs.home-manager.enable = true;
+  home.homeDirectory = config.defaultDirectories.homeDirectory;
 
-      # These are read by pam_env before the graphical session and some
-      # PAM-started helpers exist. In particular, pam_gnome_keyring starts an
-      # early `gnome-keyring-daemon --login` before the systemd user manager's
-      # environment can help; it must see XDG_DATA_HOME here to avoid falling
-      # back to ~/.local/share/keyrings. Keep this scoped to the personal user:
-      # non-matching users skip the following pam_env rule.
-      environment.etc."pam/${user}-xdg-environment".text = pamXdgEnvironmentText;
-      security.pam.services.login.rules.session = makePamXdgEnvironmentRules (
-        config.security.pam.services.login.rules.session.gnome_keyring
-      );
+  xdg = {
+    enable = true;
+    binHome = "${localDirectory}/bin";
+    cacheHome = "${localDirectory}/cache";
+    configHome = "${localDirectory}/config";
+    dataHome = "${localDirectory}/share";
+    stateHome = "${localDirectory}/state";
+  };
 
-      systemd.tmpfiles.rules = [
-        "d ${localDirectory} 0755 ${user} users -"
-        "d ${localDirectory}/bin 0755 ${user} users -"
-        "d ${localDirectory}/config 0755 ${user} users -"
-        "d ${localDirectory}/cache 0700 ${user} users -"
-        "d ${localDirectory}/share 0755 ${user} users -"
-        "d ${localDirectory}/state 0755 ${user} users -"
-      ];
+  home.packages = with pkgs; [
+    fd
+    go-grip
+    jq
+    killall
+    lldb
+    ripgrep
+  ];
 
-      programs.ssh.extraConfig = ''
-        Host jtbroug-localhost-2222
-          HostName localhost
-          User jtbroug
-          Port 2222
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
 
-        Match localuser ${user}
-          AddKeysToAgent yes
-          IdentityFile ${localDirectory}/secrets/ssh/id_ed25519
-          UserKnownHostsFile ${localDirectory}/hacks/ssh/known_hosts/known_hosts
-      '';
+  services.ssh-agent.enable = true;
 
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      home-manager.users.${user} = {
-        imports = [
-          personal
-          homeDirectories
-          homeFish
-          homeGit
-        ];
+  # Home Manager's fish module enables man-db cache generation by default so
+  # fish can complete `man` topics via `apropos`. That creates a top-level
+  # ~/.manpath symlink. Keep man pages available, but skip the per-user man-db
+  # cache to avoid the home dotfile.
+  programs.man.generateCaches = false;
 
-        # The Home Manager user is a separate module evaluation, so these
-        # shared option schemas are imported again above and their values
-        # copied across from the system configuration.
-        personal = config.personal;
-        defaultDirectories = config.defaultDirectories;
+  programs.git = {
+    signing.key = "1BA5F1335AB45105";
+    signing.signByDefault = config.programs.gpg.enable;
+  };
 
-        home.stateVersion = "25.05";
-        programs.home-manager.enable = true;
-        home.homeDirectory = homeDirectory;
+  home.file."local/secrets/ssh/id_ed25519.pub" = {
+    force = true;
+    text = config.personal.sshPublicKey + "\n";
+  };
 
-        xdg = {
-          enable = true;
-          binHome = xdgEnvironment.XDG_BIN_HOME;
-          cacheHome = xdgEnvironment.XDG_CACHE_HOME;
-          configHome = xdgEnvironment.XDG_CONFIG_HOME;
-          dataHome = xdgEnvironment.XDG_DATA_HOME;
-          stateHome = xdgEnvironment.XDG_STATE_HOME;
-        };
-
-        home.packages = with pkgs; [
-          fd
-          go-grip
-          jq
-          killall
-          lldb
-          ripgrep
-        ];
-
-        programs.direnv = {
-          enable = true;
-          nix-direnv.enable = true;
-        };
-
-        services.ssh-agent.enable = true;
-
-        # Home Manager's fish module enables man-db cache generation by default
-        # so fish can complete `man` topics via `apropos`. That creates a
-        # top-level ~/.manpath symlink. Keep man pages available on murph, but
-        # skip the per-user man-db cache to avoid the home dotfile.
-        programs.man.generateCaches = false;
-
-        programs.git = {
-          signing.key = "1BA5F1335AB45105";
-          signing.signByDefault = config.home-manager.users.${config.personal.userName}.programs.gpg.enable;
-        };
-
-        home.file."local/secrets/ssh/id_ed25519.pub" = {
-          force = true;
-          text = config.personal.sshPublicKey + "\n";
-        };
-
-        programs.tmux = {
-          enable = true;
-          sensibleOnTop = true;
-          keyMode = "vi";
-          customPaneNavigationAndResize = true;
-          mouse = true;
-          historyLimit = 50000;
-          terminal = "tmux-256color";
-          plugins = with pkgs.tmuxPlugins; [
-            {
-              plugin = yank;
-              extraConfig = ''
-                set -g @copy_command '${pkgs.wl-clipboard}/bin/wl-copy'
-              '';
-            }
-            {
-              plugin = resurrect;
-              extraConfig = ''
-                set -g @resurrect-capture-pane-contents 'on'
-                set -g @resurrect-dir '${config.defaultDirectories.localDirectory}/hacks/tmux/resurrect/resurrect'
-                set -g @resurrect-strategy-nvim 'session'
-              '';
-            }
-            {
-              plugin = continuum;
-              extraConfig = ''
-                set -g @continuum-restore 'on'
-                set -g @continuum-save-interval '15'
-              '';
-            }
-          ];
-        };
-      };
-    };
+  programs.tmux = {
+    enable = true;
+    sensibleOnTop = true;
+    keyMode = "vi";
+    customPaneNavigationAndResize = true;
+    mouse = true;
+    historyLimit = 50000;
+    terminal = "tmux-256color";
+    plugins = with pkgs.tmuxPlugins; [
+      {
+        plugin = yank;
+        extraConfig = ''
+          set -g @copy_command '${pkgs.wl-clipboard}/bin/wl-copy'
+        '';
+      }
+      {
+        plugin = resurrect;
+        extraConfig = ''
+          set -g @resurrect-capture-pane-contents 'on'
+          set -g @resurrect-dir '${localDirectory}/hacks/tmux/resurrect/resurrect'
+          set -g @resurrect-strategy-nvim 'session'
+        '';
+      }
+      {
+        plugin = continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+          set -g @continuum-save-interval '15'
+        '';
+      }
+    ];
+  };
 }

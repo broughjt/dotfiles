@@ -22,26 +22,35 @@ nixpkgs.lib.nixosSystem {
     home-manager.nixosModules.home-manager
     personal
     homeDirectories
-    homeLinux
     gnomeDesktop
     emacsPackageSet
     (
       { config, ... }:
       {
-        home-manager.users.${config.personal.userName} = {
-          imports = [
-            homeEmacs
-            homeClaudeCode
-            homeCodex
-            homeGh
-            homeGhostty
-            homeGnomeDesktop
-            homeGpg
-            homePass
-            homeVlc
-            homeMurphImpermanence
-          ];
-          agentInstructions.machineFile = ../../agents/machines/murph.md;
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          users.${config.personal.userName} = {
+            imports = [
+              homeLinux
+              homeEmacs
+              homeClaudeCode
+              homeCodex
+              homeGh
+              homeGhostty
+              homeGnomeDesktop
+              homeGpg
+              homePass
+              homeVlc
+              homeMurphImpermanence
+            ];
+
+            # Home Manager evaluates the user in a separate module graph, so
+            # copy the shared option values from the NixOS configuration.
+            personal = config.personal;
+            defaultDirectories = config.defaultDirectories;
+            agentInstructions.machineFile = ../../agents/machines/murph.md;
+          };
         };
       }
     )

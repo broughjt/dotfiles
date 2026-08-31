@@ -10,6 +10,13 @@
   networking.networkmanager.enable = true;
   networking.useDHCP = lib.mkDefault true;
 
+  programs.ssh.extraConfig = lib.mkBefore ''
+    Host jtbroug-localhost-2222
+      HostName localhost
+      User jtbroug
+      Port 2222
+  '';
+
   # Enable mDNS/DNS-SD for .local hostname resolution and LAN service discovery.
   services.avahi = {
     enable = true;

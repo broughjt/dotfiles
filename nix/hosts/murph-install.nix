@@ -17,6 +17,22 @@ nixpkgs.lib.nixosSystem {
     home-manager.nixosModules.home-manager
     personal
     homeDirectories
-    homeLinux
+    (
+      { config, ... }:
+      {
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          users.${config.personal.userName} = {
+            imports = [ homeLinux ];
+
+            # Home Manager evaluates the user in a separate module graph, so
+            # copy the shared option values from the NixOS configuration.
+            personal = config.personal;
+            defaultDirectories = config.defaultDirectories;
+          };
+        };
+      }
+    )
   ];
 }
