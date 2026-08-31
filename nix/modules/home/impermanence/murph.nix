@@ -1,5 +1,8 @@
-{ ... }:
+{ config, lib, ... }:
 
+let
+  toHomeRelativePath = import ../../../lib/to-home-relative-path.nix { inherit config lib; };
+in
 {
   imports = [
     ./direnv.nix
@@ -19,9 +22,9 @@
     persistentStoragePath = "/persist";
     hideMounts = true;
     directories = [
-      "repositories"
-      "scratch"
-      "share"
+      (toHomeRelativePath config.defaultDirectories.repositoriesDirectory)
+      (toHomeRelativePath config.defaultDirectories.scratchDirectory)
+      (toHomeRelativePath config.defaultDirectories.shareDirectory)
     ];
   };
 }

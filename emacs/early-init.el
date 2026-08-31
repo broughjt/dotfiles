@@ -67,12 +67,12 @@ set. On macOS it falls back to ~/.cache/emacs.")
 
 (defvar jackson/emacs-hacks-directory
   (file-name-as-directory
-   (if (eq system-type 'darwin)
-       (expand-file-name "hacks" jackson/emacs-state-directory)
-     (expand-file-name "~/local/hacks/emacs")))
+   (expand-file-name
+    (or (getenv "EMACS_HACKS_DIRECTORY")
+        (expand-file-name "hacks" jackson/emacs-state-directory))))
   "Narrowly persisted Emacs state, such as the known-projects list.
-On Linux this remains ~/local/hacks/emacs. On macOS it falls back under the
-normal Emacs state directory.")
+The Nix wrapper selects a host-specific directory; without it, use the normal
+Emacs state directory.")
 
 ;; Native compilation cache. `startup-redirect-eln-cache' has to run before
 ;; native compilation loads, which is why we place it in early-init.el rather

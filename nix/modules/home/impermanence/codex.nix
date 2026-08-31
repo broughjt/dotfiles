@@ -1,9 +1,12 @@
-{ config, ... }:
+{ config, lib, ... }:
 
+let
+  toHomeRelativePath = import ../../../lib/to-home-relative-path.nix { inherit config lib; };
+in
 {
   home.persistence.main.directories = [
     {
-      directory = "local/state/codex";
+      directory = toHomeRelativePath config.codex.configDirectory;
       mode = "0700";
     }
   ];

@@ -1,12 +1,17 @@
-{ ... }:
+{ config, lib, ... }:
 
+let
+  toHomeRelativePath = import ../../../lib/to-home-relative-path.nix { inherit config lib; };
+in
 {
   home.persistence.main.directories = [
     {
-      directory = "local/config/mozilla/firefox";
+      directory = toHomeRelativePath config.programs.firefox.configPath;
       mode = "0700";
     }
   ];
 
-  programs.firefox.configPath = "local/config/mozilla/firefox";
+  programs.firefox.configPath = toHomeRelativePath (
+    "${config.defaultDirectories.localDirectory}/config/mozilla/firefox"
+  );
 }

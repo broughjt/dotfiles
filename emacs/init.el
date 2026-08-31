@@ -79,8 +79,8 @@
 (setq transient-levels-file
       (expand-file-name "transient/levels.el" jackson/emacs-state-directory))
 
-;; List of known projects. Narrowly persisted in ~/local/hacks/emacs/projects so
-;; `project-switch-project' remembers visited project roots across reboots.
+;; List of known projects. Narrowly persisted in the host-selected hacks
+;; directory so `project-switch-project' remembers visited roots across reboots.
 (setq project-list-file
       (expand-file-name "projects/projects.eld" jackson/emacs-hacks-directory))
 

@@ -1,6 +1,7 @@
 { configureEmacsPackage }:
 
 {
+  config,
   lib,
   pkgs,
   ...
@@ -27,11 +28,19 @@ let
     postBuild = ''
       wrapProgram "$out/bin/emacs" \
         --add-flags "--init-directory ${emacsInitDirectory}" \
+        --set EMACS_HACKS_DIRECTORY ${lib.escapeShellArg config.emacs.hacksDirectory} \
         --set EMACS_ISPELL_COMPLETE_WORD_DICT "${emacsIspellCompleteWordDict}"
     '';
   };
 in
 {
+  options.emacs.hacksDirectory = lib.mkOption {
+    type = lib.types.str;
+    default = "${config.xdg.stateHome}/emacs/hacks";
+    defaultText = lib.literalExpression ''"''${config.xdg.stateHome}/emacs/hacks"'';
+    description = "Directory for narrowly persisted mutable Emacs state.";
+  };
+
   config = lib.mkMerge [
     {
       programs.emacs = {

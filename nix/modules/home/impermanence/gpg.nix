@@ -1,16 +1,17 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 let
+  toHomeRelativePath = import ../../../lib/to-home-relative-path.nix { inherit config lib; };
   localDirectory = config.defaultDirectories.localDirectory;
 in
 {
   home.persistence.main.directories = [
     {
-      directory = "local/secrets/gnupg";
+      directory = toHomeRelativePath config.gpg.secretsDirectory;
       mode = "0700";
     }
     {
-      directory = "local/state/gnupg";
+      directory = toHomeRelativePath config.gpg.stateDirectory;
       mode = "0700";
     }
   ];
