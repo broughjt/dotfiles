@@ -15,6 +15,7 @@ nixpkgs.lib.nixosSystem {
     murphSuspendDiagnostics
     nixSettings
     linuxBase
+    localDirectory
     llmAgents
     tailscale
     utahWireless

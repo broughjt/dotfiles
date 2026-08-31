@@ -14,6 +14,7 @@ nixpkgs.lib.nixosSystem {
     murphImpermanence
     nixSettings
     linuxBase
+    localDirectory
     home-manager.nixosModules.home-manager
     personal
     homeDirectories
