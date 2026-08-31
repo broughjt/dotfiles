@@ -142,7 +142,11 @@ Leave caches, logs, crash reports, sockets, lock files, generated code caches, f
 - scratch: `~/scratch`
 - share: `~/share`
 
-`nix/modules/home/linux.nix` sets XDG paths:
+The `~/local` layout is a pair of modules a host opts into, one per module
+graph. `nix/modules/home/local-directory.nix` sets Home Manager's `xdg.*`
+paths; `nix/modules/local-directory.nix` states the same layout for PAM, the
+systemd user manager and tmpfiles, which evaluate outside Home Manager. A host
+selects both together, as `murph` and `murph-install` do:
 
 - `XDG_BIN_HOME=~/local/bin`
 - `XDG_CONFIG_HOME=~/local/config`
@@ -150,7 +154,18 @@ Leave caches, logs, crash reports, sockets, lock files, generated code caches, f
 - `XDG_DATA_HOME=~/local/share`
 - `XDG_STATE_HOME=~/local/state`
 
-It injects these into systemd user services, Home Manager activation, session variables, and PAM for the personal user. Preserve this model when adding software.
+Adopting the layout is a preference about home directory organisation, and is
+independent of impermanence: a host with an ordinary root filesystem can adopt
+it, and an impermanent host could persist the stock directories instead. So it
+is a third selectable concept beside the portable application leaves and the
+impermanence mixins.
+
+The platform profiles state no layout. `nix/modules/linux.nix` and
+`nix/modules/home/linux.nix` can be imported by a host that keeps the stock
+directories, and modules that would otherwise hardcode a `~/local` path take a
+nullable option instead, defaulting to the application's own location.
+`ssh.identityFile` and `ssh.knownHostsFile` default to OpenSSH's `~/.ssh`, and
+the host redirects them.
 
 Special local subtrees:
 
