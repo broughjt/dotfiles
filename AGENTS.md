@@ -98,9 +98,9 @@ nix path-info -r "$out" | rg 'tmpfiles.d|nixos-tmpfiles'
 
 `murph` uses ZFS with an ephemeral root and selected persistent state under `/persist`:
 
-- Disk/ZFS layout: `nix/modules/hosts/murph-disko.nix`.
-- ZFS rollback/boot behavior: `nix/modules/hosts/murph-zfs.nix`.
-- System persistence: `nix/modules/hosts/murph-system-persistence.nix`.
+- Disk/ZFS layout: `nix/modules/hosts/murph/disko.nix`.
+- ZFS rollback/boot behavior: `nix/modules/hosts/murph/zfs.nix`.
+- System persistence: `nix/modules/hosts/murph/system-persistence.nix`.
 - User persistence: `nix/modules/hosts/murph-user-persistence.nix`.
 
 Do not casually persist whole home directories or broad app trees. Classify state deliberately, but measure before building machinery to split a tree: `CODEX_HOME` is persisted whole, caches included, because the four subdirectories Codex offers no configuration knob for came to 3.3 MB, two of them were empty, and the redirects missed the 89 MB `.tmp` plugin staging directory entirely. Narrow persistence that misses the bulk is worse than none, because it reads as though the classification was done.

@@ -100,7 +100,7 @@ let
   '';
 in
 {
-  # /var/log is already persisted by murph-system-persistence.nix, so this
+  # /var/log is already persisted by system-persistence.nix, so this
   # survives the ephemeral-root rollback without further configuration.
   systemd.tmpfiles.rules = [
     "f ${logFile} 0644 root root -"

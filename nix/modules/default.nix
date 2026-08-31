@@ -12,11 +12,11 @@ rec {
   personal = import ./personal.nix;
   nixSettings = import ./nix-settings.nix { inherit nix-config; };
 
-  murphHardware = import ./hosts/murph-hardware.nix;
-  murphBase = import ./hosts/murph-base.nix;
-  murphDisko = import ./hosts/murph-disko.nix;
-  murphImpermanence = import ./hosts/murph-impermanence.nix;
-  murphSuspendDiagnostics = import ./hosts/murph-suspend-diagnostics.nix;
+  murphHardware = import ./hosts/murph/hardware.nix;
+  murphBase = import ./hosts/murph/base.nix;
+  murphDisko = import ./hosts/murph/disko.nix;
+  murphImpermanence = import ./hosts/murph/impermanence.nix;
+  murphSuspendDiagnostics = import ./hosts/murph/suspend-diagnostics.nix;
   diskoModule = disko.nixosModules.disko;
   impermanenceModule = impermanence.nixosModules.impermanence;
 
