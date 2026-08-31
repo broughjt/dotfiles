@@ -9,15 +9,18 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `nix/hosts/`: host composition:
   - `murph.nix`: full personal laptop/desktop profile.
   - `murph-install.nix`: bootstrap install profile.
+  - `case.nix`: Hetzner Cloud agent VM. One configuration serves every `case`
+    VM; per-VM identity comes from cloud-init and install-time files, never
+    from Nix, so adding a VM changes no file here.
 - `nix/modules/home/`: Home Manager and user-facing app modules.
-- `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules, in one directory per host (`murph/`).
+- `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules, in one directory per host (`murph/`, `case/`).
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`: editor config, generally consumed from the Nix store via a wrapper rather than copied into mutable home paths.
 - `agents/skills/`: user-global Agent Skills shared by Claude Code and Codex. `claude-code.nix` passes the tree to `programs.claude-code.skills`; `codex.nix` links each skill individually into `CODEX_HOME/skills`, leaving Codex's own bundled cache at `skills/.system` alone. Codex reads three user-scope skill roots: `CODEX_HOME/skills` (marked deprecated upstream but still read), `~/.agents/skills`, and `skills/.system`. We deliberately use the deprecated one so no `~/.agents` directory has to exist. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
 - `agents/instructions/` and `agents/machines/`: user-global agent instructions, split so the same portable text serves every machine. `preamble.md` and `conventions.md` are the portable halves; `machines/<host>.md` is the `## This machine` section between them. `nix/modules/home/agent-instructions.nix` declares the `agentInstructions` options and concatenates the three in that order; the host names its own section through `agentInstructions.machineFile`, which has no default so a host that gives agents instructions has to describe itself. `claude-code.nix` passes the assembled text to Home Manager's `programs.claude-code.context`, which writes it as `CLAUDE.md` inside `configDir` (Claude Code reads `CLAUDE.md`, not `AGENTS.md`); `codex.nix` passes the same text to its own `codex` options, which write it as `AGENTS.md` inside `codex.configDirectory`. Guidance specific to this repository belongs in the root `AGENTS.md` instead.
 - `scripts/`: implementation bodies for flake apps in `nix/packages/scripts.nix`.
 - `templates/`: flake templates exposed through `nix/templates.nix`.
-- `documentation/`: operator docs, especially `documentation/murph-install.md`.
+- `documentation/`: operator docs, especially `documentation/murph-install.md` and `documentation/case-install.md`.
 - `certificates/`: public CA certificates read from the store, such as the University of Utah RADIUS root pinned by `nix/modules/utah-wireless.nix`. Keeps `nix/` holding only Nix.
 
 ## Host and module composition idioms
@@ -235,7 +238,10 @@ nix build --no-link .#checks.x86_64-linux.emacs-byte-compile
 
 Be careful with install/disko/ZFS scripts. `install-murph` is destructive and targets a specific NVMe disk. Do not run destructive installer commands unless the user explicitly asks and understands the consequences.
 
-`documentation/murph-install.md` is the source of operational install/restore instructions; keep it in sync with changes to scripts, persistence, and secret backup contents.
+`documentation/murph-install.md` is the source of operational install/restore instructions; keep it in sync with changes to scripts, persistence, and secret backup contents. `documentation/case-install.md` plays the same role for `case`, including its Tailscale and agent-credential runbook.
+
+`install-case` creates a Hetzner Cloud server and erases the target's disk. The
+agent may write and build it, but never runs it against a live target.
 
 ## Style expectations
 
