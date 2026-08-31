@@ -14,7 +14,7 @@ nixpkgs.lib.nixosSystem {
     murphImpermanence
     murphSuspendDiagnostics
     nixSettings
-    linuxBase
+    linux
     localDirectory
     ssh
     llmAgents

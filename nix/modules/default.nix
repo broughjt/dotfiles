@@ -20,7 +20,7 @@ rec {
   diskoModule = disko.nixosModules.disko;
   impermanenceModule = impermanence.nixosModules.impermanence;
 
-  linuxBase = import ./linux-base.nix;
+  linux = import ./linux.nix;
   localDirectory = import ./local-directory.nix;
   ssh = import ./ssh.nix;
   # Overlays are a host concern. With home-manager.useGlobalPkgs the Home

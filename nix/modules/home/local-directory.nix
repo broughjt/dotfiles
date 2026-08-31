@@ -6,9 +6,9 @@ let
   sshPublicKeyPath = toHomeRelativePath "${localDirectory}/secrets/ssh/id_ed25519.pub";
 in
 {
-  # Collect the XDG base directories into one ~/local tree. linux-base.nix
-  # states the same layout for PAM and the systemd user manager, which
-  # evaluate outside Home Manager.
+  # Collect the XDG base directories into one ~/local tree. The NixOS
+  # local-directory.nix states the same layout for PAM and the systemd user
+  # manager, which evaluate outside Home Manager.
   xdg = {
     binHome = "${localDirectory}/bin";
     cacheHome = "${localDirectory}/cache";

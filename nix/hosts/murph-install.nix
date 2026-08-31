@@ -13,7 +13,7 @@ nixpkgs.lib.nixosSystem {
     murphDisko
     murphImpermanence
     nixSettings
-    linuxBase
+    linux
     localDirectory
     ssh
     home-manager.nixosModules.home-manager
