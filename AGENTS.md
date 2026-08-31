@@ -10,7 +10,7 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
   - `murph.nix`: full personal laptop/desktop profile.
   - `murph-install.nix`: bootstrap install profile.
 - `nix/modules/home/`: Home Manager and user-facing app modules.
-- `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules.
+- `nix/modules/hosts/`: host-specific hardware, disk, ZFS, and persistence modules, in one directory per host (`murph/`).
 - `nix/packages/`: custom derivations and script app packaging.
 - `emacs/`: editor config, generally consumed from the Nix store via a wrapper rather than copied into mutable home paths.
 - `agents/skills/`: user-global Agent Skills shared by Claude Code and Codex. `claude-code.nix` passes the tree to `programs.claude-code.skills`; `codex.nix` links each skill individually into `CODEX_HOME/skills`, leaving Codex's own bundled cache at `skills/.system` alone. Codex reads three user-scope skill roots: `CODEX_HOME/skills` (marked deprecated upstream but still read), `~/.agents/skills`, and `skills/.system`. We deliberately use the deprecated one so no `~/.agents` directory has to exist. Skills that only make sense inside this repository belong in `.agents/skills/` (exposed to Claude Code through the `.claude/skills` symlink) instead — note that top-level `agents/` is user-global and dotted `.agents/` is repository-scoped.
@@ -41,11 +41,11 @@ Some modules are curried when they need flake-provided overlays/packages, e.g. `
 Files under `nix/modules/home/` are a mix of two module classes, and the distinction matters more than the directory name suggests:
 
 - **NixOS modules** that reach into `home-manager.users.${user}` from outside. They live at the system level because they need `systemd.tmpfiles.rules` or `system.activationScripts`. Only a NixOS host can import them.
-- **Home Manager modules** proper, such as `git.nix`, `fish.nix`, `directories.nix`, `emacs-home.nix` and `claude-code.nix`. A host imports these into `home-manager.users.<user>.imports`, and they work unchanged on NixOS, nix-darwin, and hosts without impermanence.
+- **Home Manager modules** proper, such as `git.nix`, `fish.nix`, `directories.nix`, `emacs.nix` and `claude-code.nix`. A host imports these into `home-manager.users.<user>.imports`, and they work unchanged on NixOS, nix-darwin, and hosts without impermanence.
 
 Prefer the second class. Reach for the first only when something genuinely has to happen at system activation or boot, before the user's Home Manager generation is applied. Registry entries for Home Manager modules are named `home*` (`homeGit`, `homeClaudeCode`).
 
-A Home Manager module also has no business knowing about murph's `~/local` layout. Default to where the application natively puts its files and let the host redirect: `claude-code.nix` leaves `programs.claude-code.configDir` at its upstream `~/.claude` default, and `nix/hosts/murph.nix` points it at `~/local/state/claude-code` so `murph-user-persistence.nix` can persist a single directory. Check for an upstream Home Manager module before writing wrappers, tmpfiles rules, or activation scripts by hand. Upstream is not always usable: `programs.claude-code` has a `configDir` option and is used in full, while `programs.codex` hardcodes `~/.codex` or `${xdg.configHome}/codex` and its `settings` option would render `config.toml` from the store, which cannot work because Codex writes per-project trust decisions into that file. `codex.nix` therefore declares its own options.
+A Home Manager module also has no business knowing about murph's `~/local` layout. Default to where the application natively puts its files and let the host's composition redirect it: `claude-code.nix` leaves `programs.claude-code.configDir` at its upstream `~/.claude` default, and `home/impermanence/claude-code.nix` points it at `~/local/state/claude-code` and persists that one directory. A redirect lives wherever the choice belongs, which is often not the host file: `ssh.identityFile` is set by `nix/modules/local-directory.nix`, `ssh.knownHostsFile` by `nix/modules/hosts/murph/base.nix`, and the two agent config directories by their impermanence mixins. Check for an upstream Home Manager module before writing wrappers, tmpfiles rules, or activation scripts by hand. Upstream is not always usable: `programs.claude-code` has a `configDir` option and is used in full, while `programs.codex` hardcodes `~/.codex` or `${xdg.configHome}/codex` and its `settings` option would render `config.toml` from the store, which cannot work because Codex writes per-project trust decisions into that file. `codex.nix` therefore declares its own options.
 
 Do not pair a `systemd.tmpfiles` rule with an activation script that does the same thing. `systemd-tmpfiles-resetup.service` carries an `X-Restart-Triggers` on the rules, so `nixos-rebuild switch` re-applies them; the rules alone are enough at both boot and switch.
 
@@ -56,7 +56,7 @@ When adding a new dedicated module:
 3. Add it to the relevant host module list in `nix/hosts/<host>.nix`.
 4. If the new file is referenced from the flake before being committed, run `git add -N <file>` so Nix can see it.
 
-`gnomeDesktop` imports `dconf` and `desktopApps`, so changes to `desktop-apps.nix` affect the GNOME host profile transitively.
+`gnomeDesktop` imports `dconf`, so changes to `dconf.nix` affect the GNOME host profile transitively.
 
 ## Formatting and validation
 
@@ -101,7 +101,7 @@ nix path-info -r "$out" | rg 'tmpfiles.d|nixos-tmpfiles'
 - Disk/ZFS layout: `nix/modules/hosts/murph/disko.nix`.
 - ZFS rollback/boot behavior: `nix/modules/hosts/murph/zfs.nix`.
 - System persistence: `nix/modules/hosts/murph/system-persistence.nix`.
-- User persistence: `nix/modules/hosts/murph-user-persistence.nix`.
+- User persistence: `nix/modules/home/impermanence/`, one mixin per app, composed by `murph.nix` in that directory.
 
 Do not casually persist whole home directories or broad app trees. Classify state deliberately, but measure before building machinery to split a tree: `CODEX_HOME` is persisted whole, caches included, because the four subdirectories Codex offers no configuration knob for came to 3.3 MB, two of them were empty, and the redirects missed the 89 MB `.tmp` plugin staging directory entirely. Narrow persistence that misses the bulk is worse than none, because it reads as though the classification was done.
 
@@ -126,7 +126,9 @@ Persist only valuable state, secrets, trust decisions, or state that is hard/ann
 - shell history and known_hosts-like trust records
 - Emacs backups/auto-saves and known-projects
 
-Persist user state in `environment.persistence."/persist".users.${user}.directories` in `murph-user-persistence.nix`. Use `mode = "0700"` for private profile/auth/state directories. If an app rewrites a file via temp-file + rename, persist the containing directory instead of bind-mounting just the file.
+Persist user state with `home.persistence.main.directories` in a per-app mixin under `nix/modules/home/impermanence/`, and add the mixin to `impermanence/murph.nix`. The NixOS `environment.persistence` is for system state only, in `nix/modules/hosts/murph/system-persistence.nix`.
+
+A mixin owns both halves of a decision: it redirects the path if the app should not use its native location, and it persists the result. That keeps the portable module free of any `/persist` or `~/local` knowledge, so a host without impermanence simply omits the mixin. `home.persistence` needs no import — the NixOS impermanence module injects its Home Manager counterpart into `home-manager.sharedModules`. Impermanence wants home-relative paths and silently accepts some wrong absolute ones, so run every path through `nix/lib/to-home-relative-path.nix`, which asserts the path is inside the home directory. Use `mode = "0700"` for private profile/auth/state directories. If an app rewrites a file via temp-file + rename, persist the containing directory instead of bind-mounting just the file.
 
 ### Ephemeral state
 
@@ -183,14 +185,14 @@ keep it that way.
 
 When adding an app, first inspect how it writes state. For desktop/Electron apps, running briefly with isolated `HOME`/XDG dirs under `xvfb-run` is often useful.
 
-Prefer dedicated modules for apps with wrappers, tmpfiles, activation scripts, or persistence decisions. Keep `desktop-apps.nix` for simple package lists/fonts only.
+Prefer dedicated modules for apps with wrappers, tmpfiles, activation scripts, or persistence decisions. A package needing none of that goes in the profile it belongs to: `home/linux.nix` for portable CLI tools, `home/gnome-desktop.nix` for graphical apps and fonts.
 
 Common patterns:
 
 - `pkgs.symlinkJoin` + `pkgs.makeWrapper` for wrapped packages.
 - Patch desktop files or systemd/dbus service files when upstream Exec paths would bypass the wrapper.
 - `systemd.tmpfiles.rules` for boot-time directory/symlink creation.
-- `system.activationScripts.<name>.deps = [ "persist-files" ];` for switch-time migration/repair after impermanence mounts are established.
+- `system.activationScripts.<name>.deps = [ "persist-files" ];` for switch-time migration/repair after impermanence mounts are established. System state only, in `nix/modules/hosts/murph/`; user state is declared by Home Manager modules that have no activation ordering to express.
 - Add environment variables to `systemd.services."user@${uid}"`, `systemd.services."home-manager-${user}"`, and `home.sessionVariables` when both services and shells need them.
 - Use `lib.escapeShellArg` inside shell snippets and escape spaces in tmpfiles paths with `lib.replaceStrings [ " " ] [ "\\x20" ]`.
 
