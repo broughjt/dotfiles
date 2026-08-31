@@ -3,7 +3,6 @@
 let
   agentToolPath = lib.makeBinPath [
     pkgs.python3
-    pkgs.sox
   ];
 in
 pkgs.symlinkJoin {
