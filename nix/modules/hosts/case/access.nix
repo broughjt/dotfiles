@@ -10,6 +10,13 @@
   # unreachable over the tailnet as well as off it.
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
 
+  # programs.mosh.openFirewall defaults to true and would open UDP 60000-61000
+  # to the world, which is the one thing this file exists to prevent. Unlike
+  # Tailscale SSH, mosh-server binds an ordinary kernel UDP socket, so its
+  # packets do traverse the firewall; the trusted interface above is what
+  # carries them, and no port needs opening for the tailnet path to work.
+  programs.mosh.openFirewall = false;
+
   # With port 22 closed, nothing can reach the VM until it is one the
   # tailnet. Joining the tailnet should therefore happen during provisioning. We
   # set up nixos-anywhere to stage a `tailscale-authkey` file (reusable,
