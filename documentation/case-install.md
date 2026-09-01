@@ -12,7 +12,7 @@ can be maintained statefully outside of Nix, which is why this works.
 | Network address, IPv6, interface name | Hetzner metadata, via cloud-init |
 | SSH host keys | Generated during the install |
 | Tailnet identity | A pre-auth key staged with `nixos-anywhere --extra-files` |
-| Agent credentials | Copied from murph after the install (see below) |
+| Credentials | Issued to the fleet and staged after the install (see below) |
 
 ## One-time setup
 
@@ -74,73 +74,49 @@ ssh case1
 
 ### Credentials
 
-Three tools need authenticating: `gh` (the GitHub CLI, for API access and git
-pushes), `claude`, and `codex`. `case` keeps the upstream default paths rather
-than murph's `~/local` layout:
+The `gh` cli and both `claude` and `codex` all need to have authentication set
+up.
 
-| Tool | Path on `case` | Path on murph |
-| --- | --- | --- |
-| `gh` | `~/.config/gh/hosts.yml` | keyring, **not** a file -- see below |
-| `claude` | `~/.claude/.credentials.json` | `~/local/state/claude-code/.credentials.json` |
-| `codex` | `~/.codex/auth.json` | `~/local/state/codex/auth.json` |
+| Tool | Credential | Path on `case` | Targeted by |
+| --- | --- | --- | --- |
+| `gh` | fine-grained PAT | `~/.config/gh/token` | `gh.tokenFile` |
+| `claude` | `claude setup-token` | `~/.claude/oauth-token` | `claudeCode.oauthTokenFile` |
+| `codex` | login on the VM | `~/.codex/auth.json` | `codex` itself |
 
-None of these credentials are bound to a machine: they are bearer tokens with no
-device key or hardware attestation, so copying them technically works. Whether
-it is a good idea differs per tool.
-
-**`gh` -- do not copy, and the file would not work anyway.** On murph the token
-is in the GNOME keyring (`gh auth status` reports `(keyring)`), so
-`~/local/config/gh/hosts.yml` holds no credential. `case` is headless and has no
-keyring, so `gh` there falls back to writing the token into `hosts.yml`.
-Transfer therefore has to go through `gh` itself:
+**Once per fleet.** Create a **fine-grained** PAT at
+<https://github.com/settings/personal-access-tokens>, scoped to one owner and to
+the relevant repositories. For permissions, set `Contents: Read and write` for
+fetch and push, `Metadata: Read`, which is selected for you, and `Pull requests:
+Read and write` if agents are expected to open PRs. `claude setup-token` mints a
+long-lived credential distinct intended for use on headless machines.
 
 ```sh
-gh auth token | ssh case1 'gh auth login --with-token'
+pass insert case/github-pat
+claude setup-token
+pass insert case/claude-oauth-token
 ```
 
-Better still, give the fleet its own credential. murph's token carries the
-`repo` scope -- read/write to every repository -- and one token shared across
-every VM cannot be revoked for one machine alone. A fine-grained PAT scoped to
-the repositories a `case` VM actually needs is independently revocable and
-smaller in blast radius:
+**Once per VM.**
 
 ```sh
-ssh case1 'gh auth login --with-token'   # paste the PAT, then Ctrl-D
+pass show case/github-pat | ssh case1 'install -D -m 0600 /dev/stdin ~/.config/gh/token'
+pass show case/claude-oauth-token | ssh case1 'install -D -m 0600 /dev/stdin ~/.claude/oauth-token'
+ssh -L 1455:localhost:1455 case1 'codex login'
 ```
 
-A PAT also lets `case` push over HTTPS, which is worth weighing against
-`programs.gh`'s `git_protocol = "ssh"`: with HTTPS the VM needs no outbound SSH
-key at all.
+`codex` is logged in on the VM because its callback is on localhost port 1455,
+so the flow completes only over a forwarded port. Both non-interactive flags are
+dead ends: `--device-auth` is blocked on a University of Utah enterprise
+account, and `--with-access-token` requires an agent identity JWT rather than a
+ChatGPT one.
 
-**`claude` and `codex` -- prefer logging in on the VM.** Both store an OAuth
-access token *and* a refresh token (`claude`: `refreshToken`,
-`refreshTokenExpiresAt`; `codex`: `tokens.refresh_token`, `last_refresh`).
-Copying one refresh token to a second machine means both hold the same
-credential, and if the provider rotates refresh tokens on use, whichever machine
-refreshes first silently invalidates the other -- which surfaces later as a
-random logout on murph rather than as an error on `case`. Rotation is not
-confirmed for either provider, so treat it as a risk to avoid rather than a
-certainty.
+Verify all three:
 
 ```sh
-ssh case1
-claude          # follow the browser prompt
-codex login
+ssh case1 'gh auth status'
+ssh case1 'codex login status'
+ssh case1 'claude -p "reply with ok"'
 ```
-
-`codex login` uses a localhost callback on port 1455, so it only completes over
-a forwarded port:
-
-```sh
-ssh -L 1455:localhost:1455 case1
-```
-
-If the per-VM login tax becomes real at fleet scale, the answer is a separate
-account or credential issued to the fleet, not murph's own credential copied
-around.
-
-`gh auth status` verifies the first. There is no confirmed non-interactive check
-for `claude` or `codex`; run each once and see that it starts.
 
 ## Updating
 
@@ -176,7 +152,7 @@ hcloud server delete case1
 nix run .#installCase -- case1
 ```
 
-## Removing a VM
+## Removal
 
 ```sh
 ssh case1 'sudo tailscale logout'   # drops the node from the tailnet
