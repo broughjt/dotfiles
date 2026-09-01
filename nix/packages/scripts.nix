@@ -10,6 +10,19 @@ let
   dotfilesRevision = self.rev or self.dirtyRev or "unknown";
   dotfilesNarHash = self.narHash or "unknown";
 
+  applyTailnetPolicy = pkgs.writeShellApplication {
+    name = "apply-tailnet-policy";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      diffutils
+      gnused
+      jq
+      # No gnupg here, for the reason installCase gives below.
+      pass
+    ];
+    text = builtins.readFile ../../scripts/apply_tailnet_policy.sh;
+  };
   flashNixosInstaller = pkgs.writeShellApplication {
     name = "flash-nixos-installer";
     runtimeInputs = with pkgs; [
@@ -94,6 +107,7 @@ let
 in
 {
   inherit
+    applyTailnetPolicy
     backupMurphSecrets
     flashNixosInstaller
     installCase

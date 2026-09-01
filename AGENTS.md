@@ -22,6 +22,7 @@ This is Jackson's personal NixOS/Home Manager dotfiles repository. Optimize for 
 - `templates/`: flake templates exposed through `nix/templates.nix`.
 - `documentation/`: operator docs, especially `documentation/murph-install.md` and `documentation/case-install.md`.
 - `certificates/`: public CA certificates read from the store, such as the University of Utah RADIUS root pinned by `nix/modules/utah-wireless.nix`. Keeps `nix/` holding only Nix.
+- `tailscale/`: the tailnet policy file, applied with `nix run .#applyTailnetPolicy` from `scripts/apply_tailnet_policy.sh`. Under version control because it is the one input capable of locking every host out at once, and because the console's visual editor cannot express the `ssh` grant `case` reaches the tailnet through. Top level for the same reason as `certificates/`.
 
 ## Host and module composition idioms
 

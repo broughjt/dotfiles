@@ -156,6 +156,9 @@
           meta = { inherit description; };
         };
         scriptApps = {
+          applyTailnetPolicy =
+            makeScriptApp scriptPackages.applyTailnetPolicy "apply-tailnet-policy"
+              "Apply this repository's tailnet policy file to Tailscale";
           backupMurphSecrets =
             makeScriptApp scriptPackages.backupMurphSecrets "backup-murph-secrets"
               "Back up Murph's persisted SSH and GPG secrets";

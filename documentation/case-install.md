@@ -45,8 +45,17 @@ is determined by a part of the tailnet policy file. The default behavior is to
 deny any Tailscale SSH connections. Since tailscale is our only route into the
 `case` VMs, we need to grant access before installing.
 
-The visual editor in Tailscale does not expose the `users` field. Edit the
-policy file directly at <https://login.tailscale.com/admin/acls/file> and add:
+The visual editor in Tailscale does not expose the `users` field, so the policy
+has to be edited as a file regardless. It lives in this repository at
+`tailscale/policy.hujson` and is applied from a checkout:
+
+```sh
+nix run .#applyTailnetPolicy               # diff, validate, confirm, apply
+nix run .#applyTailnetPolicy -- --dry-run  # everything except the write
+nix run .#applyTailnetPolicy -- --fetch    # reseed the file from the console
+```
+
+The `accept` bit in its `ssh` block is what we need to access `case` VMs.
 
 ```json
 "ssh": [
@@ -59,17 +68,15 @@ policy file directly at <https://login.tailscale.com/admin/acls/file> and add:
 ]
 ```
 
-The same edit through the API, which takes an access token with the
-`policy_file` scope from
-<https://login.tailscale.com/admin/settings/keys>:
+Tailscale's default ships that rule with `"action": "check"`, which works but
+forces a periodic browser re-authentication, a poor fit for a phone.
+
+The credential is an **OAuth client** carrying the `policy_file` scope, from
+<https://login.tailscale.com/admin/settings/oauth>, stored as two entries:
 
 ```sh
-curl -su "$TS_API_KEY:" https://api.tailscale.com/api/v2/tailnet/-/acl >policy.hujson
-# edit policy.hujson
-curl -su "$TS_API_KEY:" --data-binary @policy.hujson \
-  https://api.tailscale.com/api/v2/tailnet/-/acl/validate
-curl -su "$TS_API_KEY:" --data-binary @policy.hujson \
-  https://api.tailscale.com/api/v2/tailnet/-/acl
+pass insert tailscale/policy-oauth-client-id
+pass insert tailscale/policy-oauth-secret
 ```
 
 ## Install
