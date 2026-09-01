@@ -59,10 +59,12 @@
 
 	// Define users and devices that can use Tailscale SSH.
 	"ssh": [
-		// Allow all users to SSH into their own devices in check mode.
-		// Comment this section out if you want to define specific restrictions.
+		// Allow all users to SSH into their own devices. "accept" rather than
+		// Tailscale's default "check": check mode forces a periodic browser
+		// re-authentication, which a phone cannot conveniently complete, and the
+		// case VMs are reachable only this way.
 		{
-			"action": "check",
+			"action": "accept",
 			"src":    ["autogroup:member"],
 			"dst":    ["autogroup:self"],
 			"users":  ["autogroup:nonroot", "root"],
