@@ -154,16 +154,14 @@ pass insert case/claude-oauth-token
 **Once per VM.**
 
 ```sh
-pass show case/github-pat | ssh <name> 'install -D -m 0600 /dev/stdin ~/.config/gh/token'
-pass show case/claude-oauth-token | ssh <name> 'install -D -m 0600 /dev/stdin ~/.claude/oauth-token'
+pass show case/github-pat | ssh <name> 'umask 077; mkdir -p ~/.config/gh; cat > ~/.config/gh/token'
+pass show case/claude-oauth-token | ssh <name> 'umask 077; mkdir -p ~/.claude; cat > ~/.claude/oauth-token'
 ssh -L 1455:localhost:1455 <name> 'codex login'
 ```
 
-`codex` is logged in on the VM because its callback is on localhost port 1455,
-so the flow completes only over a forwarded port. Both non-interactive flags are
-dead ends: `--device-auth` is blocked on a University of Utah enterprise
-account, and `--with-access-token` requires an agent identity JWT rather than a
-ChatGPT one.
+`codex` requires an interactive login. Both non-interactive flags are dead ends:
+`--device-auth` is blocked on a University of Utah enterprise account, and
+`--with-access-token` requires an agent identity JWT rather than a ChatGPT one.
 
 Verify all three:
 
