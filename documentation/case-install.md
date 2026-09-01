@@ -125,11 +125,11 @@ ssh <name>
 The `gh` cli and both `claude` and `codex` all need to have authentication set
 up.
 
-| Tool | Credential | Path on `case` | Targeted by |
-| --- | --- | --- | --- |
-| `gh` | classic PAT | `~/.config/gh/token` | `gh.tokenFile` |
-| `claude` | `claude setup-token` | `~/.claude/oauth-token` | `claudeCode.oauthTokenFile` |
-| `codex` | login on the VM | `~/.codex/auth.json` | `codex` itself |
+| Tool | Credential | Path on `case` |
+| --- | --- | --- |
+| `gh` | classic PAT | `~/.config/gh/token` |
+| `claude` | login on the VM | `~/.claude/.credentials.json` |
+| `codex` | login on the VM | `~/.codex/auth.json` |
 
 **Once per fleet.** Create a classic GitHub token at
 <https://github.com/settings/tokens> (a fine-grained one reaches a single
@@ -147,21 +147,15 @@ deliberately:
 
 ```sh
 pass insert case/github-pat
-claude setup-token
-pass insert case/claude-oauth-token
 ```
 
 **Once per VM.**
 
 ```sh
 pass show case/github-pat | ssh <name> 'umask 077; mkdir -p ~/.config/gh; cat > ~/.config/gh/token'
-pass show case/claude-oauth-token | ssh <name> 'umask 077; mkdir -p ~/.claude; cat > ~/.claude/oauth-token'
+ssh -t <name> claude    # then /login, and click through the first-run prompts
 ssh -L 1455:localhost:1455 <name> 'codex login'
 ```
-
-`codex` requires an interactive login. Both non-interactive flags are dead ends:
-`--device-auth` is blocked on a University of Utah enterprise account, and
-`--with-access-token` requires an agent identity JWT rather than a ChatGPT one.
 
 Verify all three:
 

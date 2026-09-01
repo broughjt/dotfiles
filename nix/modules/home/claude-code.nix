@@ -28,23 +28,10 @@ in
     '';
   };
 
-  options.claudeCode.oauthTokenFile = lib.mkOption {
-    type = lib.types.nullOr lib.types.str;
-    default = null;
-    example = "/home/jackson/.claude/oauth-token";
-    description = ''
-      Path to a file holding a token from `claude setup-token`, exported as
-      CLAUDE_CODE_OAUTH_TOKEN by the claude wrapper. Useful on headless hosts.
-      Null leaves Claude Code to its ordinary authentication.
-    '';
-  };
-
   config = {
     programs.claude-code = {
       enable = true;
-      package = pkgs.callPackage ../../packages/claude-code.nix {
-        inherit (config.claudeCode) oauthTokenFile;
-      };
+      package = pkgs.callPackage ../../packages/claude-code.nix { };
 
       context = config.agentInstructions.text;
 
@@ -52,21 +39,6 @@ in
         name = "skills";
         path = ../../../agents/skills;
       };
-    };
-
-    home.activation = lib.mkIf (config.claudeCode.oauthTokenFile != null) {
-      claudeCodeFirstRun = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        seedWhenAbsent() {
-          if [ ! -e "$1" ]; then
-            run install -m 0600 /dev/stdin "$1" <<<"$2"
-          fi
-        }
-
-        seedWhenAbsent ${lib.escapeShellArg config.claudeCode.configFile} \
-          '{"hasCompletedOnboarding":true}'
-        seedWhenAbsent ${lib.escapeShellArg "${cfg.configDir}/settings.json"} \
-          '{"theme":"auto","skipDangerousModePermissionPrompt":true}'
-      '';
     };
   };
 }

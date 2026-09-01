@@ -42,10 +42,6 @@ nixpkgs.lib.nixosSystem {
               inherit personal defaultDirectories;
               agentInstructions.machineFile = ../../agents/machines/case.md;
 
-              # `case` is headless, so a Claude auth token obtained from `claude
-              # setup-token` is easier.
-              claudeCode.oauthTokenFile = "${config.programs.claude-code.configDir}/oauth-token";
-
               # `case` holds no outbound SSH key, so it reaches GitHub over
               # HTTPS with a fine-grained token the credential helper picks up.
               gh.tokenFile = "${config.xdg.configHome}/gh/token";
