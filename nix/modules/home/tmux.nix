@@ -37,6 +37,12 @@ in
     mouse = true;
     historyLimit = 50000;
     terminal = "tmux-256color";
+    extraConfig = ''
+      # Preserve modified keys such as Shift-Enter through supporting terminals.
+      set -s extended-keys on
+      set -s extended-keys-format csi-u
+      set -as terminal-features 'xterm*:extkeys'
+    '';
     plugins = with pkgs.tmuxPlugins; [
       (
         if cfg.copyCommand == null then
