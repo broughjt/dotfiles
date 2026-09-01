@@ -38,4 +38,36 @@
     ];
     wants = [ "cloud-init-local.service" ];
   };
+
+  # Reaching `case` at all goes through tailscaled, so a tailscaled that will
+  # not start is a lost VM: port 22 is closed to the world and the only way
+  # back is the Hetzner console. Measured 2026-09-01, when tailscaled's own
+  # ipnlocal watchdog reported a deadlock (reportDeadlock in
+  # ipn/ipnlocal/watchdog.go) and the daemon then failed to come back.
+  # `tailscaled --cleanup` and the start that followed each sat on systemd's
+  # 90 second default, so one retry cycle cost three minutes with tailscale0
+  # down throughout.
+  #
+  # This cannot be built on WatchdogSec. tailscaled announces readiness
+  # through sd_notify but never sends WATCHDOG=1, so a watchdog would kill a
+  # healthy daemon on every interval. Timeouts and the start limit are what
+  # is left.
+  systemd.services.tailscaled = {
+    # A wedged tailscale0 is what makes --cleanup hang, so bound it. This
+    # brings a failing cycle down from about three minutes to about two.
+    serviceConfig = {
+      TimeoutStopSec = 20;
+      RestartSec = 5;
+    };
+
+    # Five failures inside half an hour means restarting is not going to fix
+    # it, and something holding the TUN device is the likely reason. A reboot
+    # clears that. /var/lib/tailscale is ordinary disk state on this host, so
+    # the node rejoins at the same address; see *Ephemeral tailnet keys* in
+    # documentation/case-install.md. An unreachable VM is worth more rebooted
+    # than left wedged.
+    startLimitIntervalSec = 1800;
+    startLimitBurst = 5;
+    unitConfig.StartLimitAction = "reboot";
+  };
 }

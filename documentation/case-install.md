@@ -179,6 +179,22 @@ nixos-rebuild switch --flake .#case --target-host root@<name>
 
 ## Recovery
 
+`case` is reachable only over the tailnet, so `tailscaled` is the single path
+back in and a daemon that will not start is a lost VM. `case/access.nix`
+therefore gives `tailscaled` a bounded `TimeoutStopSec`, a `RestartSec`, and
+`StartLimitAction=reboot` after five failed starts in half an hour. **A `case`
+VM that reboots itself is expected behaviour, not a fault**: it means
+`tailscaled` failed repeatedly and the reboot is clearing whatever held the TUN
+device. `/var/lib/tailscale` is ordinary disk state here, so the node rejoins at
+the same address. Check `journalctl -b -1 -u tailscaled` after one.
+
+This was added 2026-09-01, after `tailscaled` deadlocked (its own `ipnlocal`
+watchdog reported it), exited, and then failed to restart twice, taking
+`tailscale0` down and leaving the VM unreachable while it was otherwise
+healthy. Note that `WatchdogSec` is not usable here: `tailscaled` sends
+`READY=1` through `sd_notify` but never `WATCHDOG=1`, so a systemd watchdog
+would kill a healthy daemon.
+
 In order of preference:
 
 1. **Tailnet SSH** — the normal path.
