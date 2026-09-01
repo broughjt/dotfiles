@@ -21,27 +21,30 @@ nixpkgs.lib.nixosSystem {
     homeDirectories
     (
       { config, ... }:
+      let
+        inherit (config) personal defaultDirectories;
+      in
       {
         home-manager = {
           useGlobalPkgs = true;
           useUserPackages = true;
-          users.${config.personal.userName} = {
-            # No homeLocalDirectory: `case` keeps the stock XDG directories.
-            # The ~/local layout is murph's preference, not a portability
-            # requirement, and every module below works without it.
-            imports = [
-              homeLinux
-              homeClaudeCode
-              homeCodex
-              homeGh
-            ];
+          users.${personal.userName} =
+            { config, ... }:
+            {
+              imports = [
+                homeLinux
+                homeClaudeCode
+                homeCodex
+                homeGh
+              ];
 
-            # Home Manager evaluates the user in a separate module graph, so
-            # copy the shared option values from the NixOS configuration.
-            personal = config.personal;
-            defaultDirectories = config.defaultDirectories;
-            agentInstructions.machineFile = ../../agents/machines/case.md;
-          };
+              inherit personal defaultDirectories;
+              agentInstructions.machineFile = ../../agents/machines/case.md;
+
+              # `case` is headless, so a Claude auth token obtained from `claude
+              # setup-token` is easier.
+              claudeCode.oauthTokenFile = "${config.programs.claude-code.configDir}/oauth-token";
+            };
         };
       }
     )
