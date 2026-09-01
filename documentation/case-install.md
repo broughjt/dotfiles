@@ -127,16 +127,23 @@ up.
 
 | Tool | Credential | Path on `case` | Targeted by |
 | --- | --- | --- | --- |
-| `gh` | fine-grained PAT | `~/.config/gh/token` | `gh.tokenFile` |
+| `gh` | classic PAT | `~/.config/gh/token` | `gh.tokenFile` |
 | `claude` | `claude setup-token` | `~/.claude/oauth-token` | `claudeCode.oauthTokenFile` |
 | `codex` | login on the VM | `~/.codex/auth.json` | `codex` itself |
 
-**Once per fleet.** Create a **fine-grained** PAT at
-<https://github.com/settings/personal-access-tokens>, scoped to one owner and to
-the relevant repositories. For permissions, set `Contents: Read and write` for
-fetch and push, `Metadata: Read`, which is selected for you, and `Pull requests:
-Read and write` if agents are expected to open PRs. `claude setup-token` mints a
-long-lived credential distinct intended for use on headless machines.
+**Once per fleet.** Create a classic GitHub token at
+<https://github.com/settings/tokens> (a fine-grained one reaches a single
+account or organisation, and we need access to several). Make a new one for the
+fleet rather than copying murph's, so either can be revoked without breaking the
+other, and give it an expiration. Two scopes beyond `repo` are worth setting
+deliberately:
+
+- `read:org`, so `gh` can resolve organisation membership and list org
+  repositories.
+- `workflow`, without which a push is rejected the moment it touches a file
+  under `.github/workflows/`, with `refusing to allow a Personal Access Token
+  to create or update workflow`. Nothing else about the push fails, so it
+  surfaces only when an agent happens to edit a workflow.
 
 ```sh
 pass insert case/github-pat
@@ -162,9 +169,15 @@ Verify all three:
 
 ```sh
 ssh <name> 'gh auth status'
+ssh <name> 'gh api repos/<owner>/<repo>/collaborators --jq length'
 ssh <name> 'codex login status'
 ssh <name> 'claude -p "reply with ok"'
 ```
+
+`gh auth status` only proves the token authenticates. The second command names a
+repository agents will work in and asks for something push-gated, which is what
+actually fails when the token is wrong; `gh repo view` and `git ls-remote`
+answer from any token at all against a public repository.
 
 ## Updating
 
