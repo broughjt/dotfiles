@@ -14,6 +14,8 @@ in
     neovim
     glibcInfo
     man-pages
+    # Ghostty breaks TMUX on terminals without this
+    ghostty.terminfo
   ];
   environment.shells = with pkgs; [
     bashInteractive
