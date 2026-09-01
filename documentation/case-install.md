@@ -23,8 +23,8 @@ hcloud context create context1   # paste an API token from the Cloud Console
 hcloud ssh-key create --name murph --public-key-from-file ~/local/secrets/ssh/id_ed25519.pub
 ```
 
-Create a Tailscale auth key that is **reusable** and **pre-approved** at
-<https://login.tailscale.com/admin/settings/keys>, and save it:
+Create a Tailscale auth key that is **reusable**, **pre-approved** and
+**ephemeral** at <https://login.tailscale.com/admin/settings/keys>, and save it:
 
 ```sh
 pass insert case/tailscale-authkey
@@ -33,6 +33,44 @@ pass insert case/tailscale-authkey
 This key is what lets a new VM join the tailnet unattended. `case` closes public
 SSH and trusts only `tailscale0`, so a VM installed without it has no route in
 and has to be recovered through the Hetzner console or rescue system.
+
+### Tailscale SSH
+
+Regular SSH asks "which key do you have?" Tailscale SSH asks "which tailnet node
+are you?" `tailscaled` takes over port 22 on the tailnet address and accepts
+callers on the strength of the identity supplied by the tailnet. Any SSH client
+on a device running Tailscale can then log in without normal SSH keys (e.g. the
+iPhone). The rules for which devices are allowed to SSH into which other devices
+is determined by a part of the tailnet policy file. The default behavior is to
+deny any Tailscale SSH connections. Since tailscale is our only route into the
+`case` VMs, we need to grant access before installing.
+
+The visual editor in Tailscale does not expose the `users` field. Edit the
+policy file directly at <https://login.tailscale.com/admin/acls/file> and add:
+
+```json
+"ssh": [
+  {
+    "action": "accept",
+    "src":    ["autogroup:member"],
+    "dst":    ["autogroup:self"],
+    "users":  ["autogroup:nonroot", "root"]
+  }
+]
+```
+
+The same edit through the API, which takes an access token with the
+`policy_file` scope from
+<https://login.tailscale.com/admin/settings/keys>:
+
+```sh
+curl -su "$TS_API_KEY:" https://api.tailscale.com/api/v2/tailnet/-/acl >policy.hujson
+# edit policy.hujson
+curl -su "$TS_API_KEY:" --data-binary @policy.hujson \
+  https://api.tailscale.com/api/v2/tailnet/-/acl/validate
+curl -su "$TS_API_KEY:" --data-binary @policy.hujson \
+  https://api.tailscale.com/api/v2/tailnet/-/acl
+```
 
 ## Install
 
@@ -158,19 +196,8 @@ nix run .#installCase -- <name>
 ## Removal
 
 ```sh
-ssh <name> 'sudo tailscale logout'   # drops the node from the tailnet
 hcloud server delete <name>
 ```
 
-The logout tears down the tailnet route the SSH session is running over, so that
-first command hangs instead of returning. It has still taken effect: interrupt
-it and confirm with `tailscale status`, which shows the node offline.
-
-If the VM is already gone, remove the stale node in the Tailscale admin console
-instead. Making the auth key **ephemeral** as well as reusable would let
-Tailscale drop nodes on its own once they stop responding, at the cost of the
-tailnet forgetting a VM that is merely rebooting; set
-`services.tailscale.authKeyParameters.ephemeral` in `case/access.nix` if the
-fleet ever churns enough to want that.
-
-Nothing in this repository needs to change to add or remove a VM.
+Tailscale will remove the ephemeral node 30 to 60 minutes after its last
+activity. Delete the node in the admin console if you want it gone sooner.

@@ -13,13 +13,14 @@
   # With port 22 closed, nothing can reach the VM until it is one the
   # tailnet. Joining the tailnet should therefore happen during provisioning. We
   # set up nixos-anywhere to stage a `tailscale-authkey` file (reusable,
-  # pre-approved key) with --extra-files.
+  # pre-approved, ephemeral key) with --extra-files. Ephemeral is what lets a
+  # deleted VM remove its own tailnet node; see documentation/case-install.md.
   # Do not set services.tailscale.authKeyParameters here. The module appends
   # them to the key as URL parameters -- `tailscale up --auth-key "$(cat
   # file)?preauthorized=true"` -- and Tailscale only accepts that form for an
   # OAuth client secret. Appending it to a plain tskey-auth-... key corrupts the
-  # key string. Pre-approval and reusability are properties of the key itself,
-  # set when it is created in the admin console.
+  # key string. Reusability, pre-approval and ephemerality are properties of the
+  # key itself, set when it is created in the admin console.
   services.tailscale.authKeyFile = "/var/lib/tailscale-authkey";
 
   # Tailscale registers the node under whatever hostname is set when

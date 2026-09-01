@@ -33,6 +33,7 @@ nixpkgs.lib.nixosSystem {
             {
               imports = [
                 homeLinux
+                homeAgentDetach
                 homeClaudeCode
                 homeCodex
                 homeGh
