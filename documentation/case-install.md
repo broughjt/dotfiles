@@ -19,7 +19,7 @@ can be maintained statefully outside of Nix, which is why this works.
 Obtain an API key following <https://docs.hetzner.com/cloud/api/getting-started/generating-api-token/>. Then create a "context" and register murph's public SSH key.
 
 ```sh
-hcloud context create personal   # paste an API token from the Cloud Console
+hcloud context create context1   # paste an API token from the Cloud Console
 hcloud ssh-key create --name murph --public-key-from-file ~/local/secrets/ssh/id_ed25519.pub
 ```
 
@@ -37,8 +37,11 @@ and has to be recovered through the Hetzner console or rescue system.
 ## Install
 
 ```sh
-nix run .#installCase -- case1 2>&1 | tee ~/scratch/case-install.log
+nix run .#installCase -- <name> 2>&1 | tee ~/scratch/<name>-install.log
 ```
+
+The `<name>` field is used for the hostname, the tailnet name, and Hetzner's
+name for the server by, so use the same name for the rest of this guide.
 
 The install prints thousands of lines and will outrun the terminal scrollback,
 so run with `tee` to keep a copy of the output. Ghostty can also dump its buffer
@@ -56,7 +59,7 @@ list` to see the other location options.
 To install onto a server that already exists:
 
 ```sh
-nix run .#installCase -- case1 --target 1.2.3.4 2>&1 | tee ~/scratch/case-install.log
+nix run .#installCase -- <name> --target 1.2.3.4 2>&1 | tee ~/scratch/<name>-install.log
 ```
 
 Do not pass `--build-on-remote`: murph and `case` are both x86_64, so building
@@ -68,8 +71,8 @@ The VM should appear on the tailnet under the name it was created with. Check
 from murph:
 
 ```sh
-tailscale status | grep case1
-ssh case1
+tailscale status | grep <name>
+ssh <name>
 ```
 
 ### Credentials
@@ -99,9 +102,9 @@ pass insert case/claude-oauth-token
 **Once per VM.**
 
 ```sh
-pass show case/github-pat | ssh case1 'install -D -m 0600 /dev/stdin ~/.config/gh/token'
-pass show case/claude-oauth-token | ssh case1 'install -D -m 0600 /dev/stdin ~/.claude/oauth-token'
-ssh -L 1455:localhost:1455 case1 'codex login'
+pass show case/github-pat | ssh <name> 'install -D -m 0600 /dev/stdin ~/.config/gh/token'
+pass show case/claude-oauth-token | ssh <name> 'install -D -m 0600 /dev/stdin ~/.claude/oauth-token'
+ssh -L 1455:localhost:1455 <name> 'codex login'
 ```
 
 `codex` is logged in on the VM because its callback is on localhost port 1455,
@@ -113,15 +116,15 @@ ChatGPT one.
 Verify all three:
 
 ```sh
-ssh case1 'gh auth status'
-ssh case1 'codex login status'
-ssh case1 'claude -p "reply with ok"'
+ssh <name> 'gh auth status'
+ssh <name> 'codex login status'
+ssh <name> 'claude -p "reply with ok"'
 ```
 
 ## Updating
 
 ```sh
-nixos-rebuild switch --flake .#case --target-host root@case1
+nixos-rebuild switch --flake .#case --target-host root@<name>
 ```
 
 ## Recovery
@@ -137,8 +140,8 @@ In order of preference:
 3. **Rescue system** if it does not boot at all:
 
    ```sh
-   hcloud server enable-rescue case1
-   hcloud server reset case1
+   hcloud server enable-rescue <name>
+   hcloud server reset <name>
    ```
 
    That boots a separate Linux with its own root access, so it needs no password
@@ -148,16 +151,20 @@ In order of preference:
 Rebuilding from scratch is usually cheaper than any of these:
 
 ```sh
-hcloud server delete case1
-nix run .#installCase -- case1
+hcloud server delete <name>
+nix run .#installCase -- <name>
 ```
 
 ## Removal
 
 ```sh
-ssh case1 'sudo tailscale logout'   # drops the node from the tailnet
-hcloud server delete case1
+ssh <name> 'sudo tailscale logout'   # drops the node from the tailnet
+hcloud server delete <name>
 ```
+
+The logout tears down the tailnet route the SSH session is running over, so that
+first command hangs instead of returning. It has still taken effect: interrupt
+it and confirm with `tailscale status`, which shows the node offline.
 
 If the VM is already gone, remove the stale node in the Tailscale admin console
 instead. Making the auth key **ephemeral** as well as reusable would let

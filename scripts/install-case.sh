@@ -88,7 +88,7 @@ if [ -z "$target" ]; then
       echo "only reaches shells started after a fresh login. Log out and back in," >&2
       echo "or export it for this shell." >&2
     else
-      echo "Run 'hcloud context create personal' and paste an API token." >&2
+      echo "Run 'hcloud context create context1' and paste an API token." >&2
     fi
     exit 1
   fi
