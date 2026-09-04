@@ -12,14 +12,12 @@ in
       directory = toHomeRelativePath "${config.xdg.dataHome}/keyrings";
       mode = "0700";
     }
-    # The Electron profiles hold login state and user configuration. Their
-    # XDG cache directories and Codex's XDG state logs remain ephemeral.
+    # The Electron profile holds login state and user configuration. It also
+    # co-locates downloaded Claude Code and caches, so persisting the profile
+    # retains those rebuildable files rather than trying to split one mutable
+    # directory.
     {
       directory = toHomeRelativePath "${config.xdg.configHome}/Claude";
-      mode = "0700";
-    }
-    {
-      directory = toHomeRelativePath "${config.xdg.configHome}/Codex";
       mode = "0700";
     }
     {

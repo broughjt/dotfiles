@@ -35,11 +35,6 @@ in
   config = {
     home.packages = [ codexPackage ];
 
-    # The desktop app embeds Codex and reads the same configuration and
-    # credentials. Keep the wrapper export as well: an `ssh host codex`
-    # invocation does not load session variables.
-    home.sessionVariables.CODEX_HOME = config.codex.configDirectory;
-
     # Credentials, history and sessions live here, so this has to be private
     # before anything is written into it.
     home.activation.codexDirectories = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''

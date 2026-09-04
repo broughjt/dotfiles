@@ -8,7 +8,6 @@
   imports = [ ./firefox.nix ];
 
   home.packages = with pkgs; [
-    llm-agents.chatgpt
     llm-agents.claude-desktop
     discord
     dconf-editor
@@ -69,7 +68,6 @@
         "application/xml" = "firefox.desktop";
         "application/pdf" = "org.gnome.Evince.desktop";
         "x-scheme-handler/claude" = "claude-desktop.desktop";
-        "x-scheme-handler/codex" = "chatgpt.desktop";
         "x-scheme-handler/http" = "firefox.desktop";
         "x-scheme-handler/https" = "firefox.desktop";
         "x-scheme-handler/slack" = "slack.desktop";
