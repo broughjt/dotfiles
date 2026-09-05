@@ -3,8 +3,7 @@
     pkgs:
     let
       enableTypst = !pkgs.stdenv.hostPlatform.isDarwin;
-      emacsBasePackage =
-        if pkgs.stdenv.hostPlatform.isDarwin then pkgs.emacs-git else pkgs.emacs-git-pgtk;
+      emacsBasePackage = if pkgs.stdenv.hostPlatform.isDarwin then pkgs.emacs31 else pkgs.emacs31-pgtk;
       emacsPackages = pkgs.emacsPackagesFor emacsBasePackage;
       treesitGrammars =
         if enableTypst then
