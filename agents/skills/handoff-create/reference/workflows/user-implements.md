@@ -13,8 +13,10 @@ One checkpoint, `findings`: the agent's review of the user's code, which the
 user then signs off.
 
 Write the findings to `.scratch/review-<slug>.md`, naming at the top the commit
-they were made against, and describe them to the user as well. Then set `Review:
-in-review, findings .scratch/review-<slug>.md`.
+they were made against, and describe them to the user as well. If the session
+ends before the user signs them off, set `Review: in-review, findings
+.scratch/review-<slug>.md`. If the user signs them off in session, the field
+stays `none` and the log records the acceptance.
 
 **Writing the findings does not close the review; the user's sign-off does.**
 Until then `Next` says what resumes afterwards.

@@ -26,7 +26,9 @@ Three checkpoints, one per stage:
 | the tests, committed red | `in-review, tests <sha>` |
 | the implementation | `in-review, implementation <sha>` |
 
-Each stage waits on the user before the next begins. This is the whole point of
-the pattern: the design is settled before tests pin it, and the tests are
-settled before implementation. `Next` names the stage that resumes once the open
-review closes.
+If a session ends with a stage the user has not reviewed, set `Review` to the
+corresponding field above. If the user accepts it in session, the field stays
+`none` and the log records the acceptance. Each stage still waits on the user
+before the next begins: the design is settled before tests pin it, and the
+tests are settled before implementation. `Next` names the stage that resumes
+once an open review closes.

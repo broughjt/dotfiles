@@ -28,6 +28,10 @@ Each pattern also defines its own review checkpoints in its `## Review` section,
 including what gets reviewed, when `Review` moves to `in-review`, and what the
 field points at.
 
+Phrase every checkpoint around state at the end of a session: "if the session
+ends with X unreviewed, set `Review` to ..." A review opened and closed while
+the user is present never touches the field.
+
 An arc runs against a **copy** of the pattern, at `.scratch/workflow-<name>.md`,
 and `Start here`'s `Workflow:` field names both the pattern and that path. The
 copy is what governs the arc; this directory is only where copies come from. An

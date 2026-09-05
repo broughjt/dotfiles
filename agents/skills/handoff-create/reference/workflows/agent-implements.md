@@ -11,6 +11,7 @@ implementation deviated from the plan, and why.
 
 One checkpoint, `proposal`: the commits written this session.
 
-Set `Review: in-review, proposal <sha>` after committing and writing the log
-entry that briefs the reviewer. The user reviews, and the field returns to
-`none` when they say the review has closed.
+If the session ends with commits the user has not reviewed, set `Review:
+in-review, proposal <sha>` after committing and writing the log entry that
+briefs the reviewer. If the user reviews them in session, the field stays
+`none` and the log records the acceptance.
