@@ -19,7 +19,9 @@ do not belong here. A new arc starts `none`.>
 
 **Verified state:** <YYYY-MM-DD>: `<cheapest command that would catch this doc
 being wrong>` (<observed duration>) → <observed result>; `<other command run>`
-→ <result>. **Not run:** <commands skipped>.
+→ <result>. **Not run:** <commands skipped>. When the arc spans several
+repositories or worktrees, name each one here and group its checks and observed
+content state under it.>
 
 ## Why this work exists
 

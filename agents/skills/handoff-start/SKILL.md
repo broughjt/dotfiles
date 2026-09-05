@@ -35,15 +35,20 @@ intention is that you should *not* have to read it by default.
 
 ## Step 3: Check the claims
 
-Run these in parallel with the reads; they take seconds.
+Run these in parallel with the reads; they take seconds. Run the repository
+checks in every repository or worktree the handoff names, not only the one
+containing the handoff. Additional repositories belong in **Verified state**;
+they do not need a separate registry.
 
-- `git status --short`. The tree should normally be clean, since work
-  awaiting review is committed rather than left uncommitted. Anything
-  uncommitted is unexplained and worth raising.
-- `git log --oneline` since the **Verified state** date. Compare against
-  **Review**. Commits the document does not describe, or none where it claims
-  a review is in progress, both mean the document is behind reality. Also
-  catches work done outside a handoff session.
+- `git status --short` in each one. Report every dirty tree. Uncommitted work
+  the handoff or user identifies as user-authored is the session's first
+  input: review it before `Next`; it is not a discrepancy. Anything else
+  uncommitted remains unexplained and worth raising.
+- `git log --oneline` in each one since the **Verified state** date. Compare
+  against **Review** and the state recorded for that repository. Commits the
+  document does not describe, or none where it claims a review is in progress,
+  both mean the document is behind reality. Also catches work done outside a
+  handoff session.
 - If **Review**'s referent is a commit SHA, meaning the commit submitted for
   the user's review, resolve the default branch using `git symbolic-ref --short
   refs/remotes/origin/HEAD`, falling back to whatever this repository calls its
