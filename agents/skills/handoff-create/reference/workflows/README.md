@@ -63,6 +63,9 @@ This is also how an arc that started on a shared pattern becomes bespoke three
 sessions in, once the mismatch is visible. The choice does not have to be made
 up front.
 
+Forks and coined workflows are amended in place, dated in the file and
+recorded in the log.
+
 ## Editing this directory
 
 Do not edit anything under `reference/workflows/` from a project session. It is

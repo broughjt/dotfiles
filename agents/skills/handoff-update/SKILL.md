@@ -80,7 +80,8 @@ needs; they know nothing. Rewrite every field, and keep the whole block **under
   the workflow changed this session, or the next task carries an override with
   no copy yet, install it from `../handoff-create/reference/workflows/`, point
   this field at it, and record the switch and its reason in the log. Amending a
-  copy means forking it under a new name; see
+  `verbatim` copy means forking it under a new name. Amend a `forked` or `coined`
+  copy in place, date the change in the file and record it in the log; see
   `../handoff-create/reference/workflows/README.md`.
 - **Review**: see below.
 - **Verified state**: see below.
