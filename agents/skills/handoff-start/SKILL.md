@@ -49,14 +49,21 @@ they do not need a separate registry.
   document does not describe, or none where it claims a review is in progress,
   both mean the document is behind reality. Also catches work done outside a
   handoff session.
+- If a referenced commit no longer resolves or has disappeared from the named
+  branch's history, recover its subject from the object when possible, otherwise
+  from the handoff or companion log, and search the current Git log for that
+  exact subject. A unique match means the user rewrote the commit: report the
+  replacement SHA and mark the reference for the next handoff update. This is
+  maintenance, not a stale-document discrepancy. No match or several matches
+  remains a discrepancy.
 - If **Review**'s referent is a commit SHA, meaning the commit submitted for
   the user's review, resolve the default branch using `git symbolic-ref --short
   refs/remotes/origin/HEAD`, falling back to whatever this repository calls its
-  mainline, and check `git merge-base --is-ancestor <sha> <mainline>`. A
-  commit already merged there while the document still claims `in-review`
-  means the review closed and the document is stale. When the referent is a path
-  rather than a SHA, there is no merge-base to check. Confirm the file exists
-  instead.
+  mainline, and check `git merge-base --is-ancestor <sha> <mainline>`, using
+  the replacement SHA when the preceding rule found one. A commit already
+  merged there while the document still claims `in-review` means the review
+  closed and the document is stale. When the referent is a path rather than a
+  SHA, there is no merge-base to check. Confirm the file exists instead.
 - Confirm every path named in `Start here` still exists. A document naming a
   file, function or flag that has since been deleted is the characteristic
   stale-handoff failure.

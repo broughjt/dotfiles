@@ -118,6 +118,11 @@ runs `git log` since that date to find commits the document does not describe,
 so a date that does not match the observations beside it silently disables that
 check.
 
+For a repository whose user rewrites history, record the current branch tip as
+the reconciliation point and describe the content state that matters. Do not
+make the handoff depend on a list of per-commit SHAs expected to disappear.
+`Review` still names the current commit when a commit is under review.
+
 Record the **observed duration** beside each command. The next session derives
 its timeout from that figure. Only record a duration you actually observed. If
 you did not time it, write nothing rather than guessing, and if `handoff-start`
