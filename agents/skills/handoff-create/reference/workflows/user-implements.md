@@ -4,6 +4,10 @@ The user writes the code. The agent either reviews the user's code afterwards or
 writes the tests it has to pass. The agent does not modify the implementation.
 Findings should be described to the user.
 
+If the user asks the agent to edit user-authored content, put those edits in
+their own commit so their diff stands alone. Keep optional style findings in
+chat unless the user asks to apply them.
+
 When writing tests under this pattern, write them against the agreed
 interface, not against whatever the user has written so far.
 

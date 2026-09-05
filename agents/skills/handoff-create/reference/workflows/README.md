@@ -32,6 +32,10 @@ Phrase every checkpoint around state at the end of a session: "if the session
 ends with X unreviewed, set `Review` to ..." A review opened and closed while
 the user is present never touches the field.
 
+Any workflow in which the agent reviews user-authored content carries two
+boundaries in its copy: requested agent edits go in their own commit, and
+optional style findings stay in chat unless the user asks to apply them.
+
 An arc runs against a **copy** of the pattern, at `.scratch/workflow-<name>.md`,
 and `Start here`'s `Workflow:` field names both the pattern and that path. The
 copy is what governs the arc; this directory is only where copies come from. An
