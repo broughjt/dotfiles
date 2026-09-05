@@ -153,6 +153,9 @@ Rules for the prose:
   and say what to look for.
 - Facts are entries, not essays. Detail that only matters while one task is
   in flight belongs in `.scratch/plan-<task>.md`.
+- A procedure repeated across sessions belongs under a named section in the
+  workflow copy. `Next` names the action and that section; it does not restate
+  the procedure or its standing reads.
 - Never write a verification number you did not observe. If you did not run
   it, write what to run instead.
 - Write `Start here` last, once everything else is settled.

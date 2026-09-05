@@ -1,6 +1,11 @@
 ---
 name: handoff-update
-description: Record a session's work into a handoff document: write the progress-log entry, edit state in place, refresh the Start-here block for the next agent, and promote durable findings when work closes out. Use at the end of a session on multi-session work or when the user asks to update the handoff doc. Companion skills are handoff-create and handoff-start.
+description: >-
+  Record a session's work into a handoff document: write the progress-log
+  entry, edit state in place, refresh the Start-here block for the next agent,
+  and promote durable findings when work closes out. Use at the end of a
+  session on multi-session work or when the user asks to update the handoff
+  doc. Companion skills are handoff-create and handoff-start.
 ---
 
 # Updating a handoff document
@@ -69,7 +74,9 @@ This block is the interface to the next session. You know what the next agent
 needs; they know nothing. Rewrite every field, and keep the whole block **under
 ~25 lines**.
 
-- **Next**: one concrete action, beginnable cold.
+- **Next**: one concrete action, beginnable cold. When it follows a procedure
+  that repeats across sessions, put that procedure under a named section in the
+  workflow copy and name the section here instead of restating it.
 - **Read first**: the specific files that action requires, each with a clause
   saying why. This is the field that saves the next session the most time and
   the one most often left stale.

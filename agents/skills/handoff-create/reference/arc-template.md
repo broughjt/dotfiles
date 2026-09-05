@@ -83,7 +83,9 @@ _None._
   and *Open questions* accumulate over the arc, so an empty one means "not yet",
   not "not applicable". Mark it `_None._` rather than removing the heading.
 - **Refresh `Start here` at the end of every session**, especially `Next` and
-  `Read first`. Keep the block under ~25 lines.
+  `Read first`. Keep the block under ~25 lines. Put a procedure repeated across
+  sessions under a named section in the workflow copy; `Next` names that section
+  instead of restating it.
 - **`Read first` is the highest-value line in the document.** It is written by
   the agent finishing a session, who knows what the next agent will need, and
   executed by an agent that knows nothing. Name specific files and say why in
