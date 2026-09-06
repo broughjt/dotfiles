@@ -20,13 +20,17 @@
 
     xdg.enable = true;
 
-    home.packages = with pkgs; [
-      fd
-      jq
-      killall
-      lldb
-      ripgrep
-    ];
+    home.packages =
+      (with pkgs; [
+        fd
+        jq
+        killall
+        lldb
+        ripgrep
+      ])
+      ++ [
+        (pkgs.callPackage ../../packages/handoff-sync.nix { })
+      ];
 
     programs.direnv = {
       enable = true;
