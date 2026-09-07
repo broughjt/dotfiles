@@ -48,6 +48,8 @@
   homeGpg = import ./home/gpg.nix;
   homePass = import ./home/pass.nix;
   homeClaudeCode = import ./home/claude-code.nix;
+  homeChromium = import ./home/chromium.nix;
+  homeChromiumImpermanence = import ./home/impermanence/chromium.nix;
   homeCodex = import ./home/codex.nix;
   homeGhostty = import ./home/ghostty.nix;
   homeLocalDirectory = import ./home/local-directory.nix;

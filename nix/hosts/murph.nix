@@ -38,6 +38,7 @@ nixpkgs.lib.nixosSystem {
               homeLocalDirectory
               homeEmacs
               homeClaudeCode
+              homeChromium
               homeCodex
               homeGh
               homeHcloud

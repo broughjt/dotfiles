@@ -17,6 +17,7 @@ in
     ./gnome-desktop.nix
     ./claude-code.nix
     ./codex.nix
+    ./chromium.nix
   ];
 
   home.persistence.main = {
