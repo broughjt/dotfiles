@@ -12,9 +12,24 @@ Argument forms:
 - `go`: brief, then begin the `Next` action without waiting
 - `<slug> go`: both
 
+`.scratch/` is intentionally Git-ignored operational state. Discover it through
+direct filesystem paths or filesystem enumeration; default `rg --files`, `fd`,
+and Git file listings may omit it. Create and update these artifacts anyway.
+Never force-add or commit them, and do not describe their expected absence from
+a commit as skipped or incomplete work.
+
 ## Step 1: Find the document
 
-Glob `.scratch/handoff-*.md`, excluding `*-log.md`.
+Enumerate handoff documents directly from the filesystem:
+
+```sh
+if test -d .scratch; then
+  find .scratch -maxdepth 1 -type f \
+    -name 'handoff-*.md' ! -name 'handoff-*-log.md' -print
+fi
+```
+
+Do not use `rg --files`, `git ls-files`, or another ignore-aware file listing.
 
 - **One match**: use it.
 - **Several**: list them with each one's `Next:` line and ask which. Do not

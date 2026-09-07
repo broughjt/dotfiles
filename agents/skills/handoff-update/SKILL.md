@@ -14,9 +14,24 @@ Run this at the end of a working session on an arc. It keeps the document from
 degrading. State should be edited in place, history moved out, and findings
 promoted up.
 
-Find the document as `handoff-start` does: glob `.scratch/handoff-*.md`,
-excluding `*-log.md`, and ask if several match. Read both the handoff document and
-its log before writing anything.
+`.scratch/` is intentionally Git-ignored operational state. Discover it through
+direct filesystem paths or filesystem enumeration; default `rg --files`, `fd`,
+and Git file listings may omit it. Create and update these artifacts anyway.
+Never force-add or commit them, and do not describe their expected absence from
+a commit as skipped or incomplete work.
+
+Find the document directly from the filesystem:
+
+```sh
+if test -d .scratch; then
+  find .scratch -maxdepth 1 -type f \
+    -name 'handoff-*.md' ! -name 'handoff-*-log.md' -print
+fi
+```
+
+Do not use `rg --files`, `git ls-files`, or another ignore-aware file listing.
+Ask which document to use if several match, as `handoff-start` specifies. Read
+both the handoff document and its log before writing anything.
 
 ## Step 1: Write the log entry
 

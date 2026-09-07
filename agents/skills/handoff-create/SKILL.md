@@ -21,6 +21,12 @@ An arc has two files, both under `.scratch/`:
 | `handoff-<slug>.md` | the arc's current state | every session of that arc |
 | `handoff-<slug>-log.md` | the arc's history | only when history matters |
 
+`.scratch/` is intentionally Git-ignored operational state. Discover it through
+direct filesystem paths or filesystem enumeration; default `rg --files`, `fd`,
+and Git file listings may omit it. Create and update these artifacts anyway.
+Never force-add or commit them, and do not describe their expected absence from
+a commit as skipped or incomplete work.
+
 State and history are separate files on purpose. A fresh agent pays nothing for
 history it does not need, so the log can stay rich without degrading the
 document anyone actually reads.
