@@ -16,6 +16,7 @@ nixpkgs.lib.nixosSystem {
     ssh
     llmAgents
     tailscale
+    docker
     home-manager.nixosModules.home-manager
     personal
     homeDirectories
