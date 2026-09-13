@@ -38,7 +38,6 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
-    llm-agents-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -57,7 +56,11 @@
     let
       nix-config = import ./nix/nix-config.nix;
       emacsPackages = import ./nix/packages/emacs.nix;
-      llmAgentsOverlay = llm-agents-nix.overlays.shared-nixpkgs;
+      # Keep llm-agents on its own pinned nixpkgs so its outputs match the
+      # derivations built by Numtide's binary cache.
+      llmAgentsOverlay = final: _prev: {
+        llm-agents = llm-agents-nix.packages.${final.stdenv.hostPlatform.system};
+      };
       # emacs-overlay still reads deprecated stdenv platform aliases. Keep the
       # compatibility values local to that overlay until upstream migrates.
       emacsPlatformCompatOverlay =
