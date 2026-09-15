@@ -16,6 +16,13 @@
     extraGroups = [ "networkmanager" ];
   };
 
+  # The Sandia laptop cannot join the tailnet, so allow it by listing it as a
+  # normal authorized SSH key.
+  personal.sshAuthorizedKeys = [
+    config.personal.sshPublicKey
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL7nCb5NzPd5XpYVk/4g07v4E4WtpikAjJIGKJpsVWeP jtbroug@sandia.gov"
+  ];
+
   # murph's root is ephemeral, so host keys go to the persisted hacks tree; the
   # trailing directory is there because impermanence mounts directories.
   ssh.knownHostsFile = "${config.defaultDirectories.localDirectory}/hacks/ssh/known_hosts/known_hosts";

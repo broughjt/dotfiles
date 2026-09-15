@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 
 {
   options = {
@@ -29,6 +29,18 @@
     personal.sshPublicKey = lib.mkOption {
       type = lib.types.str;
       default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGwFAXp70zd8VHaNEmQ+txSDFCZENuY4yNReGMVyVM61 jacksontbrough@gmail.com";
+      description = ''
+        This machine's outbound SSH identity.
+      '';
+    };
+    personal.sshAuthorizedKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ config.personal.sshPublicKey ];
+      defaultText = lib.literalExpression "[ config.personal.sshPublicKey ]";
+      description = ''
+        Public keys allowed to log in as this user. The opposite direction of
+        trust from sshPublicKey.
+      '';
     };
   };
 }

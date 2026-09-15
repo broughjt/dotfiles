@@ -31,7 +31,7 @@ in
     description = config.personal.fullName;
     extraGroups = [ "wheel" ];
     shell = pkgs.fish;
-    openssh.authorizedKeys.keys = [ config.personal.sshPublicKey ];
+    openssh.authorizedKeys.keys = config.personal.sshAuthorizedKeys;
   };
 
   services.openssh.enable = true;
