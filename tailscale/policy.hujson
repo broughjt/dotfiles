@@ -35,7 +35,7 @@
 		},
 		// Covers mosh's UDP as well as TCP, since the rule names no protocol.
 		{"action": "accept", "src": ["autogroup:member"], "dst": ["tag:agent:*"]},
-		// Exit nodes, Mullvad's included, need this once the allow-all rule is gone.
+		// Exit nodes need this once the allow-all rule is gone.
 		{
 			"action": "accept",
 			"src":    ["autogroup:member"],
@@ -88,9 +88,6 @@
 			"dst":    ["tag:agent"],
 			"users":  ["jackson", "root"],
 		},
-	],
-	"nodeAttrs": [
-		{"target": ["100.82.164.118"], "attr": ["mullvad"]},
 	],
 
 	// Test access rules every time they're saved.
