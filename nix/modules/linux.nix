@@ -34,7 +34,13 @@ in
     openssh.authorizedKeys.keys = config.personal.sshAuthorizedKeys;
   };
 
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+    };
+  };
 
   # Mosh belongs beside sshd rather than in a package list: it is a login path,
   # not a program. It bootstraps by running mosh-server over SSH and then speaks
