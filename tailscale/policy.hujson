@@ -7,7 +7,7 @@
 // (git-crypt in place, or out of the repository entirely) before adding any of:
 //
 //   - "groups" or "tests", which carry email addresses
-//   - "tagOwners", which names who controls which machines
+//   - "tagOwners" naming a user rather than an autogroup
 //   - "autoApprovers", which carries home and work subnet CIDRs
 //   - device names, or any address outside the 100.64.0.0/10 tailnet range
 {
@@ -16,21 +16,31 @@
 	//  	"group:example": ["alice@example.com", "bob@example.com"],
 	// },
 
-	// Define the tags which can be applied to devices and by which users.
-	// "tagOwners": {
-	//  	"tag:example": ["autogroup:admin"],
-	// },
+	// The case VMs run coding agents, so they are tagged rather than owned by a
+	// user. The tag comes from the auth key they are installed with; see
+	// documentation/case-install.md.
+	"tagOwners": {
+		"tag:agent": ["autogroup:admin"],
+	},
 
-	// Define access control lists for users, groups, autogroups, tags,
-	// Tailscale IP addresses, and subnet ranges.
+	// Nothing grants tag:agent as a source. A prompt-injected agent on a case VM
+	// can therefore reach no other tailnet device, murph's sshd included.
 	"acls": [
-		// Allow all connections.
-		// Comment this section out if you want to define specific restrictions.
-		{"action": "accept", "src": ["*"], "dst": ["*:*"]},
-
-		// Allow users in "group:example" to access "tag:example", but only from
-		// devices that are running macOS and have enabled Tailscale client auto-updating.
-		// {"action": "accept", "src": ["group:example"], "dst": ["tag:example:*"], "srcPosture":["posture:autoUpdateMac"]},
+		// Users reach their own devices. autogroup:self excludes tagged devices,
+		// which is why the case VMs need the rule below.
+		{
+			"action": "accept",
+			"src":    ["autogroup:member"],
+			"dst":    ["autogroup:self:*"],
+		},
+		// Covers mosh's UDP as well as TCP, since the rule names no protocol.
+		{"action": "accept", "src": ["autogroup:member"], "dst": ["tag:agent:*"]},
+		// Exit nodes, Mullvad's included, need this once the allow-all rule is gone.
+		{
+			"action": "accept",
+			"src":    ["autogroup:member"],
+			"dst":    ["autogroup:internet:*"],
+		},
 	],
 
 	// Define postures that will be applied to all rules without any specific
@@ -68,6 +78,15 @@
 			"src":    ["autogroup:member"],
 			"dst":    ["autogroup:self"],
 			"users":  ["autogroup:nonroot", "root"],
+		},
+		// The case VMs are tagged, so the rule above does not match them and this
+		// one is their only route in. Users are named: autogroup:nonroot on a
+		// tagged destination would admit any account on the VM.
+		{
+			"action": "accept",
+			"src":    ["autogroup:member"],
+			"dst":    ["tag:agent"],
+			"users":  ["jackson", "root"],
 		},
 	],
 	"nodeAttrs": [

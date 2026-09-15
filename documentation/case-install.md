@@ -23,8 +23,9 @@ hcloud context create context1   # paste an API token from the Cloud Console
 hcloud ssh-key create --name murph --public-key-from-file ~/local/secrets/ssh/id_ed25519.pub
 ```
 
-Create a Tailscale auth key that is **reusable**, **pre-approved** and
-**ephemeral** at <https://login.tailscale.com/admin/settings/keys>, and save it:
+Create a Tailscale auth key that is **reusable**, **pre-approved**,
+**ephemeral**, and **tagged `tag:agent`** at
+<https://login.tailscale.com/admin/settings/keys>, and save it:
 
 ```sh
 pass insert case/tailscale-authkey
@@ -33,6 +34,9 @@ pass insert case/tailscale-authkey
 This key is what lets a new VM join the tailnet unattended. `case` closes public
 SSH and trusts only `tailscale0`, so a VM installed without it has no route in
 and has to be recovered through the Hetzner console or rescue system.
+
+The tag `tag:agent` prevents an agent from reaching murph or any other device on
+the tailnet.
 
 ### Tailscale SSH
 
@@ -55,17 +59,15 @@ nix run .#applyTailnetPolicy -- --dry-run  # everything except the write
 nix run .#applyTailnetPolicy -- --fetch    # reseed the file from the console
 ```
 
-The `accept` bit in its `ssh` block is what we need to access `case` VMs.
+Setting `dst` to `tag:agent` lets us reach `case` VMs. Note that `autogroup:self` excludes tagged devices.
 
 ```json
-"ssh": [
-  {
-    "action": "accept",
-    "src":    ["autogroup:member"],
-    "dst":    ["autogroup:self"],
-    "users":  ["autogroup:nonroot", "root"]
-  }
-]
+{
+  "action": "accept",
+  "src":    ["autogroup:member"],
+  "dst":    ["tag:agent"],
+  "users":  ["jackson", "root"]
+}
 ```
 
 Tailscale's default ships that rule with `"action": "check"`, which works but

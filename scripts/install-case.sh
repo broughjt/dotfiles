@@ -66,7 +66,8 @@ done
 if ! pass show "$authkey_entry" >/dev/null; then
   echo >&2
   echo "install-case: could not read '$authkey_entry' from the password store." >&2
-  echo "If the entry does not exist, create a reusable, pre-approved key at" >&2
+  echo "If the entry does not exist, create a reusable, pre-approved, ephemeral" >&2
+  echo "key tagged tag:agent at" >&2
   echo "https://login.tailscale.com/admin/settings/keys and run:" >&2
   echo "    pass insert $authkey_entry" >&2
   echo "If gpg reported a key error above, check that 'command -v gpg' is your" >&2
