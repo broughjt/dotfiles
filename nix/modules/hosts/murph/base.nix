@@ -13,7 +13,12 @@
 
   users.users.${config.personal.userName} = {
     uid = 1000;
-    extraGroups = [ "networkmanager" ];
+    extraGroups = [
+      "networkmanager"
+      # USB serial adapters, for example for talking to a Raspberry Pi's UART
+      # console.
+      "dialout"
+    ];
   };
 
   # The Sandia laptop cannot join the tailnet, so allow it by listing it as a
