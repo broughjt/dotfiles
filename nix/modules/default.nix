@@ -19,6 +19,15 @@
   caseBase = import ./hosts/case/base.nix;
   caseDisko = import ./hosts/case/disko.nix;
   caseAccess = import ./hosts/case/access.nix;
+
+  tarsHardware = import ./hosts/tars/hardware.nix;
+  tarsBase = import ./hosts/tars/base.nix;
+  tarsDisko = import ./hosts/tars/disko.nix;
+  tarsZfs = import ./hosts/tars/zfs.nix;
+  tarsAccess = import ./hosts/tars/access.nix;
+
+  tars1Easystore = import ./hosts/tars1/easystore.nix;
+
   diskoModule = disko.nixosModules.disko;
   impermanenceModule = impermanence.nixosModules.impermanence;
 

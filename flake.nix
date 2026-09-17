@@ -38,6 +38,15 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
+
+    # Not following our nixpkgs: the vendor kernel and ZFS module are only in
+    # nixos-raspberrypi's binary cache when built against its own pin.
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
+
+    # For hosts built on nixos-raspberrypi's nixpkgs pin, which is a release
+    # branch rather than our unstable.
+    home-manager-raspberrypi.url = "github:nix-community/home-manager/release-26.05";
+    home-manager-raspberrypi.inputs.nixpkgs.follows = "nixos-raspberrypi/nixpkgs";
   };
 
   outputs =
@@ -52,6 +61,8 @@
       nixos-anywhere,
       flake-utils,
       llm-agents-nix,
+      nixos-raspberrypi,
+      home-manager-raspberrypi,
     }:
     let
       nix-config = import ./nix/nix-config.nix;
@@ -117,6 +128,18 @@
             nixosModules
             ;
         };
+        # ./nix/hosts/tars.nix is the class rather than a configuration; each Pi
+        # is a tars<n> instance of it.
+        tars1 = import ./nix/hosts/tars1.nix {
+          inherit nixos-raspberrypi nixosModules;
+          home-manager = home-manager-raspberrypi;
+        };
+        tars-installer = import ./nix/hosts/tars-installer.nix {
+          inherit
+            nixos-raspberrypi
+            nixosModules
+            ;
+        };
       };
       darwinConfigurations = {
         s1111508 = import ./nix/hosts/s1111508.nix {
@@ -175,6 +198,15 @@
             makeScriptApp scriptPackages.installCase "install-case"
               "Provision a Hetzner Cloud VM and install NixOS on it";
           installMurph = makeScriptApp scriptPackages.installMurph "install-murph" "Install NixOS on Murph";
+          installTars =
+            makeScriptApp scriptPackages.installTars "install-tars"
+              "Install NixOS on tars from its installer image";
+          flashTarsBootstrap =
+            makeScriptApp scriptPackages.flashTarsBootstrap "flash-tars-bootstrap"
+              "Flash Raspberry Pi OS as a bootstrap that builds the tars installer";
+          flashTarsInstaller =
+            makeScriptApp scriptPackages.flashTarsInstaller "flash-tars-installer"
+              "Build the tars installer image on an aarch64 builder and flash it";
           restoreMurphSecrets =
             makeScriptApp scriptPackages.restoreMurphSecrets "restore-murph-secrets"
               "Restore Murph's persisted SSH and GPG secrets";

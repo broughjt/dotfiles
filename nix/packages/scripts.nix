@@ -77,6 +77,68 @@ let
       builtins.readFile ../../scripts/install-case.sh
     );
   };
+  installTars = pkgs.writeShellApplication {
+    name = "install-tars";
+    runtimeInputs = [
+      nixos-anywhere.packages.${system}.default
+    ]
+    ++ (with pkgs; [
+      coreutils
+      # Hashes the generated console password; the plaintext never leaves pass.
+      mkpasswd
+      # nmcli --offline writes the Wi-Fi profiles, escaping them as
+      # NetworkManager's keyfile format requires.
+      networkmanager
+      openssh
+      # No gnupg, for the reason installCase gives above.
+      pass
+    ]);
+    text = builtins.replaceStrings [ "@DOTFILES_FLAKE@" ] [ "${self}" ] (
+      builtins.readFile ../../scripts/install-tars.sh
+    );
+  };
+  flashTarsBootstrap = pkgs.writeShellApplication {
+    name = "flash-tars-bootstrap";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      diffutils
+      gnugrep
+      jq
+      # Hashes the generated console password; the plaintext never leaves pass.
+      mkpasswd
+      mtools
+      # No gnupg, for the reason installCase gives above.
+      pass
+      util-linux
+      xz
+    ];
+    text = builtins.replaceStrings [ "@DOTFILES_FLAKE@" ] [ "${self}" ] (
+      builtins.readFile ../../scripts/flash-tars-bootstrap.sh
+    );
+  };
+  flashTarsInstaller = pkgs.writeShellApplication {
+    name = "flash-tars-installer";
+    runtimeInputs = with pkgs; [
+      coreutils
+      diffutils
+      # debugfs writes the Wi-Fi profiles into the image's root partition.
+      e2fsprogs
+      gnugrep
+      jq
+      # nmcli --offline writes the Wi-Fi profiles, escaping them as
+      # NetworkManager's keyfile format requires.
+      networkmanager
+      openssh
+      # No gnupg, for the reason as installCase above.
+      pass
+      util-linux
+      zstd
+    ];
+    text = builtins.replaceStrings [ "@DOTFILES_FLAKE@" ] [ "${self}" ] (
+      builtins.readFile ../../scripts/flash-tars-installer.sh
+    );
+  };
   backupMurphSecrets = pkgs.writeShellApplication {
     name = "backup-murph-secrets";
     runtimeInputs = with pkgs; [
@@ -114,6 +176,9 @@ in
     handoffSync
     installCase
     installMurph
+    installTars
+    flashTarsBootstrap
+    flashTarsInstaller
     restoreMurphSecrets
     ;
 }
