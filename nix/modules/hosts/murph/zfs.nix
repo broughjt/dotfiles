@@ -9,7 +9,10 @@
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs = {
     devNodes = "/dev/disk/by-id";
-    forceImportRoot = true;
+    # zroot has only ever been imported by this host since the install, so the
+    # import needs no force. If a boot ever refuses it, press e in systemd-boot
+    # and append zfs_force=1 for that boot.
+    forceImportRoot = false;
     requestEncryptionCredentials = [ "zroot/enc" ];
   };
 
