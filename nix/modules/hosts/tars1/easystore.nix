@@ -78,6 +78,16 @@ in
           fi
         '';
       };
+
+      # Receives raw (`zfs send -w`) streams from murph. We never mount these,
+      # since tars1 doesn't have the key.
+      datasets.backups = {
+        type = "zfs_fs";
+        options = {
+          mountpoint = "none";
+          canmount = "off";
+        };
+      };
     };
   };
 
