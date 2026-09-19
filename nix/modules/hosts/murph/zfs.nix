@@ -49,19 +49,12 @@
     interval = "weekly";
   };
 
-  # The com.sun:auto-snapshot=true that disko.nix sets on zroot/enc/safe/persist
-  # does nothing on its own; zfstools is what reads it, and it is opt-in, so the
-  # ephemeral root, /nix and the Docker dataset are excluded by the false they
-  # already carry. Retention stays at the module's defaults until replication to
-  # a tars machine exists, because the two ends have to expire snapshots on
-  # policies that keep a common ancestor.
-  services.zfs.autoSnapshot = {
-    enable = true;
-    # -k -p are the module's defaults, kept because the option takes one string.
-    # --utc so that a daylight-saving shift cannot collide two snapshot names or
-    # order one before the snapshot it followed.
-    flags = "-k -p --utc";
-  };
+  # Snapshots and replication are in backup.nix, which uses sanoid rather than
+  # services.zfs.autoSnapshot; sanoid's naming is the only one the receiving end
+  # can expire. That leaves the com.sun:auto-snapshot properties disko.nix sets
+  # on this pool inert, since nothing reads them any more. They are harmless and
+  # stay where they are rather than provoke an edit to disko.nix; sanoid takes
+  # its dataset list from its own configuration.
 
   environment.systemPackages = with pkgs; [
     zfs

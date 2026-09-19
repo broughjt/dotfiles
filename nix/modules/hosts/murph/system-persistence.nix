@@ -78,6 +78,15 @@
       # Tailscale node identity/auth state. Keep this persisted so murph
       # remains the same tailnet node across ephemeral-root reboots.
       "/var/lib/tailscale"
+
+      # syncoid's SSH identity. If this were ephemeral the keygen unit would
+      # mint a fresh key on every boot and tars1 would refuse all of them.
+      {
+        directory = "/var/lib/syncoid";
+        user = "syncoid";
+        group = "syncoid";
+        mode = "0700";
+      }
     ];
   };
 }

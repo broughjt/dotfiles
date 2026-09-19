@@ -9,7 +9,11 @@ import ./tars.nix {
 
   instance = {
     # Black WD EasyStore
-    imports = [ nixosModules.tars1Easystore ];
+    imports = [
+      nixosModules.tars1Easystore
+      nixosModules.zfsRetention
+      nixosModules.tars1Backups
+    ];
 
     networking.hostName = "tars1";
 
