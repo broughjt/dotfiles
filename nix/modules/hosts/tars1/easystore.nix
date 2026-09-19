@@ -70,6 +70,20 @@ in
           fi
         '';
       };
+
+      # Receives raw (`zfs send -w`) streams from murph. A sibling of `data`
+      # rather than a child, because those streams arrive already encrypted
+      # under murph's passphrase: wrapping them in the EasyStore's keyfile
+      # encryption would spend Pi CPU for no added protection and would tie
+      # replication to the key-load ordering that `data` needs. Never mounted;
+      # a received dataset is read by sending it back, not by opening it here.
+      datasets.backups = {
+        type = "zfs_fs";
+        options = {
+          mountpoint = "none";
+          canmount = "off";
+        };
+      };
     };
   };
 
