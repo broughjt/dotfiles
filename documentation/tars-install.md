@@ -454,7 +454,7 @@ zpool import -f -R /mnt zroot
 ```
 
 Make sure to export the pool again before rebooting into the fixed system, or it
-will get rejecting during the first boot:
+will get rejected during the first boot:
 
 ```sh
 zpool export zroot
