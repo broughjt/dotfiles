@@ -14,6 +14,7 @@
   murphDisko = import ./hosts/murph/disko.nix;
   murphImpermanence = import ./hosts/murph/impermanence.nix;
   murphSuspendDiagnostics = import ./hosts/murph/suspend-diagnostics.nix;
+  murphBackup = import ./hosts/murph/backup.nix;
 
   caseHardware = import ./hosts/case/hardware.nix;
   caseBase = import ./hosts/case/base.nix;
@@ -33,6 +34,7 @@
   tarsAccess = import ./hosts/tars/access.nix;
 
   tars1Easystore = import ./hosts/tars1/easystore.nix;
+  tars1Backups = import ./hosts/tars1/backups.nix;
 
   diskoModule = disko.nixosModules.disko;
   impermanenceModule = impermanence.nixosModules.impermanence;

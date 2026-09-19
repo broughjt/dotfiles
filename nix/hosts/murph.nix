@@ -13,6 +13,7 @@ nixpkgs.lib.nixosSystem {
     murphDisko
     murphImpermanence
     murphSuspendDiagnostics
+    murphBackup
     nixSettings
     linux
     localDirectory
