@@ -1,13 +1,16 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 
 let
   dataset = "zroot/enc/safe/persist";
-  stateDirectory = "/var/lib/syncoid";
-  identity = "${stateDirectory}/.ssh/id_ed25519";
 
-  # nixpkgs' syncoid module names each unit after its source dataset, replacing
-  # every run of characters systemd disallows with a single dash.
-  syncoidUnit = "syncoid-zroot-enc-safe-persist.service";
+  # syncoid runs as its own system user and is always invoked with
+  # --no-privilege-elevation, so it needs an identity of its own rather than
+  # Jackson's. The private half is installed by hand once into the state
+  # directory the unit creates, and persisted from there; tars1 carries the
+  # public half. Deliberately not generated on the machine: a host that minted
+  # its own key would come up offering one tars1 does not authorize, which
+  # reads as a broken backup rather than as the setup step it is.
+  identity = "/var/lib/syncoid/.ssh/id_ed25519";
 in
 {
   # sanoid rather than services.zfs.autoSnapshot, whose zfstools names snapshots
@@ -47,30 +50,6 @@ in
       # in any case; this only states the intent at the point it applies.
       recvOptions = "u";
     };
-  };
-
-  # syncoid runs as its own system user and is always invoked with
-  # --no-privilege-elevation, so it needs an identity of its own rather than
-  # Jackson's. The private half is generated on the machine and never leaves
-  # it; tars1 carries the public half.
-  systemd.services.syncoid-keygen = {
-    description = "Generate murph's syncoid SSH identity";
-    wantedBy = [ "multi-user.target" ];
-    before = [ syncoidUnit ];
-    unitConfig.ConditionPathExists = "!${identity}";
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      User = "syncoid";
-      Group = "syncoid";
-      StateDirectory = "syncoid";
-      StateDirectoryMode = "0700";
-      UMask = "0077";
-    };
-    script = ''
-      mkdir -p ${stateDirectory}/.ssh
-      ${pkgs.openssh}/bin/ssh-keygen -t ed25519 -N "" -C "syncoid@murph" -f ${identity}
-    '';
   };
 
   # A replication run is not interactive, so tars1's host key has to be known
