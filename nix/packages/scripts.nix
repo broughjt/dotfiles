@@ -139,6 +139,25 @@ let
       builtins.readFile ../../scripts/flash-tars-installer.sh
     );
   };
+  flashKippInstaller = pkgs.writeShellApplication {
+    name = "flash-kipp-installer";
+    runtimeInputs = with pkgs; [
+      coreutils
+      diffutils
+      # debugfs writes the Wi-Fi profiles into the image's root partition.
+      e2fsprogs
+      jq
+      # nmcli --offline writes the Wi-Fi profiles, escaping them as
+      # NetworkManager's keyfile format requires.
+      networkmanager
+      # No gnupg, for the reason installCase gives above.
+      pass
+      util-linux
+    ];
+    text = builtins.replaceStrings [ "@DOTFILES_FLAKE@" ] [ "${self}" ] (
+      builtins.readFile ../../scripts/flash-kipp-installer.sh
+    );
+  };
   backupMurphSecrets = pkgs.writeShellApplication {
     name = "backup-murph-secrets";
     runtimeInputs = with pkgs; [
@@ -177,6 +196,7 @@ in
     installCase
     installMurph
     installTars
+    flashKippInstaller
     flashTarsBootstrap
     flashTarsInstaller
     restoreMurphSecrets

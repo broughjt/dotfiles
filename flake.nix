@@ -140,6 +140,9 @@
             nixosModules
             ;
         };
+        kipp-installer = import ./nix/hosts/kipp-installer.nix {
+          inherit nixpkgs nixosModules;
+        };
       };
       darwinConfigurations = {
         s1111508 = import ./nix/hosts/s1111508.nix {
@@ -201,6 +204,9 @@
           installTars =
             makeScriptApp scriptPackages.installTars "install-tars"
               "Install NixOS on tars from its installer image";
+          flashKippInstaller =
+            makeScriptApp scriptPackages.flashKippInstaller "flash-kipp-installer"
+              "Build the kipp installer image and flash it";
           flashTarsBootstrap =
             makeScriptApp scriptPackages.flashTarsBootstrap "flash-tars-bootstrap"
               "Flash Raspberry Pi OS as a bootstrap that builds the tars installer";
