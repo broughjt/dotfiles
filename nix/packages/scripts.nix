@@ -77,6 +77,23 @@ let
       builtins.readFile ../../scripts/install-case.sh
     );
   };
+  installKipp = pkgs.writeShellApplication {
+    name = "install-kipp";
+    runtimeInputs = [
+      nixos-anywhere.packages.${system}.default
+    ]
+    ++ (with pkgs; [
+      coreutils
+      # Hashes the generated console password; the plaintext never leaves pass.
+      mkpasswd
+      openssh
+      # No gnupg, for the reason installCase gives above.
+      pass
+    ]);
+    text = builtins.replaceStrings [ "@DOTFILES_FLAKE@" ] [ "${self}" ] (
+      builtins.readFile ../../scripts/install-kipp.sh
+    );
+  };
   installTars = pkgs.writeShellApplication {
     name = "install-tars";
     runtimeInputs = [
@@ -194,6 +211,7 @@ in
     flashNixosInstaller
     handoffSync
     installCase
+    installKipp
     installMurph
     installTars
     flashKippInstaller
