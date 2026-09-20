@@ -1,6 +1,13 @@
-{ ... }:
+{ options, ... }:
 
 {
+  # kipp's own outbound identity, generated on it; the private half never left
+  # /persist. sshAuthorizedKeys defaults to whatever sshPublicKey is, so naming
+  # a key here without the line after it would authorise kipp to log in to
+  # itself and nobody else. The option's default is the key I sit at.
+  personal.sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHrwcBYwvkt7fpyYoOp6UHxndoL+OgYfZNH0bP6mcesp jackson@kipp";
+  personal.sshAuthorizedKeys = [ options.personal.sshPublicKey.default ];
+
   # kipp is one of my own machines on the home LAN, like a tars and unlike a
   # `case` VM: an untagged tailnet node, with sshd left open on the LAN
   # (openssh.openFirewall defaults to true), key-only as everywhere. That is the

@@ -9,6 +9,7 @@ in
     ./fish.nix
     ./tmux.nix
     ./gh.nix
+    ./ssh.nix
     ./claude-code.nix
     ./codex.nix
   ];
@@ -19,11 +20,6 @@ in
     directories = [
       (toHomeRelativePath config.defaultDirectories.repositoriesDirectory)
       (toHomeRelativePath config.defaultDirectories.scratchDirectory)
-      # Not ./ssh.nix, which also persists an outbound key kipp does not have.
-      {
-        directory = toHomeRelativePath "${config.defaultDirectories.localDirectory}/hacks/ssh/known_hosts";
-        mode = "0700";
-      }
     ];
   };
 }

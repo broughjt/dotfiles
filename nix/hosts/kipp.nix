@@ -24,14 +24,11 @@ nixpkgs.lib.nixosSystem {
     personal
     homeDirectories
     (
-      { config, lib, ... }:
+      { config, ... }:
       let
         inherit (config) personal defaultDirectories;
       in
       {
-        # localDirectory points this at a key under ~/local/secrets. kipp holds
-        # no outbound SSH key, as `case` does not.
-        ssh.identityFile = lib.mkForce null;
         ssh.knownHostsFile = "${defaultDirectories.localDirectory}/hacks/ssh/known_hosts/known_hosts";
 
         home-manager = {
@@ -53,10 +50,9 @@ nixpkgs.lib.nixosSystem {
               inherit personal defaultDirectories;
               agentInstructions.machineFile = ../../agents/machines/kipp.md;
 
-              # With no outbound SSH key, kipp reaches GitHub over HTTPS with a
-              # token the credential helper picks up.
+              # Nobody is there to log gh in through a browser, so its API calls
+              # use a token file. Git itself goes over SSH with kipp's own key.
               gh.tokenFile = "${config.xdg.configHome}/gh/token";
-              programs.gh.settings.git_protocol = "https";
             };
         };
       }

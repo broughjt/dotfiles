@@ -25,8 +25,8 @@
       inherit (config.gh) tokenFile;
     };
 
-    # A host holding an outbound SSH key pushes over ssh. A host authenticating
-    # through gh.tokenFile holds no key and overrides this to https.
+    # A host holding an outbound SSH key pushes over ssh. A host with no key,
+    # such as `case`, sets gh.tokenFile and overrides this to https.
     settings.git_protocol = lib.mkDefault "ssh";
   };
 }
