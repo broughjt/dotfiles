@@ -140,6 +140,13 @@
             nixosModules
             ;
         };
+        kipp = import ./nix/hosts/kipp.nix {
+          inherit
+            nixpkgs
+            home-manager
+            nixosModules
+            ;
+        };
         kipp-installer = import ./nix/hosts/kipp-installer.nix {
           inherit nixpkgs nixosModules;
         };
@@ -200,6 +207,9 @@
           installCase =
             makeScriptApp scriptPackages.installCase "install-case"
               "Provision a Hetzner Cloud VM and install NixOS on it";
+          installKipp =
+            makeScriptApp scriptPackages.installKipp "install-kipp"
+              "Install NixOS on kipp from its installer stick";
           installMurph = makeScriptApp scriptPackages.installMurph "install-murph" "Install NixOS on Murph";
           installTars =
             makeScriptApp scriptPackages.installTars "install-tars"

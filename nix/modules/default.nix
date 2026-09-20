@@ -20,6 +20,12 @@
   caseDisko = import ./hosts/case/disko.nix;
   caseAccess = import ./hosts/case/access.nix;
 
+  kippHardware = import ./hosts/kipp/hardware.nix;
+  kippBase = import ./hosts/kipp/base.nix;
+  kippAccess = import ./hosts/kipp/access.nix;
+  kippDisko = import ./hosts/kipp/disko.nix;
+  kippImpermanence = import ./hosts/kipp/impermanence.nix;
+
   tarsHardware = import ./hosts/tars/hardware.nix;
   tarsBase = import ./hosts/tars/base.nix;
   tarsDisko = import ./hosts/tars/disko.nix;
@@ -62,6 +68,7 @@
   homeCodex = import ./home/codex.nix;
   homeGhostty = import ./home/ghostty.nix;
   homeLocalDirectory = import ./home/local-directory.nix;
+  homeKippImpermanence = import ./home/impermanence/kipp.nix;
   homeMurphImpermanence = import ./home/impermanence/murph.nix;
   homeVlc = import ./home/vlc.nix;
   homeEmacs = import ./home/emacs.nix;
