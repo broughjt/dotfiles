@@ -75,10 +75,24 @@ in
   # can help; it must see XDG_DATA_HOME here to avoid falling back to
   # ~/.local/share/keyrings. Keep this scoped to the personal user: non-matching
   # users skip the following pam_env rule.
+  #
+  # sshd is here as well as login because a session that arrives over SSH gets
+  # nothing from the systemd user manager's environment either. Without it the
+  # shell reads ~/.config, not the fish configuration Home Manager wrote under
+  # ~/local, and never sees the session variables that point claude and codex at
+  # their persisted state. On a host reached only over SSH that is every session.
   environment.etc."pam/${user}-xdg-environment".text = pamXdgEnvironmentText;
-  security.pam.services.login.rules.session = makePamXdgEnvironmentRules (
-    config.security.pam.services.login.rules.session.gnome_keyring
-  );
+  security.pam.services =
+    lib.genAttrs
+      [
+        "login"
+        "sshd"
+      ]
+      (service: {
+        rules.session =
+          makePamXdgEnvironmentRules
+            config.security.pam.services.${service}.rules.session.gnome_keyring;
+      });
 
   # The outbound key lives in the layout's secrets tree, beside the public half
   # home/local-directory.nix materialises.
