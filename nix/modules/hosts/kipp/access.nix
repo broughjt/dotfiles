@@ -6,7 +6,15 @@
   # a key here without the line after it would authorise kipp to log in to
   # itself and nobody else. The option's default is the key I sit at.
   personal.sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHrwcBYwvkt7fpyYoOp6UHxndoL+OgYfZNH0bP6mcesp jackson@kipp";
-  personal.sshAuthorizedKeys = [ options.personal.sshPublicKey.default ];
+  personal.sshAuthorizedKeys = [
+    options.personal.sshPublicKey.default
+    # With Tailscale SSH off, the phone needs a key like anything else.
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINqC3xJ4SpYtp8RXGzah3lpNW4Ajz2WA4aSrW5oRxDKW jackson@iphone"
+  ];
+
+  # Agents and scripts reach kipp as `ssh kipp command`, which is the case
+  # Tailscale SSH serves without the ~/local environment.
+  tailscale.ssh = false;
 
   # kipp is one of my own machines on the home LAN, like a tars and unlike a
   # `case` VM: an untagged tailnet node, with sshd left open on the LAN
