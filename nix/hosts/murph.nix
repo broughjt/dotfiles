@@ -25,6 +25,7 @@ nixpkgs.lib.nixosSystem {
     personal
     homeDirectories
     gnomeDesktop
+    chromium
     emacsPackageSet
     (
       { config, ... }:

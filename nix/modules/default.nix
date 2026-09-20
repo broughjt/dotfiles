@@ -60,6 +60,7 @@
   homeDarwin = import ./home/darwin.nix;
   homeGnomeDesktop = import ./home/gnome-desktop.nix;
   gnomeDesktop = import ./gnome-desktop.nix;
+  chromium = import ./chromium.nix;
   homeGpg = import ./home/gpg.nix;
   homePass = import ./home/pass.nix;
   homeClaudeCode = import ./home/claude-code.nix;
