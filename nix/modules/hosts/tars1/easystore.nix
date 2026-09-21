@@ -55,6 +55,14 @@ in
           encryption = "aes-256-gcm";
           keyformat = "hex";
           keylocation = "file://${installerKey}";
+          # The mountpoint property above would also make `zfs mount -a` claim
+          # this dataset, racing the systemd mount unit that disko generates
+          # from the same declaration. Whichever loses reports "mountpoint or
+          # dataset is busy" and fails; it went unnoticed because the race was
+          # won by a few tens of milliseconds until 2026-09-20. noauto leaves
+          # the mount unit as the only owner. mount(8) ignores canmount, so the
+          # unit still mounts it.
+          canmount = "noauto";
         };
         postCreateHook = "zfs set keylocation=file://${key} easystore/data";
         # disko runs this after loading the key and again after mounting the
