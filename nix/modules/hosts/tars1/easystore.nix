@@ -73,6 +73,17 @@ in
     };
   };
 
+  # Ask for keys by name rather than walking the pool. The default walks every
+  # dataset on every pool and prompts for each locked one, and syncoid's
+  # raw-send target easystore/backups/murph-persist arrives with
+  # keylocation=prompt. That makes zfs-import-easystore.service block forever in
+  # systemd-ask-password on a console this machine does not have, holding the
+  # /srv/easystore mount job open and with it local-fs.target, so
+  # multi-user.target never activates and NetworkManager never starts. The
+  # nofail above cannot help: the mount never fails, it never finishes. tars1 is
+  # not meant to hold murph's key, so it must never be asked for it.
+  boot.zfs.requestEncryptionCredentials = [ "easystore/data" ];
+
   # Trimming breaks for both the USB stick and the EasyStore
   # USB stick fails with "trim operations are not supported by this device"
   # EasyStore fails with "critical target error ... DISCARD"
