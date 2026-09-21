@@ -12,6 +12,7 @@ import ./tars.nix {
     imports = [
       nixosModules.tars1Easystore
       nixosModules.tars1Backups
+      nixosModules.tars1Immich
     ];
 
     networking.hostName = "tars1";
