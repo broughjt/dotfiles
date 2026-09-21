@@ -17,6 +17,7 @@ nixpkgs.lib.nixosSystem {
     linux
     localDirectory
     ssh
+    zram
     llmAgents
     tailscale
     docker

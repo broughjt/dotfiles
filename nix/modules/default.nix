@@ -40,6 +40,7 @@
   linux = import ./linux.nix;
   localDirectory = import ./local-directory.nix;
   ssh = import ./ssh.nix;
+  zram = import ./zram.nix;
   # Overlays are a host concern. With home-manager.useGlobalPkgs the Home
   # Manager modules share the system package set and cannot add their own.
   llmAgents = {

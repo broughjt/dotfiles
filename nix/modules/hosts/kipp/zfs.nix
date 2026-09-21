@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   pkgs,
   ...
 }:
@@ -34,12 +33,6 @@
   fileSystems."/".neededForBoot = true;
   fileSystems."/nix".neededForBoot = true;
   fileSystems."/persist".neededForBoot = true;
-
-  swapDevices = lib.mkForce [ ];
-  zramSwap = {
-    enable = true;
-    memoryPercent = 50;
-  };
 
   services.zfs.autoScrub = {
     enable = true;

@@ -16,6 +16,7 @@ nixos-raspberrypi.lib.nixosSystem {
     nixSettings
     linux
     ssh
+    zram
     tailscale
     home-manager.nixosModules.home-manager
     personal

@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   pkgs,
   ...
 }:
@@ -35,14 +34,6 @@
   fileSystems."/".neededForBoot = true;
   fileSystems."/nix".neededForBoot = true;
   fileSystems."/persist".neededForBoot = true;
-
-  # No disk swap or hibernation for now. Add a swap device and resume config later
-  # if hibernation becomes important.
-  swapDevices = lib.mkForce [ ];
-  zramSwap = {
-    enable = true;
-    memoryPercent = 50;
-  };
 
   services.zfs.autoScrub = {
     enable = true;
