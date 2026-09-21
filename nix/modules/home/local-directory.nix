@@ -19,7 +19,7 @@ in
 
   # Only the private key is persisted state; materialise the derivable public
   # half beside it.
-  home.file.${sshPublicKeyPath} = {
+  home.file.${sshPublicKeyPath} = lib.mkIf (config.personal.sshPublicKey != null) {
     force = true;
     text = config.personal.sshPublicKey + "\n";
   };

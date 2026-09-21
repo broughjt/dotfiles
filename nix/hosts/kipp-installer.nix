@@ -117,6 +117,11 @@ nixpkgs.lib.nixosSystem {
         # The profile leaves root with an empty password, which sshd refuses but
         # which should not be what stands between the LAN and a root shell.
         services.openssh.settings.PasswordAuthentication = false;
+        personal.sshAuthorizedKeys = with config.personal.sshKeys; [
+          murph
+          iphone
+          kipp
+        ];
         users.users.root.openssh.authorizedKeys.keys = config.personal.sshAuthorizedKeys;
 
         systemd.services.kipp-installer-report = {

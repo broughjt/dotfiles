@@ -51,6 +51,11 @@ nixos-raspberrypi.lib.nixosInstaller {
         services.resolved.enable = true;
         networking.networkmanager.connectionConfig."connection.mdns" = 2;
 
+        personal.sshAuthorizedKeys = with config.personal.sshKeys; [
+          murph
+          iphone
+          kipp
+        ];
         users.users.root.openssh.authorizedKeys.keys = config.personal.sshAuthorizedKeys;
 
         # serial0 is the debug connector by default on a Pi 5. This moves it to

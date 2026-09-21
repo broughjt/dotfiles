@@ -1,6 +1,16 @@
-{ ... }:
+{ config, ... }:
 
 {
+  personal.sshAuthorizedKeys = with config.personal.sshKeys; [
+    murph
+    iphone
+    kipp
+  ];
+
+  # sshd answers on the tailnet as it does on the LAN, so who gets in is the
+  # list above and not also the tailnet policy.
+  tailscale.ssh = false;
+
   # Unlike case, a tars machine has no public address, so sshd stays open on the
   # LAN (openssh.openFirewall defaults to true), key-only as everywhere. It is
   # the way in when the tailnet is what broke: a first boot that fails to

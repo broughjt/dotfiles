@@ -1,6 +1,14 @@
-{ ... }:
+{ config, ... }:
 
 {
+  # Tailscale SSH is the normal way in and doesn't require a key. This is for
+  # normal sshd.
+  personal.sshAuthorizedKeys = with config.personal.sshKeys; [
+    murph
+    iphone
+    kipp
+  ];
+
   # Avoid openning port 22 open to the world. Should be reachable over the
   # tailnet only.
   services.openssh.openFirewall = false;

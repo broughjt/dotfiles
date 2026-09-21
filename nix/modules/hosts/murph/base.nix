@@ -21,11 +21,10 @@
     ];
   };
 
-  # The Sandia laptop cannot join the tailnet, so allow it by listing it as a
-  # normal authorized SSH key.
-  personal.sshAuthorizedKeys = [
-    config.personal.sshPublicKey
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL7nCb5NzPd5XpYVk/4g07v4E4WtpikAjJIGKJpsVWeP jtbroug@sandia.gov"
+  personal.sshPublicKey = config.personal.sshKeys.murph;
+  personal.sshAuthorizedKeys = with config.personal.sshKeys; [
+    iphone
+    sandia
   ];
 
   # murph's root is ephemeral, so host keys go to the persisted hacks tree; the

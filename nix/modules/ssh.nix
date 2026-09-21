@@ -40,5 +40,22 @@ in
       Match localuser ${user}
     ''
     + lib.concatMapStrings (line: "  ${line}\n") clientPolicy;
+
+    # Host keys stated here are known from the first boot, so that a
+    # non-interactive caller is won't fail to accept it interactively, and also
+    # so that changes to a key shows up in diffs.
+    programs.ssh.knownHosts =
+      lib.mapAttrs (name: publicKey: {
+        inherit publicKey;
+        hostNames = [
+          name
+          "${name}.local"
+        ];
+      }) config.personal.sshHostKeys
+      // {
+        # https://api.github.com/meta
+        "github.com".publicKey =
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
+      };
   };
 }

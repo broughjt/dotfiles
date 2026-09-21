@@ -30,6 +30,8 @@ nixpkgs.lib.nixosSystem {
     (
       { config, ... }:
       {
+        tailscale.ssh = false;
+
         home-manager = {
           useGlobalPkgs = true;
           useUserPackages = true;
