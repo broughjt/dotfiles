@@ -23,7 +23,6 @@ let
     ];
     text = builtins.readFile ../../scripts/apply_tailnet_policy.sh;
   };
-  handoffSync = pkgs.callPackage ./handoff-sync.nix { };
   flashNixosInstaller = pkgs.writeShellApplication {
     name = "flash-nixos-installer";
     runtimeInputs = with pkgs; [
@@ -209,7 +208,6 @@ in
     applyTailnetPolicy
     backupMurphSecrets
     flashNixosInstaller
-    handoffSync
     installCase
     installKipp
     installMurph

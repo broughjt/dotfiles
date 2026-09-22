@@ -36,6 +36,7 @@
   tars1Easystore = import ./hosts/tars1/easystore.nix;
   tars1Backups = import ./hosts/tars1/backups.nix;
   tars1Immich = import ./hosts/tars1/immich.nix;
+  tars1Git = import ./hosts/tars1/git.nix;
 
   diskoModule = disko.nixosModules.disko;
   impermanenceModule = impermanence.nixosModules.impermanence;
