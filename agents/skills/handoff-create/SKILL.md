@@ -12,20 +12,22 @@ current state, workflow, and what not to reopen.
 ## The document set
 
 An **arc** is one sustained goal spanning many sessions. Arc docs are archived
-to `.scratch/archive/` when the arc lands.
+to `.scratch/handoff-<project>/archive/` when the arc lands.
 
-An arc has two files, both under `.scratch/`:
+An arc has two files, both in the handoff repository:
 
 | File | Holds | Read |
 |---|---|---|
 | `handoff-<slug>.md` | the arc's current state | every session of that arc |
 | `handoff-<slug>-log.md` | the arc's history | only when history matters |
 
-`.scratch/` is intentionally Git-ignored operational state. Discover it through
-direct filesystem paths or filesystem enumeration; default `rg --files`, `fd`,
-and Git file listings may omit it. Create and update these artifacts anyway.
-Never force-add or commit them, and do not describe their expected absence from
-a commit as skipped or incomplete work.
+Handoff documents live in the **handoff repository**, a Git repository of their
+own at `.scratch/handoff-<project>/`, where `<project>` is the name of the
+project's top-level directory. The project ignores `.scratch/`, so `rg --files`,
+`fd` and the project's own Git listings omit it; reach it by path. Every path
+below is written from the project root, as the documents write them. Work in the
+repository with `git -C .scratch/handoff-<project>`; handoff documents should be
+committed there and never in the project.
 
 State and history are separate files on purpose. A fresh agent pays nothing for
 history it does not need, so the log can stay rich without degrading the
@@ -66,10 +68,10 @@ Places to check:
 
 - `README.md`, `AGENTS.md` / `CLAUDE.md`, and any other public facing
   documentation
-- existing `.scratch/handoff-*.md`, excluding `*-log.md`, plus any background
-  doc in `.scratch/` and `.scratch/archive/`
-- existing `.scratch/workflow-*.md`; a `verbatim` copy can be shared with this
-  arc rather than duplicated
+- existing `handoff-*.md` in the handoff repository, excluding `*-log.md`,
+  plus any background doc there and in its `archive/`
+- existing `workflow-*.md` in the handoff repository; a `verbatim` copy can be
+  shared with this arc rather than duplicated
 - build and test configuration; the commands that verify the project
 - `git log` for the last 10–20 commits, and `git status`
 
@@ -82,9 +84,9 @@ say so in the field instead of inventing a result.
 
 ## Step 3: Ask about what you cannot infer
 
-Interview the user about what you cannot infer. Use the harness's structured question
-tool when available, otherwise ask in chat. Lead with your recommendation as the
-first option, labeled `(Recommended)`.
+Interview the user about what you cannot infer. Use the harness's structured
+question tool when available, otherwise ask in chat. Lead with your
+recommendation as the first option, labeled `(Recommended)`.
 
 Which questions matter depends on the project and on the work. Use the
 information from Step 2 to choose the questions, and skip anything Step 2
@@ -131,14 +133,18 @@ fits the phase in front of you, say so.
 
 ## Step 4: Write
 
+The handoff repository has to exist first. If `.scratch/` has no `handoff-*`
+directory, ask the user to create it and its clone rather than running `git
+init` yourself; the handoff repository and its remote are theirs.
+
 Copy `reference/arc-template.md` and fill it in.
 
-Install the workflow at `.scratch/workflow-<name>.md`: copy the chosen pattern
-out of `reference/workflows/`, or write the bespoke definition there. Open the
-file with the provenance line `reference/workflows/README.md` specifies. `Start
-here`'s `Workflow:` field names the pattern and that path. **The copy is what
-governs the arc**, so an arc keeps the rules it started under even when the
-shared pattern later changes.
+Install the workflow at `.scratch/handoff-<project>/workflow-<name>.md`: copy
+the chosen pattern out of `reference/workflows/`, or write the bespoke
+definition there. Open the file with the provenance line
+`reference/workflows/README.md` specifies. `Start here`'s `Workflow:` field
+names the pattern and that path. **The copy is what governs the arc**, so an arc
+keeps the rules it started under even when the shared pattern later changes.
 
 Create the companion `-log.md` with this preamble, and a single entry below it
 recording the doc's creation and the decisions taken in the interview:
@@ -158,7 +164,7 @@ Rules for the prose:
 - No section restates what a file it names already says. Point at the file
   and say what to look for.
 - Facts are entries, not essays. Detail that only matters while one task is
-  in flight belongs in `.scratch/plan-<task>.md`.
+  in flight belongs in `.scratch/handoff-<project>/plan-<task>.md`.
 - A procedure repeated across sessions belongs under a named section in the
   workflow copy. `Next` names the action and that section; it does not restate
   the procedure or its standing reads.
@@ -181,3 +187,9 @@ delete it.** If nothing qualifies for relocation, the document is simply that
 long--no need to fret about length further.
 
 Do not report the document's length to the user or justify it.
+
+## Step 5: Commit
+
+Commit the new documents and the workflow copy in the handoff repository and
+push, the way `handoff-update` step 5 does. If a push fails (e.g. due to the
+lack of a remote), report this to the user.

@@ -14,19 +14,20 @@ Run this at the end of a working session on an arc. It keeps the document from
 degrading. State should be edited in place, history moved out, and findings
 promoted up.
 
-`.scratch/` is intentionally Git-ignored operational state. Discover it through
-direct filesystem paths or filesystem enumeration; default `rg --files`, `fd`,
-and Git file listings may omit it. Create and update these artifacts anyway.
-Never force-add or commit them, and do not describe their expected absence from
-a commit as skipped or incomplete work.
+Handoff documents live in the **handoff repository**, a Git repository of their
+own at `.scratch/handoff-<project>/`, where `<project>` is the name of the
+project's top-level directory. The project ignores `.scratch/`, so `rg --files`,
+`fd` and the project's own Git listings omit it; reach it by path. Every path
+below is written from the project root, as the documents write them. Work in the
+repository with `git -C .scratch/handoff-<project>`; handoff documents are
+committed there and never in the project.
 
 Find the document directly from the filesystem:
 
 ```sh
-if test -d .scratch; then
-  find .scratch -maxdepth 1 -type f \
-    -name 'handoff-*.md' ! -name 'handoff-*-log.md' -print
-fi
+repo=$(find .scratch -mindepth 1 -maxdepth 1 -type d -name 'handoff-*')
+find "$repo" -maxdepth 1 -type f \
+  -name 'handoff-*.md' ! -name 'handoff-*-log.md' -print
 ```
 
 Do not use `rg --files`, `git ls-files`, or another ignore-aware file listing.
@@ -97,13 +98,14 @@ needs; they know nothing. Rewrite every field, and keep the whole block **under
   the one most often left stale.
 - **Workflow**: the pattern governing `Next` and the path to its copy. That is
   the task's override when it has one, otherwise the arc default. The arc runs
-  against `.scratch/workflow-<name>.md`, never against the shared pattern it was
-  copied from, so a pattern named here without a copy installed is a defect. If
-  the workflow changed this session, or the next task carries an override with
-  no copy yet, install it from `../handoff-create/reference/workflows/`, point
-  this field at it, and record the switch and its reason in the log. Amending a
-  `verbatim` copy means forking it under a new name. Amend a `forked` or `coined`
-  copy in place, date the change in the file and record it in the log; see
+  against `.scratch/handoff-<project>/workflow-<name>.md`, never against the
+  shared pattern it was copied from, so a pattern named here without a copy
+  installed is a defect. If the workflow changed this session, or the next task
+  carries an override with no copy yet, install it from
+  `../handoff-create/reference/workflows/`, point this field at it, and record
+  the switch and its reason in the log. Amending a `verbatim` copy means forking
+  it under a new name. Amend a `forked` or `coined` copy in place, date the
+  change in the file and record it in the log; see
   `../handoff-create/reference/workflows/README.md`.
 - **Review**: see below.
 - **Verified state**: see below.
@@ -116,9 +118,10 @@ This field says whether a review is open. Two states:
 - `in-review, <checkpoint> <referent>`: a review is open. The referent is a
   commit SHA, or a path when the thing under review is not a commit. `Next` says
   what resumes once it closes, not what to do now. The arc's
-  `.scratch/workflow-<name>.md` file will say which checkpoints to include. Do
-  not invent a checkpoint the workflow does not define, and do not carry one
-  over from a workflow the arc has switched away from.
+  `.scratch/handoff-<project>/workflow-<name>.md` file will say which
+  checkpoints to include. Do not invent a checkpoint the workflow does not
+  define, and do not carry one over from a workflow the arc has switched away
+  from.
 
 **State, checkpoint and referent, nothing else.** Do not include what the review
 has found or how much of it is left.
@@ -165,20 +168,37 @@ trusting a green that only ever covered half the tree.
 findings reached *Facts established* and its rejected approaches reached *Do not
 reopen*. The log entries behind it can then be left exactly where they are.
 
-Move any `.scratch/` artifact the task owned, its plan doc for instance, to
-`.scratch/archive/`, **and drop it from `Read first`**.
+Move any artifact the task owned, its plan doc for instance, to
+`.scratch/handoff-<project>/archive/` with `git mv`, **and drop it from `Read
+first`**.
 
 **When the handoff document is getting long**: follow the handoff document's
 *Keeping this doc current* section, and tell the user what you moved.
 
-**When an arc completes**: move both files to `.scratch/archive/`, together with
-every workflow copy that is bespoke to this arc, overrides included, and any
-`.scratch/review-<slug>.md` or `.scratch/spike-<slug>.md` the arc produced. A
-`verbatim` workflow copy stays put, since another arc may be running against it.
-Promote anything durable that outlives the arc first. An archived document is
-history, and nothing should have to be grepped out of it.
+**When an arc completes**: `git mv` both files to
+`.scratch/handoff-<project>/archive/`, together with every workflow copy that is
+bespoke to this arc, overrides included, and any
+`.scratch/handoff-<project>/review-<slug>.md` or
+`.scratch/handoff-<project>/spike-<slug>.md` the arc produced. A `verbatim`
+workflow copy stays put, since another arc may be running against it. Promote
+anything durable that outlives the arc first. An archived document is history,
+and nothing should have to be grepped out of it.
 
-## Step 5: Report
+## Step 5: Commit and push
+
+Commit everything the session changed in the handoff repository as one commit,
+with a one-line subject naming the arc and the log entry's headline:
+
+```sh
+git -C "$repo" add -A
+git -C "$repo" commit -m "<arc>: <headline>"
+git -C "$repo" push
+```
+
+If a push fails (e.g. no remote is configured, the remote cannot be reached, the
+push is rejected), add this to the report. Never force-push.
+
+## Step 6: Report
 
 Tell the user what you changed in the document, what you promoted, and what you
 moved or archived. If you found a claim you could not verify, say which one and

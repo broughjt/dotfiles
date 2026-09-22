@@ -8,29 +8,44 @@ description: Resume multi-session work from a handoff document. Reads the doc, l
 Argument forms:
 
 - *(none)*: find the document, brief, wait
-- `<slug>`: use `.scratch/handoff-<slug>.md`
+- `<slug>`: use `.scratch/handoff-<project>/handoff-<slug>.md`
 - `go`: brief, then begin the `Next` action without waiting
 - `<slug> go`: both
 
-`.scratch/` is intentionally Git-ignored operational state. Discover it through
-direct filesystem paths or filesystem enumeration; default `rg --files`, `fd`,
-and Git file listings may omit it. Create and update these artifacts anyway.
-Never force-add or commit them, and do not describe their expected absence from
-a commit as skipped or incomplete work.
+Handoff documents live in the **handoff repository**, a Git repository of their
+own at `.scratch/handoff-<project>/`, where `<project>` is the name of the
+project's top-level directory. The project ignores `.scratch/`, so `rg --files`,
+`fd` and the project's own Git listings omit it; reach it by path. Every path
+below is written from the project root, as the documents write them. Work in the
+repository with `git -C .scratch/handoff-<project>`; handoff documents are
+committed there and never in the project.
 
 ## Step 1: Find the document
 
 Enumerate handoff documents directly from the filesystem:
 
 ```sh
-if test -d .scratch; then
-  find .scratch -maxdepth 1 -type f \
-    -name 'handoff-*.md' ! -name 'handoff-*-log.md' -print
-fi
+repo=$(find .scratch -mindepth 1 -maxdepth 1 -type d -name 'handoff-*')
+find "$repo" -maxdepth 1 -type f \
+  -name 'handoff-*.md' ! -name 'handoff-*-log.md' -print
 ```
 
 Do not use `rg --files`, `git ls-files`, or another ignore-aware file listing.
 
+Then bring the handoff repository up to date before reading anything in it:
+
+```sh
+git -C "$repo" status --short
+git -C "$repo" pull --ff-only
+```
+
+A dirty handoff tree is reported like any other dirty tree in step 3. When the
+pull fails because no remote is configured or it cannot be reached, say so in
+the brief and continue with what is checked out. When it fails because the
+histories have diverged, stop and ask; do not merge or rebase handoff documents
+on your own.
+
+- **No handoff repository**: say so and stop. The user creates it.
 - **One match**: use it.
 - **Several**: list them with each one's `Next:` line and ask which. Do not
   guess from recency; the user may be switching arcs deliberately.
@@ -55,10 +70,11 @@ checks in every repository or worktree the handoff names, not only the one
 containing the handoff. Additional repositories belong in **Verified state**;
 they do not need a separate registry.
 
-- `git status --short` in each one. Report every dirty tree. Uncommitted work
-  the handoff or user identifies as user-authored is the session's first
-  input: review it before `Next`; it is not a discrepancy. Anything else
-  uncommitted remains unexplained and worth raising.
+- `git status --short` in each one, and in the handoff repository. Report
+  every dirty tree. Uncommitted work the handoff or user identifies as
+  user-authored is the session's first input: review it before `Next`; it is
+  not a discrepancy. Anything else uncommitted remains unexplained and worth
+  raising.
 - `git log --oneline` in each one since the **Verified state** date. Compare
   against **Review** and the state recorded for that repository. Commits the
   document does not describe, or none where it claims a review is in progress,

@@ -8,14 +8,14 @@
 - `<path>`: <why this one, in a clause>
 - `<path>`: <why>
 
-**Workflow:** <pattern name> — `.scratch/workflow-<name>.md`
+**Workflow:** <pattern name> — `.scratch/handoff-<project>/workflow-<name>.md`
 
 **Review:** <`none`, or `in-review, <checkpoint> <referent>`, where the referent
 is a commit SHA, or a path when the thing under review is not a commit. The
-arc's `.scratch/workflow-<name>.md` will describe which checkpoints to
-use. `in-review` parks `Next`, which then says what resumes once the review
-closes, not what to do now. State, checkpoint and referent only; review findings
-do not belong here. A new arc starts `none`.>
+arc's `.scratch/handoff-<project>/workflow-<name>.md` will describe which
+checkpoints to use. `in-review` parks `Next`, which then says what resumes once
+the review closes, not what to do now. State, checkpoint and referent only;
+review findings do not belong here. A new arc starts `none`.>
 
 **Verified state:** <YYYY-MM-DD>: `<cheapest command that would catch this doc
 being wrong>` (<observed duration>) → <observed result>; `<other command run>`
@@ -34,12 +34,14 @@ shifts.>
 
 <What "done" looks like, concretely enough to check. Then the shape of the
 route: phases, ordering constraints, what must be settled before what. This is
-not a task-level plan; those live in `.scratch/plan-<task>.md`.>
+not a task-level plan; those live in
+`.scratch/handoff-<project>/plan-<task>.md`.>
 
 ## Tasks
 
-- [ ] <task> (<override: <pattern name> `.scratch/workflow-<name>.md`, when it
-      differs from the doc default>)
+- [ ] <task> (<override: <pattern name>
+  `.scratch/handoff-<project>/workflow-<name>.md`, when it differs from the doc
+  default>)
 - [ ] <task>
 - [x] <finished task> (landed <YYYY-MM-DD>, commit if there is one)
 
@@ -91,5 +93,6 @@ _None._
   executed by an agent that knows nothing. Name specific files and say why in
   a clause, not "the relevant source".
 - Past ~400 lines, consider moving material to a better home: `AGENTS.md`, the
-  project's published docs, a `.scratch/` background doc, a plan doc, etc. Never
-  delete to hit a length. *Facts established* and *Do not reopen* have no limit.
+  project's published docs, a `.scratch/handoff-<project>/` background doc, a
+  plan doc, etc. Never delete to hit a length. *Facts established* and *Do not
+  reopen* have no limit.
