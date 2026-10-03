@@ -9,6 +9,7 @@
       ])
       ++ (with scriptPackages; [
         backupMurphSecrets
+        handoff
         restoreMurphSecrets
       ])
       ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux (

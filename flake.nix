@@ -201,6 +201,7 @@
           flashNixosInstaller =
             makeScriptApp scriptPackages.flashNixosInstaller "flash-nixos-installer"
               "Download and write a NixOS installer image";
+          handoff = makeScriptApp scriptPackages.handoff "handoff" "Automation for the handoff skills";
           installCase =
             makeScriptApp scriptPackages.installCase "install-case"
               "Provision a Hetzner Cloud VM and install NixOS on it";

@@ -202,12 +202,23 @@ let
       exec python3 ${../../scripts/restore_murph_secrets.py} "$@"
     '';
   };
+  handoff = pkgs.writeShellApplication {
+    name = "handoff";
+    runtimeInputs = with pkgs; [
+      git
+      python3
+    ];
+    text = ''
+      exec python3 ${../../scripts/handoff.py} "$@"
+    '';
+  };
 in
 {
   inherit
     applyTailnetPolicy
     backupMurphSecrets
     flashNixosInstaller
+    handoff
     installCase
     installKipp
     installMurph
