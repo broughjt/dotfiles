@@ -16,6 +16,7 @@ pkgs.symlinkJoin {
     rm -f "$out/bin/claude"
     makeWrapper ${pkgs.llm-agents.claude-code}/bin/claude "$out/bin/claude" \
       --prefix PATH : ${lib.escapeShellArg agentToolPath} \
-      --add-flags --dangerously-skip-permissions
+      --add-flags --dangerously-skip-permissions \
+      --add-flags "--permission-prompts none"
   '';
 }
