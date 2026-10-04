@@ -202,11 +202,13 @@ let
       exec python3 ${../../scripts/restore_murph_secrets.py} "$@"
     '';
   };
+  handoffPython = pkgs.python3.withPackages (ps: [ ps.tomli-w ]);
   handoff = pkgs.writeShellApplication {
     name = "handoff";
     runtimeInputs = with pkgs; [
+      bash
       git
-      python3
+      handoffPython
     ];
     text = ''
       exec python3 ${../../scripts/handoff.py} "$@"
@@ -219,6 +221,7 @@ in
     backupMurphSecrets
     flashNixosInstaller
     handoff
+    handoffPython
     installCase
     installKipp
     installMurph
