@@ -20,16 +20,9 @@ def write_checks(arc: Path, text: str) -> None:
     (arc / handoff.CHECKS).write_text(textwrap.dedent(text))
 
 
-class LoadChecks(unittest.TestCase):
-    def setUp(self) -> None:
-        directory = tempfile.TemporaryDirectory()
-        self.addCleanup(directory.cleanup)
-        self.directory = Path(directory.name)
-        self.path = self.directory / handoff.CHECKS
-
+class ParseChecks(unittest.TestCase):
     def load(self, text: str) -> list[Check]:
-        self.path.write_text(textwrap.dedent(text))
-        return handoff.load_checks(self.path)
+        return handoff.parse_checks(handoff.tomllib.loads(textwrap.dedent(text)))
 
     def test_defaults_and_order(self) -> None:
         checks = self.load(
@@ -57,8 +50,14 @@ class LoadChecks(unittest.TestCase):
             'x = 1\n',  # not a table
             '[x\n',  # not TOML
         ):
-            with self.subTest(text=text), self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            with self.subTest(text=text), self.assertRaises(ValueError):
                 self.load(text)
+
+    def test_parser_raises_without_printing(self) -> None:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr), self.assertRaisesRegex(ValueError, "x: claim"):
+            handoff.parse_checks({"x": {"run": "true"}})
+        self.assertEqual(stderr.getvalue(), "")
 
 
 class RunCheck(unittest.TestCase):
@@ -190,10 +189,17 @@ class CheckCommand(unittest.TestCase):
         self.assertEqual(self.check("arc").returncode, 0)
         self.assertEqual(self.check("missing").returncode, 2)
 
+    def test_explicit_check_does_not_require_start(self) -> None:
+        write_checks(self.arc, "")
+        (self.arc / handoff.START).unlink()
+        self.assertEqual(self.check("arc").returncode, 0)
+        self.assertEqual(self.check().returncode, 2)
+
     def test_missing_or_invalid_checks(self) -> None:
         result = self.check()
         self.assertEqual(result.returncode, 2)
-        self.assertIn("does not exist", result.stderr)
+        self.assertIn("checks.toml", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
         write_checks(self.arc, "[broken")
         result = self.check()
         self.assertEqual(result.returncode, 2)
@@ -206,6 +212,96 @@ class CheckCommand(unittest.TestCase):
                 result = self.check()
                 self.assertEqual(result.returncode, 2, result.stderr)
                 self.assertIn("timeout must be", result.stderr)
+
+
+class Lint(unittest.TestCase):
+    def setUp(self) -> None:
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.repository = Path(directory.name)
+        subprocess.run(["git", "init", "-q", str(self.repository)], check=True)
+        self.arc = self.repository / "arc"
+        self.arc.mkdir()
+        for name in handoff.STATE_FILES:
+            (self.arc / name).write_text("")
+        # This command must never execute during lint.
+        write_checks(self.arc, '[x]\nclaim = "example"\nrun = "touch SHOULD_NOT_EXIST"\n')
+
+    def lint(self, *arguments: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(Path(handoff.__file__).resolve()),
+             "--repository", str(self.repository), "lint", *arguments],
+            cwd=self.arc, capture_output=True, text=True,
+        )
+
+    def checkpoint(self, name: str, results: str = "") -> Path:
+        entry = self.arc / "log" / name
+        entry.mkdir(parents=True)
+        (entry / "entry.md").write_text("checkpoint")
+        (entry / "results.toml").write_text(results)
+        return entry
+
+    def test_new_arc_is_valid_and_read_only(self) -> None:
+        before = {p.relative_to(self.arc): p.read_bytes() for p in self.arc.rglob("*") if p.is_file()}
+        result = self.lint()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        after = {p.relative_to(self.arc): p.read_bytes() for p in self.arc.rglob("*") if p.is_file()}
+        self.assertEqual(before, after)
+
+    def test_reports_multiple_defects_including_missing_start(self) -> None:
+        (self.arc / "start.md").unlink()
+        (self.arc / "arc.md").unlink()
+        (self.arc / "arc.md").mkdir()
+        write_checks(self.arc, '[x]\nrun = "true"\n')
+        entry = self.checkpoint("1", "[broken")
+        (entry / "entry.md").unlink()
+        result = self.lint("arc")
+        self.assertEqual(result.returncode, 1, result.stderr)
+        for text in ("start.md", "arc.md", "checks.toml", "entry.md", "results.toml", "5 lint errors"):
+            self.assertIn(text, result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_incomplete_latest_checkpoint_is_not_ignored(self) -> None:
+        self.checkpoint("1")
+        latest = self.checkpoint("2")
+        (latest / "results.toml").unlink()
+        diagnostics = handoff.lint_arc(self.arc)
+        self.assertEqual([d.path for d in diagnostics], [latest / "results.toml"])
+
+    def test_canonical_checkpoint_names(self) -> None:
+        self.checkpoint("1")
+        self.checkpoint("10")
+        invalid = ("01", "0001", "0", "yesterday", "١", "²", "-1")
+        for name in invalid:
+            self.checkpoint(name)
+        (self.arc / "log" / "2").write_text("")
+        diagnostics = handoff.lint_arc(self.arc)
+        self.assertEqual({d.path.name for d in diagnostics}, {*invalid, "2"})
+
+    def test_log_must_be_a_directory(self) -> None:
+        (self.arc / "log").write_text("")
+        self.assertEqual(self.lint().returncode, 1)
+
+    def test_explicit_arc_cannot_escape_repository(self) -> None:
+        for name in ("..", ".git", "../arc", str(self.arc)):
+            with self.subTest(name=name):
+                self.assertEqual(self.lint(name).returncode, 2)
+
+    def test_repository_detection_supports_worktrees_and_rejects_subdirectories(self) -> None:
+        self.assertTrue(handoff.is_git_repository(self.repository))
+        self.assertFalse(handoff.is_git_repository(self.arc))
+        subprocess.run(
+            ["git", "-C", str(self.repository), "-c", "user.name=Test",
+             "-c", "user.email=test@example.com", "commit", "--allow-empty", "-qm", "Initialize"],
+            check=True,
+        )
+        worktree = self.repository / "linked"
+        subprocess.run(
+            ["git", "-C", str(self.repository), "worktree", "add", "--detach", str(worktree)],
+            check=True, capture_output=True,
+        )
+        self.assertTrue((worktree / ".git").is_file())
+        self.assertTrue(handoff.is_git_repository(worktree))
 
 
 if __name__ == "__main__":

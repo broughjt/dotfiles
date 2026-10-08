@@ -24,6 +24,7 @@ CHECKS = "checks.toml"
 ARCHIVE_TAG_PREFIX = "archive/"
 DEFAULT_TIMEOUT = 60.0
 OUTPUT_LINES = 20
+STATE_FILES = (START, "arc.md", "tasks.md", "do-not-reopen.md", "open-questions.md", "review.md", "workflow.md")
 
 
 def main() -> None:
@@ -46,6 +47,14 @@ def main() -> None:
     )
     check_parser.add_argument("arc", nargs="?", help="arc (optional when exactly one arc is active)")
     check_parser.set_defaults(func=compose2(handle_check, CheckArguments.parse))
+
+    lint_parser = subparsers.add_parser(
+        "lint",
+        help="check arc structure without running predicates or changing files",
+        description="Exits 0 for a valid arc, 1 for lint errors, 2 for usage errors.",
+    )
+    lint_parser.add_argument("arc", nargs="?", help="arc (optional when exactly one arc is active)")
+    lint_parser.set_defaults(func=compose2(handle_lint, LintArguments.parse))
 
     arguments = parser.parse_args()
     arguments.func(arguments)
@@ -125,64 +134,41 @@ class Check:
 
 @dataclass(frozen=True)
 class CheckArguments:
-    repository: Path
-    arc: str
+    arc_arguments: ArcArguments
 
     @staticmethod
     def parse(arguments: argparse.Namespace) -> Self:
-        global_arguments = GlobalArguments.parse(arguments)
-        repository = global_arguments.repository
-
-        match (list_arcs(repository), arguments.arc):
-            case ([], _):
-                die("there are no active arcs")
-            case ([a], None):
-                arc = a
-            case (arcs, None):
-                die(f"specify the arc; active arcs: {', '.join(arcs)}")
-            case (arcs, a) if a in arcs:
-                arc = a
-            case (arcs, a):
-                die(f"{a} is not an active arc; active arcs: {', '.join(arcs)}")
-
-        return CheckArguments(repository, arc)
+        return CheckArguments(ArcArguments.parse(arguments))
 
 
 def handle_check(arguments: CheckArguments) -> None:
-    repository, arc = arguments.repository, arguments.arc
+    repository, arc = arguments.arc_arguments.repository, arguments.arc_arguments.arc
     checks_path = repository / arc / CHECKS
-    if not checks_path.exists():
-        die(f"{checks_path} does not exist")
-    checks = load_checks(checks_path)
+    try:
+        with checks_path.open("rb") as file:
+            checks = parse_checks(tomllib.load(file))
+    except (OSError, ValueError) as error:
+        die(f"{checks_path}: {error}")
     run = run_checks(checks)
     report(checks, run)
     ok = all(result.outcome is Outcome.TRUE for result in run.results.values())
     raise SystemExit(0 if ok else 1)
 
 
-def load_checks(path: Path) -> list[Check]:
-    try:
-        with path.open("rb") as file:
-            data = tomllib.load(file)
-    except (OSError, ValueError) as error:
-        die(f"{path}: {error}")
-    return parse_checks(data)
-
-
 def parse_checks(data: dict) -> list[Check]:
     checks = list()
     for id, entry in data.items():
         if not isinstance(entry, dict):
-            die(f"{id} is not a table")
+            raise ValueError(f"{id} is not a table")
         unknown = set(entry) - {"claim", "run", "timeout"}
         if unknown:
-            die(f"{id} has unknown keys {', '.join(sorted(unknown))}")
+            raise ValueError(f"{id} has unknown keys {', '.join(sorted(unknown))}")
         claim = entry.get("claim")
         if not isinstance(entry.get("claim"), str):
-            die(f"{id}: claim is not a string")
+            raise ValueError(f"{id}: claim is not a string")
         run = entry.get("run")
         if not isinstance(entry.get("run"), str):
-            die(f"{id}: run is not a string")
+            raise ValueError(f"{id}: run is not a string")
         timeout = entry.get("timeout", DEFAULT_TIMEOUT)
         if (
             # hahah `isinstance(False, int)` evaluates to `True`
@@ -191,7 +177,7 @@ def parse_checks(data: dict) -> list[Check]:
             or not math.isfinite(timeout)
             or timeout <= 0
         ):
-            die(f"{id} timeout must be a positive number of seconds")
+            raise ValueError(f"{id} timeout must be a positive number of seconds")
         checks.append(Check(id, claim, run, float(timeout)))
     return checks
 
@@ -256,7 +242,125 @@ def report(checks: list[Check], run: Run) -> None:
     print(f"\nhost: {run.host}, duration: {run.duration:.1f}s, summary: {summary or 'no checks'}")
 
 
+# Lint
+
+
+@dataclass(frozen=True)
+class LintArguments:
+    arc_arguments: ArcArguments
+
+    @staticmethod
+    def parse(arguments: argparse.Namespace) -> Self:
+        return LintArguments(ArcArguments.parse(arguments))
+
+
+@dataclass(frozen=True)
+class Diagnostic:
+    path: Path
+    message: str
+
+
+def handle_lint(arguments: LintArguments) -> None:
+    repository, arc = arguments.arc_arguments.repository, arguments.arc_arguments.arc
+    diagnostics = lint_arc(repository / arc)
+    for diagnostic in diagnostics:
+        print(f"{diagnostic.path}: {diagnostic.message}")
+    print(f"{arc}: {len(diagnostics)} lint errors")
+    raise SystemExit(1 if diagnostics else 0)
+
+
+def lint_arc(arc: Path) -> list[Diagnostic]:
+    """Check working-tree structure; prose and results schemas remain unvalidated."""
+    diagnostics = []
+
+    def require_file(path: Path) -> bool:
+        if path.is_file():
+            return True
+        diagnostics.append(Diagnostic(path, "expected a regular file"))
+        return False
+
+    for name in STATE_FILES:
+        require_file(arc / name)
+    checks_path = arc / CHECKS
+    if require_file(checks_path):
+        try:
+            with checks_path.open("rb") as file:
+                parse_checks(tomllib.load(file))
+        except (OSError, ValueError) as error:
+            diagnostics.append(Diagnostic(checks_path, str(error)))
+
+    log = arc / "log"
+    if not log.exists():
+        return diagnostics  # A new arc doesn't need to have a log yet.
+    if not log.is_dir():
+        diagnostics.append(Diagnostic(log, "expected a directory"))
+        return diagnostics
+
+    try:
+        entries = sorted(log.iterdir())
+    except OSError as error:
+        diagnostics.append(Diagnostic(log, str(error)))
+        return diagnostics
+    for entry in entries:
+        name = entry.name
+        # We need to check that the string is ASCII because `isdigit` accepts
+        # Unicode digits. For example, superscript ² satisfies `isdigit` but
+        # int("²") fails.
+        if not (name.isascii() and name.isdigit()):
+            diagnostics.append(Diagnostic(entry, "expected a positive numeric checkpoint directory name"))
+            continue
+        # Ah, a typical canonicity problem of string representations of data
+        # types: "1" and "01" both represent 1. To avoid this, we require the
+        # absence of leading zeros.
+        if name.startswith("0"):
+            diagnostics.append(Diagnostic(entry, "expected a positive checkpoint number without leading zeros"))
+            continue
+        if not entry.is_dir():
+            diagnostics.append(Diagnostic(entry, "expected a directory"))
+            continue
+        require_file(entry / "entry.md")
+        results_path = entry / "results.toml"
+        if require_file(results_path):
+            try:
+                with results_path.open("rb") as file:
+                    tomllib.load(file)
+            except (OSError, ValueError) as error:
+                diagnostics.append(Diagnostic(results_path, str(error)))
+
+    return diagnostics
+
+
 # Utilities
+
+
+@dataclass(frozen=True)
+class ArcArguments:
+    repository: Path
+    arc: str
+
+    @staticmethod
+    def parse(arguments: argparse.Namespace) -> Self:
+        global_arguments = GlobalArguments.parse(arguments)
+        repository = global_arguments.repository
+
+        # Explicit names select directories; consumers validate their contents.
+        if arguments.arc is not None:
+            arc_name = arguments.arc
+            if not arc_name or arc_name in (".", "..", ".git") or Path(arc_name).name != arc_name:
+                die("specify a top-level arc directory name")
+            if not (repository / arc_name).is_dir():
+                die(f"{arc_name} is not a directory in {repository}")
+            return ArcArguments(repository, arc_name)
+
+        match list_arcs(repository):
+            case []:
+                die("there are no active arcs")
+            case [a]:
+                arc = a
+            case arcs:
+                die(f"specify the arc; active arcs: {', '.join(arcs)}")
+
+        return ArcArguments(repository, arc)
 
 
 def compose2(g, f):
@@ -304,9 +408,11 @@ def is_arc(path: Path) -> bool:
 
 
 def is_git_repository(path: Path) -> bool:
-    # TODO: Apparently .git can be a file pointing elsewhere, so this probably
-    # needs to become more sophisticated
-    return (path / ".git").is_dir()
+    result = subprocess.run(
+        ["git", "-C", str(path), "rev-parse", "--show-toplevel"],
+        capture_output=True, text=True,
+    )
+    return result.returncode == 0 and Path(result.stdout.strip()).resolve() == path.resolve()
 
 
 # Run the thing
