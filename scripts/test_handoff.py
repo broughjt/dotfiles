@@ -152,6 +152,12 @@ class CheckCommand(unittest.TestCase):
                 for _ in range(2):
                     result = self.check()
                     self.assertEqual(result.returncode, 1, result.stderr)
+                    self.assertEqual(result.stdout.splitlines()[0].split(), ["ID", "CLAIM", "RESULT", "DURATION"])
+                    self.assertRegex(result.stdout, r"yes\s+holds\s+true\s+\d+\.\ds")
+                    self.assertRegex(
+                        result.stdout.splitlines()[-1],
+                        r"^host: .+, duration: \d+\.\ds, summary: 1 true, 1 false, 1 unknown, 1 timeout$",
+                    )
                     for expected in ("true", "false", "unknown", "timeout", "failed",
                                      "unavailable", "waiting", "exit 1", "exit 3", "after 0.1s"):
                         self.assertIn(expected, result.stdout)

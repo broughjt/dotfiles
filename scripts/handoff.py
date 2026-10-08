@@ -231,14 +231,16 @@ def run_check(check: Check) -> Result:
     return Result(outcome, time.monotonic() - started, output, exit)
 
 
-
-
 def report(checks: list[Check], run: Run) -> None:
     """Report current outcomes, showing output only for non-true results."""
-    width = max((len(check.id) for check in checks), default=0)
+    id_width = max([len("ID"), *(len(check.id) for check in checks)])
+    claim_width = max([len("CLAIM"), *(len(check.claim) for check in checks)])
+    duration_width = max([len("DURATION"), *(len(f"{result.duration:.1f}s") for result in run.results.values())])
+    print(f"{'ID':<{id_width}}  {'CLAIM':<{claim_width}}  {'RESULT':<7}  {'DURATION':>{duration_width}}")
     for check in checks:
         result = run.results[check.id]
-        print(f"{result.outcome.value:<7}  {check.id:<{width}}  {result.duration:5.1f}s  {check.claim}")
+        duration = f"{result.duration:.1f}s"
+        print(f"{check.id:<{id_width}}  {check.claim:<{claim_width}}  {result.outcome.value:<7}  {duration:>{duration_width}}")
         if result.outcome is Outcome.TIMEOUT:
             print(f"         after {check.timeout:g}s")
         elif result.outcome is not Outcome.TRUE:
@@ -252,7 +254,7 @@ def report(checks: list[Check], run: Run) -> None:
     for result in run.results.values():
         counts[result.outcome] += 1
     summary = ", ".join(f"{count} {outcome.value}" for outcome, count in counts.items() if count)
-    print(f"{summary or 'no checks'}; {run.duration:.1f}s on {run.host}")
+    print(f"\nhost: {run.host}, duration: {run.duration:.1f}s, summary: {summary or 'no checks'}")
 
 
 # Utilities
