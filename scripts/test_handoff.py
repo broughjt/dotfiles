@@ -1,5 +1,5 @@
 """Tests for handoff.py. Run with `python3 -m unittest discover -s scripts`
-inside `nix develop`, which provides tomli-w and git."""
+inside `nix develop`, which provides Python, bash and git."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import contextlib
 import io
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import textwrap
 import unittest
@@ -21,7 +22,9 @@ def write_checks(arc: Path, text: str) -> None:
 
 class LoadChecks(unittest.TestCase):
     def setUp(self) -> None:
-        self.directory = Path(tempfile.mkdtemp())
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.directory = Path(directory.name)
         self.path = self.directory / handoff.CHECKS
 
     def load(self, text: str) -> list[Check]:
@@ -80,7 +83,7 @@ class RunCheck(unittest.TestCase):
     def test_stdin_is_closed(self) -> None:
         self.assertIs(self.run_shell("read line").outcome, Outcome.FALSE)
 
-    def test_timeout_is_unknown_and_kills_children(self) -> None:
+    def test_timeout_kills_children(self) -> None:
         with tempfile.NamedTemporaryFile() as marker:
             # The subshell outlives bash -c unless the process group is killed.
             result = self.run_shell(
@@ -94,112 +97,103 @@ class RunCheck(unittest.TestCase):
             self.assertEqual(Path(marker.name).read_text(), "")
 
 
-class Results(unittest.TestCase):
-    """Results round-trip through the file and git, and flips are reported."""
+class CheckCommand(unittest.TestCase):
+    """Exercise the CLI and verify checks never persist or compare results."""
 
     def setUp(self) -> None:
-        self.repository = Path(tempfile.mkdtemp())
-        self.git("init", "-q")
-        self.git("config", "user.email", "test@example.com")
-        self.git("config", "user.name", "test")
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.repository = Path(directory.name)
+        subprocess.run(["git", "init", "-q", str(self.repository)], check=True)
         self.arc = self.repository / "arc"
         self.arc.mkdir()
         (self.arc / handoff.START).write_text("")
 
-    def git(self, *arguments: str) -> None:
-        subprocess.run(["git", "-C", str(self.repository), *arguments], check=True, capture_output=True)
+    def check(self, *arguments: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(Path(handoff.__file__).resolve()),
+             "--repository", str(self.repository), "check", *arguments],
+            capture_output=True, text=True,
+        )
 
-    def check(self) -> tuple[str, int]:
-        arguments = handoff.argparse.Namespace(repository=self.repository, arc=None)
-        stdout = io.StringIO()
-        with contextlib.redirect_stdout(stdout), self.assertRaises(SystemExit) as exited:
-            handoff.command_check(arguments)
-        return stdout.getvalue(), exited.exception.code
+    def snapshot(self) -> dict:
+        return {
+            str(path.relative_to(self.repository)): path.read_bytes()
+            for path in self.repository.rglob("*") if path.is_file()
+        }
 
-    def test_results_round_trip(self) -> None:
-        write_checks(
-            self.arc,
-            """
+    def test_reports_all_outcomes_without_writing_or_comparing(self) -> None:
+        write_checks(self.arc, '''
             [yes]
             claim = "holds"
-            run = "echo fine"
+            run = "echo hidden"
+
+            [no]
+            claim = "does not hold"
+            run = "echo failed; exit 1"
+
+            [unknown]
+            claim = "cannot observe"
+            run = "echo unavailable; exit 3"
 
             [slow]
-            claim = "slow"
-            run = "sleep 5"
-            timeout = 0.2
-            """
-        )
-        self.assertIsNone(handoff.committed_results(self.repository, "arc"))
-        _, code = self.check()
-        self.assertEqual(code, 1)
-        self.git("add", "-A")
-        self.git("commit", "-qm", "results")
-        previous = handoff.committed_results(self.repository, "arc")
-        self.assertEqual(previous.host, handoff.socket.gethostname())
-        self.assertEqual(previous.results["yes"], handoff.Result(Outcome.TRUE, previous.results["yes"].duration, "fine", 0))
-        self.assertEqual(previous.results["slow"], handoff.Result(Outcome.TIMEOUT, previous.results["slow"].duration, ""))
+            claim = "times out"
+            run = "echo waiting; sleep 5"
+            timeout = 0.1
+        ''')
+        for existing_results in (False, True):
+            with self.subTest(existing_results=existing_results):
+                if existing_results:
+                    (self.arc / "results.toml").write_text("deliberately invalid TOML")
+                    log = self.arc / "log" / "previous"
+                    log.mkdir(parents=True)
+                    (log / "results.toml").write_text("also invalid")
+                before = self.snapshot()
+                for _ in range(2):
+                    result = self.check()
+                    self.assertEqual(result.returncode, 1, result.stderr)
+                    for expected in ("true", "false", "unknown", "timeout", "failed",
+                                     "unavailable", "waiting", "exit 1", "exit 3", "after 0.1s"):
+                        self.assertIn(expected, result.stdout)
+                    for absent in ("hidden", "before:", "previous results", "was true", "was false"):
+                        self.assertNotIn(absent, result.stdout)
+                    self.assertEqual(result.stderr, "")
+                    self.assertEqual(self.snapshot(), before)
 
-    def test_flips_are_reported_against_the_commit(self) -> None:
-        write_checks(
-            self.arc,
-            """
-            [regresses]
-            claim = "will regress"
-            run = "true"
+    def test_success_and_empty_checks(self) -> None:
+        for contents in ('[yes]\nclaim = "holds"\nrun = "true"\n', ""):
+            with self.subTest(contents=contents):
+                write_checks(self.arc, contents)
+                result = self.check("arc")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                if not contents:
+                    self.assertIn("no checks", result.stdout)
 
-            [recovers]
-            claim = "will recover"
-            run = "echo broken; exit 1"
+    def test_arc_selection(self) -> None:
+        write_checks(self.arc, "")
+        other = self.repository / "other"
+        other.mkdir()
+        (other / handoff.START).write_text("")
+        self.assertEqual(self.check().returncode, 2)
+        self.assertEqual(self.check("arc").returncode, 0)
+        self.assertEqual(self.check("missing").returncode, 2)
 
-            [steady]
-            claim = "stays true, output changes"
-            run = "date +%N"
-            """
-        )
-        self.check()
-        self.git("add", "-A")
-        self.git("commit", "-qm", "results")
-        write_checks(
-            self.arc,
-            """
-            [regresses]
-            claim = "will regress"
-            run = "echo now broken; exit 1"
+    def test_missing_or_invalid_checks(self) -> None:
+        result = self.check()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("does not exist", result.stderr)
+        write_checks(self.arc, "[broken")
+        result = self.check()
+        self.assertEqual(result.returncode, 2)
+        self.assertNotIn("Traceback", result.stderr)
 
-            [recovers]
-            claim = "will recover"
-            run = "true"
-
-            [steady]
-            claim = "stays true, output changes"
-            run = "date +%N"
-
-            [added]
-            claim = "new"
-            run = "true"
-            """
-        )
-        # An uncommitted run in between must not become "previous".
-        self.check()
-        output, code = self.check()
-        self.assertEqual(code, 1)
-        self.assertIn("false    regresses", output)
-        self.assertIn("was true on", output)
-        self.assertIn("now broken", output)
-        self.assertIn("true     recovers", output)
-        self.assertIn("was false on", output)
-        self.assertIn("before:", output)
-        self.assertIn("broken", output)
-        self.assertIn("new since the last commit", output)
-        self.assertNotIn("steady\n         ", output.replace("stays true, output changes", "steady"))
-
-    def test_requires_a_named_arc_when_ambiguous(self) -> None:
-        (self.repository / "other").mkdir()
-        (self.repository / "other" / handoff.START).write_text("")
-        with contextlib.redirect_stderr(io.StringIO()):
-            _, code = self.check()
-        self.assertEqual(code, 2)
+    def test_invalid_timeout_is_a_usage_error(self) -> None:
+        for timeout in ("true", "nan", "inf", "-inf", "0", "-1"):
+            with self.subTest(timeout=timeout):
+                write_checks(self.arc, f'[x]\nclaim = "holds"\nrun = "true"\ntimeout = {timeout}\n')
+                result = self.check()
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn("timeout must be", result.stderr)
 
 
 if __name__ == "__main__":
