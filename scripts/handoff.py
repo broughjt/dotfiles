@@ -195,19 +195,19 @@ def parse_checks(data: dict) -> list[Check]:
     checks = list()
     for id, entry in data.items():
         if not isinstance(entry, dict):
-            die(f"{path}: {id} is not a table")
+            die(f"{id} is not a table")
         unknown = set(entry) - {"claim", "run", "timeout"}
         if unknown:
-            die(f"{path}: {id} has unknown keys {', '.join(sorted(unknown))}")
+            die(f"{id} has unknown keys {', '.join(sorted(unknown))}")
         claim = entry.get("claim")
         if not isinstance(entry.get("claim"), str):
-            die(f"{path}: {claim} is not a string")
+            die(f"{id}: claim is not a string")
         run = entry.get("run")
         if not isinstance(entry.get("run"), str):
-            die(f"{path}: {run} is not a string")
+            die(f"{id}: run is not a string")
         timeout = entry.get("timeout", DEFAULT_TIMEOUT)
         if not isinstance(timeout, (int, float)) or timeout <= 0:
-            die(f"{path}: {id} timeout must be a positive number of seconds")
+            die(f"{id} timeout must be a positive number of seconds")
         checks.append(Check(id, claim, run, float(timeout)))
     return checks
 
