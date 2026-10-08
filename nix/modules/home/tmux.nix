@@ -38,8 +38,8 @@ in
     historyLimit = 50000;
     terminal = "tmux-256color";
     extraConfig = ''
-      # Preserve modified keys such as Shift-Enter through supporting terminals.
-      set -s extended-keys on
+      # Preserve modified keys even when applications do not request extended keys.
+      set -s extended-keys always
       set -s extended-keys-format csi-u
       set -as terminal-features 'xterm*:extkeys'
     '';
