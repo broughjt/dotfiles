@@ -73,12 +73,11 @@ class RunCheck(unittest.TestCase):
             self.assertIs(result.outcome, Outcome.UNKNOWN)
             self.assertEqual(result.exit, code)
 
-    def test_output_is_interleaved_and_tailed(self) -> None:
+    def test_output_is_interleaved_and_preserved(self) -> None:
         result = self.run_shell("echo out; echo err >&2; seq 1 100")
         lines = result.output.splitlines()
-        self.assertEqual(len(lines), handoff.OUTPUT_LINES)
-        self.assertEqual(lines[-1], "100")
-        self.assertIn("err", self.run_shell("echo out; echo err >&2").output)
+        self.assertEqual(lines, ["out", "err", *(str(number) for number in range(1, 101))])
+        self.assertTrue(result.output.endswith("100\n"))
 
     def test_stdin_is_closed(self) -> None:
         self.assertIs(self.run_shell("read line").outcome, Outcome.FALSE)
@@ -92,7 +91,7 @@ class RunCheck(unittest.TestCase):
             )
             self.assertIs(result.outcome, Outcome.TIMEOUT)
             self.assertIsNone(result.exit)
-            self.assertEqual(result.output, "started")
+            self.assertEqual(result.output, "started\n")
             subprocess.run(["sleep", "1.5"])
             self.assertEqual(Path(marker.name).read_text(), "")
 
@@ -174,6 +173,13 @@ class CheckCommand(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 if not contents:
                     self.assertIn("no checks", result.stdout)
+
+    def test_report_shows_only_the_output_tail(self) -> None:
+        write_checks(self.arc, '[x]\nclaim = "fails"\nrun = "seq 1 100; exit 1"\n')
+        result = self.check()
+        self.assertEqual(result.returncode, 1, result.stderr)
+        output_lines = [line.strip() for line in result.stdout.splitlines() if line.startswith("           ")]
+        self.assertEqual(output_lines, [str(number) for number in range(81, 101)])
 
     def test_arc_selection(self) -> None:
         write_checks(self.arc, "")

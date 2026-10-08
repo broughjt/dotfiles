@@ -247,8 +247,7 @@ def report(checks: list[Check], run: Run) -> None:
             print(f"         exit {result.exit}")
         if result.outcome is not Outcome.TRUE and result.output:
             print("         output:")
-            # TODO: Tail here, not during `Result` construction
-            for line in result.output.splitlines():
+            for line in result.output.splitlines()[-OUTPUT_LINES:]:
                 print(f"           {line}")
     counts = {outcome: 0 for outcome in Outcome}
     for result in run.results.values():
@@ -308,10 +307,6 @@ def is_git_repository(path: Path) -> bool:
     # TODO: Apparently .git can be a file pointing elsewhere, so this probably
     # needs to become more sophisticated
     return (path / ".git").is_dir()
-
-
-def tail(output: str) -> str:
-    return "\n".join(output.splitlines()[-OUTPUT_LINES:])
 
 
 # Run the thing
