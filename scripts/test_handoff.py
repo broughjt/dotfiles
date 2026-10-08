@@ -224,6 +224,8 @@ class Lint(unittest.TestCase):
         self.arc.mkdir()
         for name in handoff.STATE_FILES:
             (self.arc / name).write_text("")
+        (self.arc / handoff.START).write_text('next = "Continue"\nworkflow = "handoff:shared.md"\nread_first = []\n')
+        (self.repository / "shared.md").write_text("workflow")
         # This command must never execute during lint.
         write_checks(self.arc, '[x]\nclaim = "example"\nrun = "touch SHOULD_NOT_EXIST"\n')
 
@@ -249,7 +251,7 @@ class Lint(unittest.TestCase):
         self.assertEqual(before, after)
 
     def test_reports_multiple_defects_including_missing_start(self) -> None:
-        (self.arc / "start.md").unlink()
+        (self.arc / handoff.START).unlink()
         (self.arc / "arc.md").unlink()
         (self.arc / "arc.md").mkdir()
         write_checks(self.arc, '[x]\nrun = "true"\n')
@@ -257,7 +259,7 @@ class Lint(unittest.TestCase):
         (entry / "entry.md").unlink()
         result = self.lint("arc")
         self.assertEqual(result.returncode, 1, result.stderr)
-        for text in ("start.md", "arc.md", "checks.toml", "entry.md", "results.toml", "5 lint errors"):
+        for text in (handoff.START, "arc.md", "checks.toml", "entry.md", "results.toml", "5 lint errors"):
             self.assertIn(text, result.stdout)
         self.assertNotIn("Traceback", result.stderr)
 
@@ -282,6 +284,28 @@ class Lint(unittest.TestCase):
         (self.arc / "log").write_text("")
         self.assertEqual(self.lint().returncode, 1)
 
+    def test_missing_references_are_reported_together(self) -> None:
+        (self.arc / handoff.START).write_text(
+            'next = "Continue"\nworkflow = "arc:missing.md"\n'
+            '[[read_first]]\npath = "handoff:also-missing.md"\nreason = "Context"\n'
+        )
+        diagnostics = handoff.lint_arc(self.arc)
+        self.assertEqual(len(diagnostics), 2)
+        self.assertTrue(all(d.path.name == handoff.START for d in diagnostics))
+
+    def test_project_reference_uses_enclosing_repository(self) -> None:
+        nested = self.repository / ".scratch" / "handoff"
+        nested.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q", str(nested)], check=True)
+        self.assertEqual(
+            handoff.resolve_reference("project:source.py", nested / "arc", nested),
+            self.repository / "source.py",
+        )
+
+    def test_malformed_start_is_a_lint_error(self) -> None:
+        (self.arc / handoff.START).write_text("[broken")
+        self.assertEqual(self.lint("arc").returncode, 1)
+
     def test_explicit_arc_cannot_escape_repository(self) -> None:
         for name in ("..", ".git", "../arc", str(self.arc)):
             with self.subTest(name=name):
@@ -302,6 +326,34 @@ class Lint(unittest.TestCase):
         )
         self.assertTrue((worktree / ".git").is_file())
         self.assertTrue(handoff.is_git_repository(worktree))
+
+
+class ParseStart(unittest.TestCase):
+    def test_multiline_next_and_reads(self) -> None:
+        data = {
+            "next": "Discuss the plan.\nThen implement.",
+            "workflow": "handoff:shared.md",
+            "read_first": [{"path": "project:src/main.py", "reason": "Entry point"}],
+        }
+        start = handoff.parse_start(data)
+        self.assertEqual(start.next, data["next"])
+        self.assertEqual(start.read_first, (handoff.ReadFirst("project:src/main.py", "Entry point"),))
+
+    def test_invalid_fields_and_paths(self) -> None:
+        base = {"next": "Continue", "workflow": "arc:workflow.md", "read_first": []}
+        for changes in (
+            {"next": " "}, {"next": False}, {"extra": "unknown"},
+            {"workflow": "workflow.md"}, {"workflow": "arc:/absolute"},
+            {"workflow": "handoff:../escape"}, {"workflow": "other:file"},
+            {"read_first": {}}, {"read_first": ["file"]},
+            {"read_first": [{"path": "arc:context.md"}]},
+            {"read_first": [{"path": "arc:context.md", "reason": ""}]},
+        ):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                handoff.parse_start(base | changes)
+        for field in base:
+            with self.subTest(missing=field), self.assertRaises(ValueError):
+                handoff.parse_start({key: value for key, value in base.items() if key != field})
 
 
 if __name__ == "__main__":

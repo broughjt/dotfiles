@@ -19,12 +19,82 @@ import tomllib
 from typing import NoReturn, Self
 
 REPOSITORY = Path(".scratch/handoff")
-START = "start.md"
+START = "start.toml"
 CHECKS = "checks.toml"
 ARCHIVE_TAG_PREFIX = "archive/"
 DEFAULT_TIMEOUT = 60.0
 OUTPUT_LINES = 20
-STATE_FILES = (START, "arc.md", "tasks.md", "do-not-reopen.md", "open-questions.md", "review.md", "workflow.md")
+STATE_FILES = ("arc.md", "tasks.md", "do-not-reopen.md", "open-questions.md", "review.md")
+
+
+@dataclass(frozen=True)
+class ReadFirst:
+    path: str
+    reason: str
+
+
+@dataclass(frozen=True)
+class Start:
+    next: str
+    workflow: str
+    read_first: tuple[ReadFirst, ...]
+
+
+def parse_start(data: dict) -> Start:
+    def fields(table: dict, required: set[str], context: str) -> None:
+        if not isinstance(table, dict):
+            raise ValueError(f"{context} must be a table")
+        if set(table) != required:
+            raise ValueError(f"{context} requires exactly these fields: {', '.join(sorted(required))}")
+
+    def text(value: object, context: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{context} must be a nonempty string")
+        return value
+
+    fields(data, {"next", "workflow", "read_first"}, "start")
+    next_action = text(data["next"], "next")
+    workflow = text(data["workflow"], "workflow")
+    parse_reference(workflow)
+    if not isinstance(data["read_first"], list):
+        raise ValueError("read_first must be an array of tables")
+    reads = []
+    for index, entry in enumerate(data["read_first"]):
+        context = f"read_first[{index}]"
+        fields(entry, {"path", "reason"}, context)
+        path = text(entry["path"], f"{context}.path")
+        parse_reference(path)
+        reads.append(ReadFirst(path, text(entry["reason"], f"{context}.reason")))
+    return Start(next_action, workflow, tuple(reads))
+
+
+def parse_reference(reference: str) -> tuple[str, Path]:
+    scope, separator, relative = reference.partition(":")
+    path = Path(relative)
+    if (
+        not separator or scope not in {"arc", "handoff", "project"}
+        or not relative or path.is_absolute() or ".." in path.parts or not path.parts
+    ):
+        raise ValueError(f"{reference!r}: expected arc:, handoff: or project: followed by a relative file path without '..'")
+    return scope, path
+
+
+def resolve_reference(reference: str, arc: Path, repository: Path) -> Path:
+    scope, relative = parse_reference(reference)
+    if scope == "arc":
+        root = arc
+    elif scope == "handoff":
+        root = repository
+    else:
+        # Discover the enclosing project, not the nested handoff repository.
+        result = subprocess.run(
+            ["git", "-C", str(repository.resolve().parent), "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True,
+        )
+        if result.returncode:
+            raise ValueError(f"{reference}: no enclosing project repository found")
+        root = Path(result.stdout.strip())
+    return root / relative
 
 
 def main() -> None:
@@ -269,9 +339,10 @@ def handle_lint(arguments: LintArguments) -> None:
     raise SystemExit(1 if diagnostics else 0)
 
 
-def lint_arc(arc: Path) -> list[Diagnostic]:
+def lint_arc(arc: Path, repository: Path | None = None) -> list[Diagnostic]:
     """Check working-tree structure; prose and results schemas remain unvalidated."""
     diagnostics = []
+    repository = repository or arc.parent
 
     def require_file(path: Path) -> bool:
         if path.is_file():
@@ -281,6 +352,21 @@ def lint_arc(arc: Path) -> list[Diagnostic]:
 
     for name in STATE_FILES:
         require_file(arc / name)
+    start_path = arc / START
+    if require_file(start_path):
+        try:
+            with start_path.open("rb") as file:
+                start = parse_start(tomllib.load(file))
+        except (OSError, ValueError) as error:
+            diagnostics.append(Diagnostic(start_path, str(error)))
+        else:
+            for reference in (start.workflow, *(read.path for read in start.read_first)):
+                try:
+                    path = resolve_reference(reference, arc, repository)
+                    if not path.is_file():
+                        diagnostics.append(Diagnostic(start_path, f"{reference}: expected a regular file at {path}"))
+                except (OSError, ValueError) as error:
+                    diagnostics.append(Diagnostic(start_path, str(error)))
     checks_path = arc / CHECKS
     if require_file(checks_path):
         try:
