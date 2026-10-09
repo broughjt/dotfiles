@@ -41,7 +41,6 @@ nixpkgs.lib.nixosSystem {
               imports = [
                 homeLinux
                 homeLocalDirectory
-                homeAgentDetach
                 homeClaudeCode
                 homeCodex
                 homeGh
