@@ -77,7 +77,6 @@
       llmAgentsOverlay = final: _prev: {
         llm-agents = llm-agents-nix.packages.${final.stdenv.hostPlatform.system};
       };
-      # The handoff CLI, with the skills that use it as passthru.skills.
       handoffOverlay = final: _prev: {
         handoff = handoff.packages.${final.stdenv.hostPlatform.system}.default;
       };
