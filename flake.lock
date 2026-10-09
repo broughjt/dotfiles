@@ -145,6 +145,29 @@
         "type": "github"
       }
     },
+    "handoff": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791576380,
+        "narHash": "sha256-D2Tq/YO69h4wM3Ns6b81G05his+oKJQTp7/852Fp/z4=",
+        "owner": "broughjt",
+        "repo": "handoff",
+        "rev": "eac39c2216501f6fc36f0de6c00c0f2cbb1dd3a3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "broughjt",
+        "repo": "handoff",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -491,6 +514,7 @@
         "disko": "disko",
         "emacs-overlay": "emacs-overlay",
         "flake-utils": "flake-utils",
+        "handoff": "handoff",
         "home-manager": "home-manager",
         "home-manager-raspberrypi": "home-manager-raspberrypi",
         "impermanence": "impermanence",
