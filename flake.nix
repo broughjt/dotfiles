@@ -39,6 +39,10 @@
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
 
+    handoff.url = "github:broughjt/handoff";
+    handoff.inputs.nixpkgs.follows = "nixpkgs";
+    handoff.inputs.flake-utils.follows = "flake-utils";
+
     # Not following our nixpkgs: the vendor kernel and ZFS module are only in
     # nixos-raspberrypi's binary cache when built against its own pin.
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
@@ -61,6 +65,7 @@
       nixos-anywhere,
       flake-utils,
       llm-agents-nix,
+      handoff,
       nixos-raspberrypi,
       home-manager-raspberrypi,
     }:
@@ -71,6 +76,10 @@
       # derivations built by Numtide's binary cache.
       llmAgentsOverlay = final: _prev: {
         llm-agents = llm-agents-nix.packages.${final.stdenv.hostPlatform.system};
+      };
+      # The handoff CLI, with the skills that use it as passthru.skills.
+      handoffOverlay = final: _prev: {
+        handoff = handoff.packages.${final.stdenv.hostPlatform.system}.default;
       };
       # emacs-overlay still reads deprecated stdenv platform aliases. Keep the
       # compatibility values local to that overlay until upstream migrates.
@@ -100,6 +109,7 @@
       nixosModules = import ./nix/modules {
         inherit
           llmAgentsOverlay
+          handoffOverlay
           emacsOverlays
           disko
           impermanence
@@ -201,7 +211,6 @@
           flashNixosInstaller =
             makeScriptApp scriptPackages.flashNixosInstaller "flash-nixos-installer"
               "Download and write a NixOS installer image";
-          handoff = makeScriptApp scriptPackages.handoff "handoff" "Automation for the handoff skills";
           installCase =
             makeScriptApp scriptPackages.installCase "install-case"
               "Provision a Hetzner Cloud VM and install NixOS on it";

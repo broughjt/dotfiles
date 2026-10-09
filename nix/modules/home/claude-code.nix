@@ -48,7 +48,10 @@ let
   };
 in
 {
-  imports = [ ./agent-instructions.nix ];
+  imports = [
+    ./agent-instructions.nix
+    ./handoff.nix
+  ];
 
   options.claudeCode.configFile = lib.mkOption {
     type = lib.types.str;
@@ -70,10 +73,7 @@ in
 
       context = config.agentInstructions.text;
 
-      skills = builtins.path {
-        name = "skills";
-        path = ../../../agents/skills;
-      };
+      skills = pkgs.handoff.skills;
     };
   };
 }

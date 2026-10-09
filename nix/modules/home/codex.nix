@@ -10,14 +10,14 @@ let
     codexHome = config.codex.configDirectory;
   };
 
-  skillsSource = builtins.path {
-    name = "skills";
-    path = ../../../agents/skills;
-  };
+  skillsSource = pkgs.handoff.skills;
   skillNames = builtins.attrNames (builtins.readDir skillsSource);
 in
 {
-  imports = [ ./agent-instructions.nix ];
+  imports = [
+    ./agent-instructions.nix
+    ./handoff.nix
+  ];
 
   options.codex = {
     configDirectory = lib.mkOption {

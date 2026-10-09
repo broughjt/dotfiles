@@ -9,8 +9,6 @@
       ])
       ++ (with scriptPackages; [
         backupMurphSecrets
-        handoff
-        handoffPython # For running scripts/test_handoff.py.
         restoreMurphSecrets
       ])
       ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux (
