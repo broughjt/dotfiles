@@ -39,7 +39,7 @@
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
 
-    handoff.url = "github:broughjt/handoff";
+    handoff.url = "git+file:///home/jackson/repositories/handoff";
     handoff.inputs.nixpkgs.follows = "nixpkgs";
     handoff.inputs.flake-utils.follows = "flake-utils";
 
