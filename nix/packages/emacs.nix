@@ -46,7 +46,21 @@
         epkgs.auctex
         epkgs.grip-mode
         epkgs.haskell-mode
-        epkgs.haskell-ts-mode
+        # tree-sitter-haskell 0.24.0 renamed the misspelled `type_synomym` node to
+        # `type_synonym`. haskell-ts-mode still queries the old name, which
+        # disables its `constructors' font-lock feature (and, on its unreleased
+        # HEAD, drops type synonyms from imenu).
+        # TODO: Remove this patch once the misspelling is fixed upstream.
+        # The package is installed from an ELPA tarball without unpacking, so
+        # the patch is applied to the tarball itself.
+        (epkgs.haskell-ts-mode.overrideAttrs (old: {
+          src = pkgs.runCommand old.src.name { } ''
+            tar xf ${old.src}
+            substituteInPlace haskell-ts-mode-${old.version}/haskell-ts-mode.el \
+              --replace-fail type_synomym type_synonym
+            tar cf $out --format=ustar haskell-ts-mode-${old.version}
+          '';
+        }))
         epkgs.markdown-mode
         epkgs.nix-mode
         epkgs.racket-mode
