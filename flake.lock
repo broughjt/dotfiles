@@ -155,11 +155,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793486029,
-        "narHash": "sha256-ZYUZ/dhWtWJNGvqDC2XugxMi8Nk6otlFdrx1m/bqcDc=",
+        "lastModified": 1793487927,
+        "narHash": "sha256-EZfeeJN+i2aD8t32tpm//nqdnfJybXyRVLAcSrMfDpo=",
         "ref": "refs/heads/main",
-        "rev": "a90bc41c6ee5267a229e6f898d7409304eb92d6f",
-        "revCount": 150,
+        "rev": "35e9313a58fb209b20dc1eeacd240872da1c596b",
+        "revCount": 152,
         "type": "git",
         "url": "file:///home/jackson/repositories/handoff"
       },
