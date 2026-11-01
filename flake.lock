@@ -157,15 +157,15 @@
       "locked": {
         "lastModified": 1793492914,
         "narHash": "sha256-1oGXZGrmWWwoxbNz9NtI6/moY3LBa2R7L9lkNqrxO6g=",
-        "ref": "refs/heads/main",
+        "owner": "broughjt",
+        "repo": "handoff",
         "rev": "2e043b38308b173bc6244c2df15cce00351929fd",
-        "revCount": 154,
-        "type": "git",
-        "url": "file:///home/jackson/repositories/handoff"
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/jackson/repositories/handoff"
+        "owner": "broughjt",
+        "repo": "handoff",
+        "type": "github"
       }
     },
     "home-manager": {
