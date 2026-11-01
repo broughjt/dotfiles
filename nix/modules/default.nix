@@ -1,6 +1,6 @@
 {
   llmAgentsOverlay,
-  handoffOverlay,
+  handoff,
   emacsOverlays,
   disko,
   impermanence,
@@ -49,10 +49,7 @@
   # Overlays are a host concern. With home-manager.useGlobalPkgs the Home
   # Manager modules share the system package set and cannot add their own.
   llmAgents = {
-    nixpkgs.overlays = [
-      llmAgentsOverlay
-      handoffOverlay
-    ];
+    nixpkgs.overlays = [ llmAgentsOverlay ];
   };
   emacsPackageSet = {
     nixpkgs.overlays = emacsOverlays;
@@ -76,6 +73,10 @@
   homeChromium = import ./home/chromium.nix;
   homeChromiumImpermanence = import ./home/impermanence/chromium.nix;
   homeCodex = import ./home/codex.nix;
+  homeHandoff = {
+    imports = [ handoff.homeModules.default ];
+    programs.handoff.enable = true;
+  };
   homeGhostty = import ./home/ghostty.nix;
   homeLocalDirectory = import ./home/local-directory.nix;
   homeKippImpermanence = import ./home/impermanence/kipp.nix;

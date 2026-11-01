@@ -9,14 +9,10 @@ let
   codexPackage = pkgs.callPackage ../../packages/codex.nix {
     codexHome = config.codex.configDirectory;
   };
-
-  skillsSource = pkgs.handoff.skills;
-  skillNames = builtins.attrNames (builtins.readDir skillsSource);
 in
 {
   imports = [
     ./agent-instructions.nix
-    ./handoff.nix
   ];
 
   options.codex = {
@@ -43,9 +39,11 @@ in
 
     home.file = lib.mkMerge (
       [ { "${config.codex.configDirectory}/AGENTS.md".text = config.agentInstructions.text; } ]
-      ++ map (name: {
-        "${config.codex.configDirectory}/skills/${name}".source = "${skillsSource}/${name}";
-      }) skillNames
+      # Not home-manager's programs.codex, so the handoff module cannot add
+      # its skills; a host importing this one has to import homeHandoff too.
+      ++ lib.mapAttrsToList (name: source: {
+        "${config.codex.configDirectory}/skills/${name}".source = source;
+      }) config.programs.handoff.skills
     );
   };
 }

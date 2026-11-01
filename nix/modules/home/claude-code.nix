@@ -50,7 +50,6 @@ in
 {
   imports = [
     ./agent-instructions.nix
-    ./handoff.nix
   ];
 
   options.claudeCode.configFile = lib.mkOption {
@@ -72,8 +71,6 @@ in
       package = pkgs.callPackage ../../packages/claude-code.nix { };
 
       context = config.agentInstructions.text;
-
-      skills = pkgs.handoff.skills;
     };
   };
 }

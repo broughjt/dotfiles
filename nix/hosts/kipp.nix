@@ -43,6 +43,7 @@ nixpkgs.lib.nixosSystem {
                 homeLocalDirectory
                 homeClaudeCode
                 homeCodex
+                homeHandoff
                 homeGh
                 homeKippImpermanence
               ];

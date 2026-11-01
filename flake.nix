@@ -77,9 +77,6 @@
       llmAgentsOverlay = final: _prev: {
         llm-agents = llm-agents-nix.packages.${final.stdenv.hostPlatform.system};
       };
-      handoffOverlay = final: _prev: {
-        handoff = handoff.packages.${final.stdenv.hostPlatform.system}.default;
-      };
       # emacs-overlay still reads deprecated stdenv platform aliases. Keep the
       # compatibility values local to that overlay until upstream migrates.
       emacsPlatformCompatOverlay =
@@ -108,7 +105,7 @@
       nixosModules = import ./nix/modules {
         inherit
           llmAgentsOverlay
-          handoffOverlay
+          handoff
           emacsOverlays
           disko
           impermanence
