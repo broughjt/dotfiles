@@ -17,6 +17,7 @@ in
     ./gnome-desktop.nix
     ./claude-code.nix
     ./codex.nix
+    ./pi-coding-agent.nix
     ./chromium.nix
   ];
 

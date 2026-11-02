@@ -45,6 +45,7 @@ nixpkgs.lib.nixosSystem {
               homeClaudeCode
               homeChromium
               homeCodex
+              homePiCodingAgent
               homeHandoff
               homeGh
               homeHcloud

@@ -37,6 +37,7 @@ nixpkgs.lib.nixosSystem {
                 homeAgentDetach
                 homeClaudeCode
                 homeCodex
+                homePiCodingAgent
                 homeHandoff
                 homeGh
               ];

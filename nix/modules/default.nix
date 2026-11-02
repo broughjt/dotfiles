@@ -73,6 +73,7 @@
   homeChromium = import ./home/chromium.nix;
   homeChromiumImpermanence = import ./home/impermanence/chromium.nix;
   homeCodex = import ./home/codex.nix;
+  homePiCodingAgent = import ./home/pi-coding-agent.nix;
   homeHandoff = {
     imports = [ handoff.homeModules.default ];
     programs.handoff.enable = true;

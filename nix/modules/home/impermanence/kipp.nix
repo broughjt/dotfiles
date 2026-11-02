@@ -12,6 +12,7 @@ in
     ./ssh.nix
     ./claude-code.nix
     ./codex.nix
+    ./pi-coding-agent.nix
   ];
 
   home.persistence.main = {
