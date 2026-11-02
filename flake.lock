@@ -155,11 +155,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793500231,
-        "narHash": "sha256-Ek8Zpjekxzx36w0PqU5MJUqpVAc6kmnGNp591WtM2Wc=",
+        "lastModified": 1793581209,
+        "narHash": "sha256-iGAN9gn5VLe6i6vIW4h58gVQH7Fk/FUjuqYQFx3eWeg=",
         "owner": "broughjt",
         "repo": "handoff",
-        "rev": "f1263123b52550d61d3aa9c8c786b3aecc6b819f",
+        "rev": "8a699574e3e390eaaa488c960430b521bfac09e8",
         "type": "github"
       },
       "original": {
