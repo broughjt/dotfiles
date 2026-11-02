@@ -70,6 +70,14 @@
 
     directories = [
       "/etc/NetworkManager/system-connections"
+
+      # BlueZ pairing keys, trusted devices, and adapter settings. Keep these
+      # private; runtime sockets under /run remain ephemeral.
+      {
+        directory = "/var/lib/bluetooth";
+        mode = "0700";
+      }
+
       "/var/lib/fprint"
       "/var/lib/nixos"
       "/var/lib/systemd"
