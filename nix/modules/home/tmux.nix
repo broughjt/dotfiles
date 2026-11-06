@@ -42,6 +42,9 @@ in
       set -s extended-keys always
       set -s extended-keys-format csi-u
       set -as terminal-features 'xterm*:extkeys'
+      # With extended-keys always, S-Space reaches every application as CSI u,
+      # which most of them drop.
+      bind -n S-Space send-keys Space
     '';
     plugins = with pkgs.tmuxPlugins; [
       (
