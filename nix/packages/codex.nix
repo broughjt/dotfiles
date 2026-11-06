@@ -20,7 +20,6 @@ pkgs.writeShellScriptBin "codex" ''
   ${lib.concatStringsSep "\n" preludeLines}
 
   exec ${pkgs.llm-agents.codex}/bin/codex \
-    --config ${lib.escapeShellArg "features.apps=false"} \
     --dangerously-bypass-approvals-and-sandbox \
     "$@"
 ''
