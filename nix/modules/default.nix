@@ -56,7 +56,6 @@
   };
   docker = import ./docker.nix;
 
-  homeAgentDetach = import ./home/agent-detach.nix;
   homeDirectories = import ./home/directories.nix;
   homeFish = import ./home/fish.nix;
   homeGh = import ./home/gh.nix;
