@@ -46,6 +46,39 @@ let
       echo "tmux attach -t $name"
     '';
   };
+
+  # Settings keys come and go between releases, and Claude Code ignores keys it
+  # doesn't know, so a renamed setting would silently stop applying. Fail the
+  # build instead: `claude doctor` reports values of the wrong type, and a key
+  # the binary never mentions has almost certainly been removed.
+  settingsCheck =
+    pkgs.runCommand "claude-code-settings-check"
+      {
+        nativeBuildInputs = [ pkgs.jq ];
+        settings = (pkgs.formats.json { }).generate "settings.json" cfg.settings;
+        binary = "${cfg.finalPackage}/bin/.claude-wrapped";
+      }
+      ''
+        mkdir -p "$TMPDIR/config"
+        cp "$settings" "$TMPDIR/config/settings.json"
+
+        report=$(cd "$TMPDIR" && HOME="$TMPDIR" CLAUDE_CONFIG_DIR="$TMPDIR/config" "$binary" doctor </dev/null 2>&1)
+        if grep -q '^Invalid settings' <<<"$report"; then
+          sed -n '/^Invalid settings/,/^$/p' <<<"$report" >&2
+          exit 1
+        fi
+
+        unknown=()
+        while read -r key; do
+          grep -qaF "$key" "$binary" || unknown+=("$key")
+        done < <(jq -r '[.. | objects | keys[]] | unique[]' "$settings")
+        if [ ''${#unknown[@]} -gt 0 ]; then
+          echo "settings keys not found in $binary: ''${unknown[*]}" >&2
+          exit 1
+        fi
+
+        touch "$out"
+      '';
 in
 {
   imports = [
@@ -65,12 +98,28 @@ in
 
   config = {
     home.packages = [ claudeRemote ];
+    home.extraDependencies = [ settingsCheck ];
 
     programs.claude-code = {
       enable = true;
       package = pkgs.callPackage ../../packages/claude-code.nix { };
 
       context = config.agentInstructions.text;
+
+      mutableSettings = true;
+      settings = {
+        attribution = {
+          commit = "";
+          pr = "";
+          sessionUrl = false;
+        };
+        promptSuggestionEnabled = false;
+        theme = "auto";
+        skipDangerousModePermissionPrompt = true;
+        remoteControlAtStartup = true;
+        agentPushNotifEnabled = true;
+        cleanupPeriodDays = 3650;
+      };
     };
   };
 }
