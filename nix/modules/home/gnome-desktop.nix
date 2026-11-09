@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -34,6 +35,24 @@
   ];
 
   home.sessionVariables.NIXOS_OZONE_WL = "1";
+
+  # Discord rewrites settings.json at runtime, so merge these keys into the
+  # writable file instead of linking a read-only one. GNOME has no tray, so
+  # minimizing to it would leave Discord running invisibly after closing.
+  home.activation.discordSettings = lib.hm.dag.entryAfter [ "linkGeneration" ] (
+    lib.hm.generators.mkImpureConfigMerger {
+      inherit pkgs;
+      format = "json";
+      empty = "{}";
+      jqOperation = "$dynamic * $static";
+      path = "${config.xdg.configHome}/discord/settings.json";
+      staticSettings = (pkgs.formats.json { }).generate "discord-settings" {
+        MINIMIZE_TO_TRAY = false;
+        SKIP_HOST_UPDATE = true;
+      };
+      mode = "600";
+    }
+  );
 
   fonts.fontconfig = {
     enable = true;
