@@ -3,11 +3,11 @@
     "arb": {
       "flake": false,
       "locked": {
-        "lastModified": 1794598800,
-        "narHash": "sha256-wo+jijQFPlEOg65fzjDnXqguttns0yStPiN+0NXVQ5c=",
+        "lastModified": 1794605630,
+        "narHash": "sha256-9pqkD/Cm3RCE64QuNiJTWIxGZUGx68WirgjO1mVZqcY=",
         "owner": "broughjt",
         "repo": "arb",
-        "rev": "5d002276fe733293050b449dfa938d636a5fd3c7",
+        "rev": "4c71aec23e7c61af0e274e221fd217e4fe63f559",
         "type": "github"
       },
       "original": {
