@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "arb": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794598800,
+        "narHash": "sha256-wo+jijQFPlEOg65fzjDnXqguttns0yStPiN+0NXVQ5c=",
+        "owner": "broughjt",
+        "repo": "arb",
+        "rev": "5d002276fe733293050b449dfa938d636a5fd3c7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "broughjt",
+        "repo": "arb",
+        "type": "github"
+      }
+    },
     "argononed": {
       "flake": false,
       "locked": {
@@ -511,6 +527,7 @@
     },
     "root": {
       "inputs": {
+        "arb": "arb",
         "disko": "disko",
         "emacs-overlay": "emacs-overlay",
         "flake-utils": "flake-utils",

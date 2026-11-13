@@ -38,6 +38,9 @@
         epkgs.evil
         epkgs.evil-collection
 
+        # arb, from the arb flake input
+        epkgs.arb
+
         # git-config.el
         epkgs.magit
 

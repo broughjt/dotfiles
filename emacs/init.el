@@ -144,8 +144,18 @@
         language-agda
         language-javascript
         language-verilog
-        language-markdown
-        weibian))
+        language-markdown))
+
+;; Demanded rather than deferred by `:bind', so that its `typst-ts-mode' hook
+;; is in place before the first Typst buffer.
+(use-package arb
+  :demand t
+  :bind (("C-c n f" . arb-find-note)
+         ("C-c n i" . arb-insert-node)
+         ("C-c n g" . arb-goto-note-at-point)
+         ("C-c n c" . arb-new-note)
+         ("C-c n s" . arb-insert-subnode)
+         ("C-c n v" . arb-version-node)))
 
 ;; typst-ts-mode is intentionally omitted from the Darwin package set because
 ;; the work Mac has trouble fetching/building the NonGNU ELPA source during Nix

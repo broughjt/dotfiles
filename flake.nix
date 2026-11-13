@@ -39,6 +39,9 @@
 
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
 
+    arb.url = "github:broughjt/arb";
+    arb.flake = false;
+
     handoff.url = "github:broughjt/handoff";
     handoff.inputs.nixpkgs.follows = "nixpkgs";
     handoff.inputs.flake-utils.follows = "flake-utils";
@@ -65,6 +68,7 @@
       nixos-anywhere,
       flake-utils,
       llm-agents-nix,
+      arb,
       handoff,
       nixos-raspberrypi,
       home-manager-raspberrypi,
@@ -89,9 +93,24 @@
             };
           }
         );
+      arbEmacsOverlay = final: prev: {
+        emacsPackagesFor =
+          emacs:
+          (prev.emacsPackagesFor emacs).overrideScope (
+            epkgsFinal: _epkgsPrev: {
+              arb = epkgsFinal.trivialBuild {
+                pname = "arb";
+                version = arb.shortRev;
+                src = "${arb}/emacs";
+                packageRequires = [ epkgsFinal.tomlparse ];
+              };
+            }
+          );
+      };
       emacsOverlays = [
         emacsPlatformCompatOverlay
         emacs-overlay.overlays.package
+        arbEmacsOverlay
       ];
       makePkgsWithOverlays =
         extraOverlays: system:
