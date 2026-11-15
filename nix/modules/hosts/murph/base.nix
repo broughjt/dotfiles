@@ -42,6 +42,10 @@
   services.avahi = {
     enable = true;
     nssmdns4 = true;
+    settings.publish = {
+      disable-publishing = false;
+      publish-addresses = true;
+    };
   };
   # Enable the resolved systemd service for network name resolution.
   services.resolved = {
