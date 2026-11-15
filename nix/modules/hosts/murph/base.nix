@@ -32,7 +32,7 @@
   ssh.knownHostsFile = "${config.defaultDirectories.localDirectory}/hacks/ssh/known_hosts/known_hosts";
 
   programs.ssh.extraConfig = lib.mkBefore ''
-    Host jtbroug-localhost-2222
+    Host s1111508
       HostName localhost
       HostKeyAlias s1111508
       User jtbroug
