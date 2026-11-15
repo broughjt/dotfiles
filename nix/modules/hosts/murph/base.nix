@@ -37,6 +37,8 @@
       HostKeyAlias s1111508
       User jtbroug
       Port 2222
+      IdentityFile ${config.defaultDirectories.localDirectory}/secrets/ssh/id_ecdsa_nistp256
+      IdentitiesOnly yes
   '';
 
   # Enable mDNS/DNS-SD for .local hostname resolution and LAN service discovery.

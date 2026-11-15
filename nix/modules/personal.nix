@@ -26,6 +26,8 @@
       type = lib.types.attrsOf lib.types.str;
       default = {
         murph = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGwFAXp70zd8VHaNEmQ+txSDFCZENuY4yNReGMVyVM61 jacksontbrough@gmail.com";
+        # s1111508's sshd accepts only ECDSA P-256 keys.
+        murph-nistp256 = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHaC6tTFOdzlYvZ3olBnKEHZFLgkqqQoJCTKeHYOzGg0vQ3GPFo4AUpYl8az6MWDrfarD314dLmZRxj+52MMIe4= jackson@murph";
         kipp = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHrwcBYwvkt7fpyYoOp6UHxndoL+OgYfZNH0bP6mcesp jackson@kipp";
         iphone = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINqC3xJ4SpYtp8RXGzah3lpNW4Ajz2WA4aSrW5oRxDKW jackson@iphone";
         sandia = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL7nCb5NzPd5XpYVk/4g07v4E4WtpikAjJIGKJpsVWeP jtbroug@sandia.gov";
