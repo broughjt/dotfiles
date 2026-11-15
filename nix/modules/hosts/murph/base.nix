@@ -34,6 +34,7 @@
   programs.ssh.extraConfig = lib.mkBefore ''
     Host jtbroug-localhost-2222
       HostName localhost
+      HostKeyAlias s1111508
       User jtbroug
       Port 2222
   '';
