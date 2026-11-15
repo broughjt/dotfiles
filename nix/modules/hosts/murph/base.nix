@@ -42,6 +42,8 @@
   services.avahi = {
     enable = true;
     nssmdns4 = true;
+    # Docker's bridge address is unreachable from the LAN.
+    settings.server.deny-interfaces = [ "docker0" ];
     settings.publish = {
       disable-publishing = false;
       publish-addresses = true;
