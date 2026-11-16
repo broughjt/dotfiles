@@ -19,4 +19,4 @@ Check what branch you are on before committing. I often switch branches outside 
 
 When a change belongs to an earlier commit, use `git commit --fixup=<sha>` (also `--squash=<sha>`, `--fixup=amend:<sha>`, `--fixup=reword:<sha>`) so I can fold it in with `git rebase --autosquash`.
 
-Do not push. I will do that myself.
+Only push with my explicit permission.
