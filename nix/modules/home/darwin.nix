@@ -30,6 +30,7 @@
 
   home.packages = with pkgs; [
     fd
+    glab
     jq
     julia-mono
     lldb
