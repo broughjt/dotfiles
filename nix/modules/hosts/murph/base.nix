@@ -39,6 +39,8 @@
       Port 2222
       IdentityFile ${config.defaultDirectories.localDirectory}/secrets/ssh/id_ecdsa_nistp256
       IdentitiesOnly yes
+      # Hide the sshd legal banner and the post-quantum key exchange warning.
+      LogLevel ERROR
   '';
 
   # Enable mDNS/DNS-SD for .local hostname resolution and LAN service discovery.
