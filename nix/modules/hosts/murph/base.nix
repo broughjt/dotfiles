@@ -43,6 +43,15 @@
       LogLevel ERROR
   '';
 
+  # The s1111508 machine opens a reverse tunnel open on port 2222 to murph. I
+  # had a problem where the port was bound but the connection was dead, and I
+  # had to kill the process holding the port. These settings make sure it dies
+  # sooner so this kind of thing doesn't happen.
+  services.openssh.settings = {
+    ClientAliveInterval = 30;
+    ClientAliveCountMax = 3;
+  };
+
   # Enable mDNS/DNS-SD for .local hostname resolution and LAN service discovery.
   services.avahi = {
     enable = true;
