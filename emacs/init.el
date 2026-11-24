@@ -71,6 +71,10 @@
 ;; on my machine, who am I worried about clobbering me?
 (setq create-lockfiles nil)
 
+;; Emacs 31 refuses to run Flymake backends (including eglot's) in untrusted
+;; files. Trailing slash marks a directory prefix.
+(setopt trusted-content '("~/repositories/"))
+
 ;; Transient (magit/etc) UI history.
 (setq transient-history-file
       (expand-file-name "transient/history.el" jackson/emacs-state-directory))
